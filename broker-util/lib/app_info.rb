@@ -170,7 +170,7 @@ class AppQuery
   def self.get_by_login(login)
     retval = []
 
-    CloudUser.where(login: login).each { |user|
+    CloudUser.where(login: CloudUser.normalize_login(login)).each { |user|
       user.domains.each { |domain|
         Application.where(domain_id: domain.id).each { |app|
           retval << AppInfo.new(user, domain, app)
@@ -278,7 +278,7 @@ class AppQuery
   def self.get_deleted_by_login(login)
     retval = []
 
-    CloudUser.where(login: login).each { |user|
+    CloudUser.where(login: CloudUser.normalize_login(login)).each { |user|
       user.domains.each { |domain|
         current_apps = Application.where(domain_id: domain.id).collect { |app| app.name } || Array.new
         seen_apps    = Hash.new(0)

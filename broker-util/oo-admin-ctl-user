@@ -649,7 +649,7 @@ puts
 puts
 
 exit_exception = nil
-logins.each do |login|
+logins.map {|l| CloudUser.normalize_login(l) }.each do |login|
 
   begin
 
@@ -716,11 +716,11 @@ logins.each do |login|
     end
 
     unless account_to_add.nil?
-      add_sub_account(user, account_to_add)
+      add_sub_account(user, CloudUser.normalize_login(account_to_add))
     end
 
     unless account_to_remove.nil?
-      remove_sub_account(user, account_to_remove)
+      remove_sub_account(user, CloudUser.normalize_login(account_to_remove))
     end
 
     unless gear_size_to_add.nil?
