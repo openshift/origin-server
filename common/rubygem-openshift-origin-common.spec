@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.28.0
+Version: 1.28.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -125,6 +125,9 @@ rm -rf %{buildroot}%{gem_instdir}/.yardoc*
 %doc %{gem_docdir}
 
 %changelog
+* Fri Aug 08 2014 Adam Miller <admiller@redhat.com> 1.28.1-1
+- bump_minor_versions for sprint 49 (admiller@redhat.com)
+
 * Wed Jul 30 2014 Adam Miller <admiller@redhat.com> 1.27.4-1
 - Bug 1122515 (lnader@redhat.com)
 
