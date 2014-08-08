@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.29.0
+Version: 1.29.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,17 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Aug 08 2014 Adam Miller <admiller@redhat.com> 1.29.1-1
+- bump_minor_versions for sprint 49 (admiller@redhat.com)
+- Merge pull request #5441 from dobbymoodge/sclmongo
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1121217 - Symbol leak in Throttler cgroup code (jhonce@redhat.com)
+- Bug 1121217 - Symbol leak in Throttler cgroup code (jhonce@redhat.com)
+- mongodb cart: clean up `mongodb_context`, `rhcsh` (jolamb@redhat.com)
+- mongodb cart: Support non-SCL systems (jolamb@redhat.com)
+- mongodb cart: address bugs with scaled carts (jolamb@redhat.com)
+- <mongodb cart> adapt to use SCL-provided mongodb (jolamb@redhat.com)
+
 * Wed Jul 30 2014 Adam Miller <admiller@redhat.com> 1.28.5-1
 - Merge pull request #5622 from Miciah/bug-1121200-oo-iptables-port-proxy-
   getaddr-check-ipaddr (dmcphers+openshiftbot@redhat.com)
