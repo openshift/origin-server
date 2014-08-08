@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.28.0
+Version: 1.28.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -166,6 +166,10 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Fri Aug 08 2014 Adam Miller <admiller@redhat.com> 1.28.1-1
+- bump_minor_versions for sprint 49 (admiller@redhat.com)
+- Bug 1121217 - Symbol leak in Throttler cgroup code (jhonce@redhat.com)
+
 * Wed Jul 30 2014 Adam Miller <admiller@redhat.com> 1.27.5-1
 - Merge pull request #5670 from rajatchopra/bz_watchman
   (dmcphers+openshiftbot@redhat.com)
