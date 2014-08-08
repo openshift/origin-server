@@ -54,7 +54,7 @@ class CloudUser
   validates :login, presence: true
   validates :capabilities, presence: true, capabilities: true
 
-  scope :with_plan, any_of({:plan_id.ne => nil}, {:pending_plan_id.ne => nil}) 
+  scope :with_plan, any_of({:plan_id.ne => nil}, {:pending_plan_id.ne => nil})
   index({:login => 1}, {:unique => true})
   index({'pending_op_groups.created_at' => 1})
 
@@ -74,8 +74,8 @@ class CloudUser
     {login: 107, capabilities: 107}
   end
 
-  # Auth method can either be :login or :broker_auth. :login represents a normal 
-  # authentication with user/pass. :broker_auth is used when the application needs 
+  # Auth method can either be :login or :broker_auth. :login represents a normal
+  # authentication with user/pass. :broker_auth is used when the application needs
   # to make a request to the broker on behalf of the user (eg: scale-up)
   #
   # This is a transient attribute and is not persisted
@@ -147,8 +147,8 @@ class CloudUser
   end
 
   #
-  # Identity support will introduce a provider attribute that is used to 
-  # identify the source of a particular login.  Until then, users are only 
+  # Identity support will introduce a provider attribute that is used to
+  # identify the source of a particular login.  Until then, users are only
   # identified by their login and provider is ignored.
   #
   def self.find_or_create_by_identity(provider, login, create_attributes={}, &block)
@@ -305,7 +305,7 @@ class CloudUser
           else
             raise OpenShift::UserException.new("Capability type not found for '#{k} : #{v}'")
           end
-        end 
+        end
       end
       self._capabilities.merge!(caps.deep_dup)
     end
@@ -334,7 +334,7 @@ class CloudUser
   def max_domains=(m)
     self._capabilities["max_domains"] = m if capabilities["max_domains"] != m
   end
-  
+
   def max_teams
     capabilities["max_teams"] || Rails.application.config.openshift[:default_max_teams]
   end
@@ -452,7 +452,7 @@ class CloudUser
     self._capabilities["private_ssl_certificates"] = m if capabilities["private_ssl_certificates"] != m
   end
 
-  # Delete user and all its artifacts like domains, applications associated with the user 
+  # Delete user and all its artifacts like domains, applications associated with the user
   def force_delete
     while domain = Domain.where(owner: self).first
       while app = Application.where(domain: domain).first
@@ -468,7 +468,7 @@ class CloudUser
     # and prevent us from deleting this user because of the :dependent :restrict clause
     self.reload.delete
   end
-  
+
   #updates user's plan_id
   def update_plan(plan_id, plan_quantity=1)
     Lock.run_in_user_lock(self) do
