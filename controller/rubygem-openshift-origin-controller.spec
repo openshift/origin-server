@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.29.0
+Version: 1.29.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,14 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Aug 08 2014 Adam Miller <admiller@redhat.com> 1.29.1-1
+- bump_minor_versions for sprint 49 (admiller@redhat.com)
+- Merge pull request #5689 from derekwaynecarr/region_description
+  (dmcphers+openshiftbot@redhat.com)
+- Test improvements that were affecting enterprise test scenarios
+  (jdetiber@redhat.com)
+- Add support for description on region object (decarr@redhat.com)
+
 * Wed Jul 30 2014 Adam Miller <admiller@redhat.com> 1.28.7-1
 - Merge pull request #5669 from abhgupta/abhgupta-dev
   (dmcphers+openshiftbot@redhat.com)
