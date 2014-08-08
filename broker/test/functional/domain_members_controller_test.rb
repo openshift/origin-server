@@ -534,7 +534,7 @@ class DomainMembersControllerTest < ActionController::TestCase
     assert message['text'] =~ /#{@team_member.name} is not a direct member/, message.inspect
   end
 
-  test "leave domain with explicit role only" do 
+  test "leave domain with explicit role only" do
     post :create, {"domain_id" => @domain.namespace, "id" => @member._id, "role" => "edit"}
     assert_response :success
 
