@@ -21,7 +21,7 @@ Options:
     Region name (alphanumeric, underscore, hyphen, dot)
 -d|--description <region_description>
     Region description to apply on create or update
-    Only valid on create (optional) and update (required) commands
+    Optional on create command and required on update command
 -z|--zone <zone_name>
     Zone name within the given region (alphanumeric, underscore, hyphen, dot)
     Only valid for add-zone and remove-zone commands
