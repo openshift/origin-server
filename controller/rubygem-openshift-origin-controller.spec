@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.29.1
+Version: 1.29.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Aug 11 2014 Adam Miller <admiller@redhat.com> 1.29.2-1
+- Add broker flag to disable user selection of region (cewong@redhat.com)
+
 * Fri Aug 08 2014 Adam Miller <admiller@redhat.com> 1.29.1-1
 - bump_minor_versions for sprint 49 (admiller@redhat.com)
 - Merge pull request #5689 from derekwaynecarr/region_description
