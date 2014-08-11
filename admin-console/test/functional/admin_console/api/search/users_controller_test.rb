@@ -22,7 +22,7 @@ module AdminConsole
           end unless @domain
         end
 
-        MiniTest::Unit.after_tests do
+        def teardown
           begin
             @user.force_delete
           rescue
