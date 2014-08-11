@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin adding an administrative console to the broker
 Name:          rubygem-%{gem_name}
-Version: 1.24.1
+Version: 1.24.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -129,6 +129,12 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-adm
 %defattr(-,root,apache,-)
 
 %changelog
+* Mon Aug 11 2014 Adam Miller <admiller@redhat.com> 1.24.2-1
+- Merge pull request #5696 from detiber/adminConsoleTestPartDeux
+  (dmcphers+openshiftbot@redhat.com)
+- Delete users plan_id users after admin-console functional tests
+  (jdetiber@redhat.com)
+
 * Fri Aug 08 2014 Adam Miller <admiller@redhat.com> 1.24.1-1
 - bump_minor_versions for sprint 49 (admiller@redhat.com)
 - Test improvements that were affecting enterprise test scenarios
