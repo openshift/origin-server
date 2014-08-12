@@ -85,7 +85,7 @@ module CostAware
         rate = rates[size][user_currency_cd] rescue nil
         duration = rates[size]['duration'] rescue nil
         if rate and duration
-          "#{size} (#{number_to_user_currency(rate)}/#{duration})"
+          "#{size} (#{number_to_user_currency(rate, false)}/#{duration})"
         else
           size
         end
