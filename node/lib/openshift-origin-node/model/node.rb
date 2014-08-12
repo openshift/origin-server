@@ -113,7 +113,7 @@ module OpenShift
         end
 
         resolve_opt      = resolve ? "--always-resolve" : ""
-        stdout, _, _ = Utils.oo_spawn("quota #{resolve_opt} -w #{uuid}")
+        stdout, _, _ = Utils.oo_spawn("quota -p #{resolve_opt} -w #{uuid}")
         results      = stdout.split("\n").grep(%r(^.*/dev/))
         if results.empty?
           raise NodeCommandException.new(
@@ -125,7 +125,7 @@ module OpenShift
 
         {device:      results[0],
          blocks_used: results[1].to_i, blocks_quota: results[2].to_i, blocks_limit: results[3].to_i,
-         inodes_used: results[4].to_i, inodes_quota: results[5].to_i, inodes_limit: results[6].to_i
+         inodes_used: results[5].to_i, inodes_quota: results[6].to_i, inodes_limit: results[7].to_i
         }
       end
 

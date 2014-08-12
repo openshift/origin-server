@@ -82,12 +82,23 @@ module OpenShift
           OpenShift::Runtime::Node.set_quota(@uuid, results[:blocks_used], results[:inodes_used] - 1)
         end
       end
-    end
 
-    def test_get_quota_pass
-      results = OpenShift::Runtime::Node.get_quota(@uuid)
-      refute_nil results
-      refute_empty results
+      def test_get_quota_pass
+        tests = [
+          {blocks_limit: '300000', inodes_limit: '80000'},
+          {blocks_limit: '500000', inodes_limit: '60000'},
+          {blocks_limit: '400000', inodes_limit: '70000'}
+        ]
+        tests.each do |expected|
+          OpenShift::Runtime::Node.set_quota(@uuid, expected[:blocks_limit], expected[:inodes_limit])
+
+          results = OpenShift::Runtime::Node.get_quota(@uuid)
+          refute_nil results
+          refute_empty results
+          assert_equal expected[:blocks_limit].to_i, results[:blocks_limit]
+          assert_equal expected[:inodes_limit].to_i, results[:inodes_limit]
+        end
+      end
     end
   end
 end
