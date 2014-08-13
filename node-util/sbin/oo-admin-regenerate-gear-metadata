@@ -17,7 +17,10 @@
 
 require 'etc'
 require 'optparse'
+require 'openshift-origin-node'
 require 'openshift-origin-common'
+require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-node/utils/cgroups/libcgroup'
 
 
 
@@ -57,6 +60,7 @@ module OpenShift
         @uuid = uuid
         @uid = uid
         @limits_d_file = "#{LIMITS_D_DIR}/84-#{@uuid}.conf"
+        @config = OpenShift::Config.new
       end
 
       def passwd_entry_exist?()
@@ -71,36 +75,37 @@ module OpenShift
         # Don't try to add gear users that already have entries
         return if passwd_entry_exist?
 
-        cmd = "/usr/sbin/useradd --uid #{@uid} --user-group --comment 'OpenShift guest' --no-create-home --home-dir #{@path} --shell /usr/bin/oo-trap-user #{@uuid}"
+        gear_gecos = config.get('GEAR_GECOS')
+        do_fail('GEAR_GECOS isn\'t set in config') if gear_gecos.nil?
 
-        system(cmd)
+        gear_shell = config.get('GEAR_SHELL')
+        do_fail('GEAR_SHELL isn\'t set in config') if gear_shell.nil?
 
-        return $?.exitstatus
+        cmd = %{groupadd -g #{@uid} #{@uuid}}
+        out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
+        raise %Q[ERROR: unable to create user group(#{rc}): #{cmd.squeeze(" ")} ] + \
+              %Q[stdout: #{out} stderr: #{err}] unless rc == 0
+
+        cmd = "/usr/sbin/useradd -r --uid #{@uid} --gid #{@uid} --comment '#{gear_gecos}' --no-create-home --home #{@path} --shell #{gear_shell} #{@uuid}"
+
+        out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
+        raise %Q[ERROR: unable to create user user account(#{rc}): #{cmd.squeeze(" ")} ] + \
+              %Q[stdout: #{out} stderr: #{err}] unless rc == 0
       end
 
       def cgrules_conf_entry_exist?()
         return exists_in_file?(CGRULES_CONF, /#{@uuid}/)
       end
 
-      def add_cgrules_conf_entry()
-        # Don't try to add an entry if one exists
-        return if cgrules_conf_entry_exist?
-
-        add_line_to_file(CGRULES_CONF, "#{@uuid}       cpu,cpuacct,memory,net_cls,freezer      /openshift/#{@uuid}")
-      end
-
       def cgconfig_conf_entry_exist?()
         return exists_in_file?(CGCONFIG_CONF, /#{@uuid}/)
       end
 
-      def add_cgconfig_conf_entry()
+      def fix_cgroups()
         # Don't try to add gears that already have entries
-        return if cgconfig_conf_entry_exist?
+        return if cgconfig_conf_entry_exist? && cgrules_conf_entry_exist?
 
-        cmd = "/usr/bin/oo-cgroup-enable --with-container-uuid #{@uuid}"
-        system(cmd)
-
-        return $?.exitstatus
+        OpenShift::Runtime::Utils::Cgroups.new(@uuid).create
       end
 
       def limits_d_file_exists?()
@@ -129,16 +134,25 @@ module OpenShift
 end
 
 if __FILE__ == $0
+  $stdout.sync = true
+  $stderr.sync = true
+
   opt_assume_yes = false
+  opt_verbose = true
+  opt_run_accept_node = true
 
   optparse = OptionParser.new do |opts|
     opts.banner = "\nThe purpose of this script is to regenerate missing gear metadata.\n" +
-                  "\nWarning: This script is not officially supported.\n" +
                   "\nUsage: #{$0}\n"
 
     opts.on('-y', '--assumeyes', 'Answer yes for all questions') { opt_assume_yes = true }
+    opts.on('-q', '--quiet', 'Quiet operation') { opt_verbose = false }
+    opts.on('--no-accept-node', 'Don\'t run accept node') { opt_run_accept_node = false }
   end
   optparse.parse!
+
+  vputs = lambda { |msg| puts msg if opt_verbose }
+  vprint = lambda { |msg| print msg if opt_verbose }
 
 
   unless opt_assume_yes
@@ -158,58 +172,68 @@ if __FILE__ == $0
     abort "Exiting on user request" unless ans.upcase == "YES"
   end
 
+  failures = 0
   OpenShift::Runtime::GearMetadataRegenerator.get_all_gear_info.each do |gear|
-    print "Checking for passwd entry for #{gear.uuid}... "
+    vprint.call "Checking for passwd entry for #{gear.uuid}... "
     if gear.passwd_entry_exist?
-      puts "found, skipping."
+      vputs.call "found, skipping."
     else
-      print "absent, fixing... "
-      retval = gear.useradd_gear_entry()
+      vprint.call "absent, fixing... "
 
-      if retval == 0
-        puts "Done."
-      else
-        puts "FAILED!"
+      out, err, rc = nil
+      begin
+        out, err, rc = gear.useradd_gear_entry()
+        vputs.call "Done."
+      rescue Exception => ex
+        failures += 1
+        $stderr.puts "FAILED passwd: #{ex.message}"
       end
     end
 
-    print "Checking for cgrules.conf entry for #{gear.uuid}... "
-    if gear.cgrules_conf_entry_exist?
-      puts "found, skipping."
+    vprint.call "Checking for cgconfig.conf and cgrules.conf entries for #{gear.uuid}... "
+    if gear.cgconfig_conf_entry_exist? && gear.cgrules_conf_entry_exist?
+      vputs.call "found, skipping."
     else
-      print "absent, fixing... "
-      gear.add_cgrules_conf_entry()
-      puts "Done."
-    end
+      vprint.call "absent, fixing... "
 
-    print "Checking for cgconfig.conf entry for #{gear.uuid}... "
-    if gear.cgconfig_conf_entry_exist?
-      puts "found, skipping."
-    else
-      print "absent, fixing... "
-      retval = gear.add_cgconfig_conf_entry()
-
-      if retval == 0
-        puts "Done."
-      else
-        puts "FAILED!"
+      begin
+        gear.fix_cgroups()
+        vputs.call "Done."
+      rescue Exception => ex
+        failures += 1
+        $stderr.puts "FAILED cgroups: #{ex.message}"
       end
     end
 
-    print "Checking for limits.d file for #{gear.uuid}... "
+    vprint.call "Checking for limits.d file for #{gear.uuid}... "
     if gear.limits_d_file_exists?
-      puts "found, skipping."
+      vputs.call "found, skipping."
     else
-      print "absent, fixing... "
+      vprint.call "absent, fixing... "
       gear.add_limits_d_file()
-      puts "Done."
+      vputs.call "Done."
     end
 
-    puts
+    vputs.call ""
   end
 
+  if opt_run_accept_node
+    vputs.call "Running oo-accept-node to check node consistency..."
 
-  puts "Running oo-accept-node to check node consistency..."
-  system("/usr/sbin/oo-accept-node -v")
-  abort "\nError: oo-accept-node failed. Please fix listed problems.\n\n" unless $?.exitstatus == 0
+    cmd = '/usr/sbin/oo-accept-node'
+    cmd += ' -v' if opt_verbose
+    cmd += ' > /dev/null' unless opt_verbose
+    out, err, rc = OpenShift::Runtime::Utils.oo_spawn(cmd)
+
+    vputs.call out
+    if err != 0
+      $stderr.puts err
+      failures += 1
+    end
+  end
+
+  if failures > 0
+    $stderr.puts "\nError: some problems weren't able to be fixed.\n\n"
+    exit 5
+  end
 end
