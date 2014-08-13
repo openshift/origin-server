@@ -172,7 +172,7 @@ class Command
         end
       when "USER"
         if command == "ADD"
-          user = CloudUser.find_or_create_by(login: params[0])
+          user = CloudUser.find_or_create_by(login: CloudUser.normalize_login(params[0]))
         else
           puts "ERROR: Command #{command} not available for #{object_type}"
         end
@@ -184,6 +184,7 @@ class Command
         end
         user_names = params[1] ? params[1].split(",") : nil
         if user_names
+          user_names.map! {|name| CloudUser.normalize_login(name) }
           members_to_add = []
           user_names.each do |user_name|
             u = CloudUser.find_by(login: user_name) rescue nil
@@ -406,7 +407,7 @@ class Command
         end
         puts "Found users: #{users}"
       end
-      return users
+      return users.map {|u| CloudUser.normalize_login(u)}
     end
     
     def get_group(group_name)

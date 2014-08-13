@@ -79,6 +79,7 @@ include AdminHelper
 Rails.configuration.analytics[:enabled] = false
 
 user = nil
+login = CloudUser.normalize_login(login)
 begin
   user = CloudUser.with(consistency: :eventual).find_by(login: login)
 rescue Mongoid::Errors::DocumentNotFound

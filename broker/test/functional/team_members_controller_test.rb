@@ -52,7 +52,7 @@ class TeamMembersControllerTest < ActionController::TestCase
     post :create, {"team_id" => @team.id, "login" => @member1.login, "role" => "view"}
     assert_response :success
     assert json = JSON.parse(response.body)
-    assert data = json['data'] 
+    assert data = json['data']
     assert id = data['id']
     assert data['role'] == "view"
     assert data['login'] == @member1.login
@@ -70,11 +70,44 @@ class TeamMembersControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  test "member CRUD by normalized login" do
+    Rails.configuration.stubs(:openshift).returns(
+      :normalize_username_method => 'lowercase',
+      :max_members_per_resource  => 100,
+      :max_teams_per_resource    => 100,
+    )
+    # assumption: member name is lowercase
+    testname = @member1.login.upcase
+    post :create, {"team_id" => @team.id, "login" => testname, "role" => "view"}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert data = json['data']
+    assert id = data['id']
+    assert_equal "view", data['role']
+    assert_equal @member1.login.downcase, data['login']
+    # if we add normalized login again, should update same member, not create another
+    post :create, {"team_id" => @team.id, "login" => @member1.login, "role" => "view"}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert data = json['data']
+    assert new_id = data['id']
+    assert_equal id, new_id, "Should update same member"
+    # update by name is PATCH to create
+    put :create, "team_id" => @team.id,
+                 "members" => [{"login" => testname, "role" => "view", "type" => "user"}]
+    assert_response :success
+    assert_equal id, JSON.parse(response.body)['data']['id'], "should update same member"
+    # delete by name is PATCH to create
+    put :create, "team_id" => @team.id,
+                 "members" => [{"login" => testname, "role" => "none", "type" => "user"}]
+    assert_response :success
+  end
+
   test "member create show list update and destroy by id" do
     post :create, {"team_id" => @team.id, "id" => @member1._id, "role" => "view"}
     assert_response :success
     assert json = JSON.parse(response.body)
-    assert data = json['data'] 
+    assert data = json['data']
     assert id = data['id']
     assert data['role'] == "view"
     assert data['login'] == @member1.login
@@ -92,7 +125,7 @@ class TeamMembersControllerTest < ActionController::TestCase
     post :create, {"team_id" => @team.id, "member" => {"id" => @member1._id, "role" => "view"}}
     assert_response :success
     assert json = JSON.parse(response.body)
-    assert data = json['data'] 
+    assert data = json['data']
     assert id = data['id']
     assert data['role'] == "view"
     assert data['login'] == @member1.login
@@ -140,7 +173,7 @@ class TeamMembersControllerTest < ActionController::TestCase
     post :create, {"team_id" => @team.id, "login" => @member1.login, "role" => "view"}
     assert_response :success
     assert json = JSON.parse(response.body)
-    assert data = json['data'] 
+    assert data = json['data']
     assert id = data['id']
     assert data['role'] == "view"
     assert data['login'] == @member1.login
@@ -162,7 +195,7 @@ class TeamMembersControllerTest < ActionController::TestCase
     post :create, {"team_id" => @team.id, "login" => @member1.login, "role" => "view"}
     assert_response :success
     assert json = JSON.parse(response.body)
-    assert data = json['data'] 
+    assert data = json['data']
     assert id = data['id']
 
     post :update, {"team_id" => @team.id, "id" => id, "role" => "none"}
@@ -215,7 +248,7 @@ class TeamMembersControllerTest < ActionController::TestCase
     post :create, {"team_id" => @team.id, "login" => @member1.login, "role" => "view"}
     assert_response :success
     assert json = JSON.parse(response.body)
-    assert data = json['data'] 
+    assert data = json['data']
     assert id = data['id']
     put :update, {"team_id" => @team.id, "id" => id}
     assert_response :unprocessable_entity
@@ -225,7 +258,7 @@ class TeamMembersControllerTest < ActionController::TestCase
     assert_response :unprocessable_entity
   end
 
-  test "global team membership" do 
+  test "global team membership" do
     global_team = Team.create(name: "global-team#{@random}", maps_to: "mygroup")
     @teams_to_tear_down.push(global_team)
     post :create, {"team_id" => global_team.id, "login" => @member1.login, "role" => "view"}

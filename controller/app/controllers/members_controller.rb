@@ -34,7 +34,7 @@ class MembersController < BaseController
         if m[:id].present?
           user_ids[m[:id].to_s] = [role, i]
         elsif m[:login].present?
-          user_logins[m[:login].to_s] = [role, i]
+          user_logins[CloudUser.normalize_login(m[:login])] = [role, i]
         else
           errors << Message.new(:error, "Each user being changed must have an id or a login.", 1, nil, i)
         end
@@ -53,7 +53,7 @@ class MembersController < BaseController
       return render_error(:unprocessable_entity, errors.first.text, 1, nil, nil, errors) if singular
       return render_error(:unprocessable_entity, "The provided members are not valid.", 1, nil, nil, errors)
     end
-    return render_error(:unprocessable_entity, "You must provide at least a single member that exists.", 1) unless user_ids.present? || user_logins.present? || team_ids.present? 
+    return render_error(:unprocessable_entity, "You must provide at least a single member that exists.", 1) unless user_ids.present? || user_logins.present? || team_ids.present?
 
     # Perform lookups of users by login and create members for new roles
     new_members = changed_members_for(user_ids, user_logins, team_ids, errors)
@@ -116,7 +116,7 @@ class MembersController < BaseController
   def update
     authorize! :change_members, membership
     id = params[:id].presence
-    role = params[:role].presence 
+    role = params[:role].presence
     return render_error(:unprocessable_entity, "You must provide a role. Supported_roles are (#{allowed_roles.map{ |s| "'#{s}'" }.join(', ')}) or remove (with 'none').", 1, "role") unless role.present?
     return render_error(:unprocessable_entity, "Role #{role} not supported. Supported roles are (#{allowed_roles.map{ |s| "'#{s}'" }.join(', ')}).", 1, "role") unless allowed_roles.include? (role.to_sym) or role.to_sym == :none
     type = params[:type].presence || "user"
@@ -152,12 +152,12 @@ class MembersController < BaseController
     authorize! :change_members, membership
 
     ids, logins = [], []
-    (params[:members].presence || [params[:member].presence] || []).compact.each do |m| 
+    (params[:members].presence || [params[:member].presence] || []).compact.each do |m|
       if m.is_a?(Hash)
         if m[:id].present?
           ids << m[:id].to_s
         elsif m[:login].present?
-          logins << m[:login].to_s
+          logins << CloudUser.normalize_login(m[:login])
         else
           return render_error(:unprocessable_entity, "Each member must have an id or a login.", 1)
         end

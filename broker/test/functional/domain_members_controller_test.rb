@@ -115,6 +115,31 @@ class DomainMembersControllerTest < ActionController::TestCase
     assert_equal json['data'].length , 1
   end
 
+  test "member CRUD by normalized login" do
+    Rails.configuration.stubs(:openshift).returns(
+      :normalize_username_method => 'strip, remove_domain, lowercase',
+      :max_members_per_resource  => 100,
+      :max_teams_per_resource    => 100,
+    )
+    testname = @member.login.upcase + "@EXAMPLE.COM"
+    post :create, {"domain_id" => @domain.namespace, "login" => testname, "role" => "edit"}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert id = json['data']['id']
+    assert login = json['data']['login']
+    assert_equal @member.login.downcase, login
+    assert_equal "edit", json['data']['role']
+    # update by name is PATCH to create
+    put :create, "domain_id" => @domain.namespace,
+                 "members" => [{"login" => testname, "role" => "view", "type" => "user"}]
+    assert_response :success
+    assert_equal id, JSON.parse(response.body)['data']['id'], "should update same member"
+    # delete by name is PATCH to create
+    put :create, "domain_id" => @domain.namespace,
+                 "members" => [{"login" => testname, "role" => "none", "type" => "user"}]
+    assert_response :success
+  end
+
   test "user member create show list update and destroy by id" do
     post :create, {"domain_id" => @domain.namespace, "id" => @member._id, "role" => "edit"}
     assert_response :success
@@ -534,7 +559,7 @@ class DomainMembersControllerTest < ActionController::TestCase
     assert message['text'] =~ /#{@team_member.name} is not a direct member/, message.inspect
   end
 
-  test "leave domain with explicit role only" do 
+  test "leave domain with explicit role only" do
     post :create, {"domain_id" => @domain.namespace, "id" => @member._id, "role" => "edit"}
     assert_response :success
 
