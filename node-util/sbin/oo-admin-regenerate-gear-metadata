@@ -1,0 +1,215 @@
+#!/usr/bin/env oo-ruby
+#--
+# Copyright 2014 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+require 'etc'
+require 'optparse'
+require 'openshift-origin-common'
+
+
+
+module OpenShift
+  module Runtime
+    class GearMetadataRegenerator
+      CGRULES_CONF = '/etc/cgrules.conf'
+      CGCONFIG_CONF = '/etc/cgconfig.conf'
+      LIMITS_D_DIR = '/etc/security/limits.d'
+
+      attr_accessor :path, :uuid, :uid, :limits_d_file, :config
+
+      def self.get_all_gear_info()
+        retval = []
+        config = OpenShift::Config.new
+        gear_base_dir = config.get('GEAR_BASE_DIR')
+        do_fail("GEAR_BASE_DIR does not exist or is not a directory: #{gear_base_dir}") unless File.exists?(gear_base_dir)
+        Dir.glob("#{gear_base_dir}/*") do |gear_path|
+          next unless File.directory?(gear_path)
+
+          # Grab the gear uuid out of the path
+          gear_path.match(/\/([\d\w]{24,32})$/)
+          gear_uuid = $1
+          next if gear_uuid.nil?
+
+          s = File.stat(gear_path)
+          gear_uid = s.gid
+
+          retval << GearMetadataRegenerator.new(gear_path, gear_uuid, gear_uid)
+        end
+
+        return retval
+      end
+
+      def initialize(path, uuid, uid)
+        @path = path
+        @uuid = uuid
+        @uid = uid
+        @limits_d_file = "#{LIMITS_D_DIR}/84-#{@uuid}.conf"
+      end
+
+      def passwd_entry_exist?()
+        begin
+          return Etc.getpwnam(@uuid).nil? == false
+        rescue ArgumentError => ex
+          return false
+        end
+      end
+
+      def useradd_gear_entry()
+        # Don't try to add gear users that already have entries
+        return if passwd_entry_exist?
+
+        cmd = "/usr/sbin/useradd --uid #{@uid} --user-group --comment 'OpenShift guest' --no-create-home --home-dir #{@path} --shell /usr/bin/oo-trap-user #{@uuid}"
+
+        system(cmd)
+
+        return $?.exitstatus
+      end
+
+      def cgrules_conf_entry_exist?()
+        return exists_in_file?(CGRULES_CONF, /#{@uuid}/)
+      end
+
+      def add_cgrules_conf_entry()
+        # Don't try to add an entry if one exists
+        return if cgrules_conf_entry_exist?
+
+        add_line_to_file(CGRULES_CONF, "#{@uuid}       cpu,cpuacct,memory,net_cls,freezer      /openshift/#{@uuid}")
+      end
+
+      def cgconfig_conf_entry_exist?()
+        return exists_in_file?(CGCONFIG_CONF, /#{@uuid}/)
+      end
+
+      def add_cgconfig_conf_entry()
+        # Don't try to add gears that already have entries
+        return if cgconfig_conf_entry_exist?
+
+        cmd = "/usr/bin/oo-cgroup-enable --with-container-uuid #{@uuid}"
+        system(cmd)
+
+        return $?.exitstatus
+      end
+
+      def limits_d_file_exists?()
+        return File.exists?(@limits_d_file)
+      end
+
+      def add_limits_d_file()
+        # Don't add the file if one exists
+        return if limits_d_file_exists?
+
+        add_line_to_file(@limits_d_file, "#{@uuid}        soft    nproc   250")
+      end
+
+      private
+      def exists_in_file?(file, regex)
+        return File.read(file).match(regex).nil? == false
+      end
+
+      def add_line_to_file(file, line)
+        File.open(file, 'a') do |f|
+          f.puts(line)
+        end
+      end
+    end
+  end
+end
+
+if __FILE__ == $0
+  opt_assume_yes = false
+
+  optparse = OptionParser.new do |opts|
+    opts.banner = "\nThe purpose of this script is to regenerate missing gear metadata.\n" +
+                  "\nWarning: This script is not officially supported.\n" +
+                  "\nUsage: #{$0}\n"
+
+    opts.on('-y', '--assumeyes', 'Answer yes for all questions') { opt_assume_yes = true }
+  end
+  optparse.parse!
+
+
+  unless opt_assume_yes
+    puts
+    puts "This script attempts to regenerate gear entries for:"
+    puts "  *  /etc/passwd"
+    puts "  *  /etc/shadow"
+    puts "  *  /etc/group"
+    puts "  *  /etc/cgrules.conf"
+    puts "  *  /etc/cgconfig.conf"
+    puts "  *  /etc/security/limits.d"
+    puts
+    print "Proceed? [yes/NO]: "
+    ans = gets().strip
+    puts
+
+    abort "Exiting on user request" unless ans.upcase == "YES"
+  end
+
+  OpenShift::Runtime::GearMetadataRegenerator.get_all_gear_info.each do |gear|
+    print "Checking for passwd entry for #{gear.uuid}... "
+    if gear.passwd_entry_exist?
+      puts "found, skipping."
+    else
+      print "absent, fixing... "
+      retval = gear.useradd_gear_entry()
+
+      if retval == 0
+        puts "Done."
+      else
+        puts "FAILED!"
+      end
+    end
+
+    print "Checking for cgrules.conf entry for #{gear.uuid}... "
+    if gear.cgrules_conf_entry_exist?
+      puts "found, skipping."
+    else
+      print "absent, fixing... "
+      gear.add_cgrules_conf_entry()
+      puts "Done."
+    end
+
+    print "Checking for cgconfig.conf entry for #{gear.uuid}... "
+    if gear.cgconfig_conf_entry_exist?
+      puts "found, skipping."
+    else
+      print "absent, fixing... "
+      retval = gear.add_cgconfig_conf_entry()
+
+      if retval == 0
+        puts "Done."
+      else
+        puts "FAILED!"
+      end
+    end
+
+    print "Checking for limits.d file for #{gear.uuid}... "
+    if gear.limits_d_file_exists?
+      puts "found, skipping."
+    else
+      print "absent, fixing... "
+      gear.add_limits_d_file()
+      puts "Done."
+    end
+
+    puts
+  end
+
+
+  puts "Running oo-accept-node to check node consistency..."
+  system("/usr/sbin/oo-accept-node -v")
+  abort "\nError: oo-accept-node failed. Please fix listed problems.\n\n" unless $?.exitstatus == 0
+end
