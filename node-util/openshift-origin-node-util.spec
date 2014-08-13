@@ -122,6 +122,7 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %attr(0750,-,-) %{_sbindir}/oo-cartridge
 %attr(0750,-,-) %{_sbindir}/oo-admin-cartridge
 %attr(0750,-,-) %{_sbindir}/oo-admin-repair-node
+%attr(0750,-,-) %{_sbindir}/oo-admin-regenerate-gear-metadata
 %attr(0750,-,-) %{_sbindir}/oo-watchman
 %attr(0750,-,-) %{_initddir}/openshift-watchman
 %attr(0755,-,-) %{_bindir}/rhc-list-ports
