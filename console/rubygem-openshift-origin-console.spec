@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.29.1
+Version: 1.29.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -166,6 +166,9 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Aug 13 2014 Adam Miller <admiller@redhat.com> 1.29.2-1
+- Show sub-cent rates (jliggitt@redhat.com)
+
 * Fri Aug 08 2014 Adam Miller <admiller@redhat.com> 1.29.1-1
 - bump_minor_versions for sprint 49 (admiller@redhat.com)
 - Allow customizing the content-type and accept headers for oauth calls
