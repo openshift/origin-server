@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.29.2
+Version: 1.29.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,14 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Aug 13 2014 Adam Miller <admiller@redhat.com> 1.29.3-1
+- Merge pull request #5709 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix path for oo-accept-systems (rchopra@redhat.com)
+- cloud_user: enable normalization of user logins. (lmeyer@redhat.com)
+- fix whitespace (lmeyer@redhat.com)
+- fix node extended tests (rchopra@redhat.com)
+
 * Mon Aug 11 2014 Adam Miller <admiller@redhat.com> 1.29.2-1
 - Add broker flag to disable user selection of region (cewong@redhat.com)
 
