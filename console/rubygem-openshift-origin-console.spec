@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.29.2
+Version: 1.29.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -166,6 +166,10 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Aug 14 2014 Adam Miller <admiller@redhat.com> 1.29.3-1
+- [Origin UI 194] Add description support to app create page and refactor to
+  use radio buttons (jcantril@redhat.com)
+
 * Wed Aug 13 2014 Adam Miller <admiller@redhat.com> 1.29.2-1
 - Show sub-cent rates (jliggitt@redhat.com)
 
