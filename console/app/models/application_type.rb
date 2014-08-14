@@ -243,18 +243,18 @@ class ApplicationType
       case
       when opts[:search]
         query = opts[:search].downcase
-        types.concat CartridgeType.standalone(({:as => as} if as.present?))
+        types.concat CartridgeType.standalone(:as => as)
         types.keep_if &LOCAL_SEARCH.curry[query]
         types.concat Quickstart.cached.search(query) rescue handle_error($!)
       when opts[:tag]
         tag = opts[:tag].to_sym rescue (return [])
-        types.concat CartridgeType.standalone(({:as => as} if as.present?))
+        types.concat CartridgeType.standalone(:as => as)
         if tag != :cartridge
           types.keep_if &TAG_FILTER.curry[[tag]]
           types.concat Quickstart.cached.search(tag.to_s) rescue handle_error($!)
         end
       else
-        types.concat CartridgeType.standalone(({:as => as} if as.present?))
+        types.concat CartridgeType.standalone(:as => as)
         types.concat Quickstart.cached.promoted rescue handle_error($!)
       end
       raise "nil types" unless types

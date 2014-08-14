@@ -287,6 +287,40 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_standard_show_type(type)
   end
 
+  test "should show error in type page with unsupported gear size for cartridge" do
+    CartridgeType.any_instance.stubs(:valid_gear_sizes).returns(%w(medium large))
+    CartridgeType.any_instance.stubs(:valid_gear_sizes?).returns(true)
+
+    with_unique_user
+    type = ApplicationType.all.select(&:cartridge?).sample(1).first
+
+    get :show, :id => type.id
+    assert_standard_show_type(type)
+    assert assigns(:application).name
+    assert_select '.text-warning', /Supported gear sizes: medium, large/
+    assert_select '.alert-error', /Your account does not support gear sizes compatible with this cartridge/
+  end
+
+  test "should only show gear sizes compatible with the cartridge" do
+    ApplicationTypesController.any_instance.stubs(:new_application_gear_sizes).returns(%w(small medium large))
+
+    CartridgeType.any_instance.stubs(:valid_gear_sizes).returns(%w(medium large))
+    CartridgeType.any_instance.stubs(:valid_gear_sizes?).returns(true)
+    ApplicationType.any_instance.stubs(:valid_gear_sizes).returns(%w(medium large))
+    ApplicationType.any_instance.stubs(:valid_gear_sizes?).returns(true)
+
+    with_unique_user
+    type = ApplicationType.all.select(&:cartridge?).sample(1).first
+
+    get :show, :id => type.id
+    assert_standard_show_type(type)
+    assert assigns(:application).name
+    assert_select '.text-warning', /Supported gear sizes: medium, large/
+    assert_select "select[name='application[gear_profile]'] > option", 'small', false
+    assert_select "select[name='application[gear_profile]'] > option", 'medium'
+    assert_select "select[name='application[gear_profile]'] > option", 'large'
+  end
+
   test "should render custom type" do
     with_unique_user
     get :show, :id => 'custom'

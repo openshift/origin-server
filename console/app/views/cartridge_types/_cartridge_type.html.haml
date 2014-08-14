@@ -74,7 +74,7 @@
 
         - if cartridge_type.valid_gear_sizes?
           %dt
-          %dd.text-warning= "Supported gear #{'size'.pluralize(cartridge_type.valid_gear_sizes.size)}: #{cartridge_type.valid_gear_sizes.join(', ')}."
+          %dd.text-warning= "Supported gear #{'size'.pluralize(cartridge_type.valid_gear_sizes.size)}: #{cartridge_type.valid_gear_sizes.empty? ? 'none' : cartridge_type.valid_gear_sizes.join(', ')}."
 
         - if cartridge_type.usage_rates?
           %dt

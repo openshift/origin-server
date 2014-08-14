@@ -141,9 +141,12 @@
       .controls.first
         - if @gear_sizes.length > 1
           = f.select :gear_profile, @gear_sizes.map{ |size| [size.to_s, size]}, {}
-        - elsif @gear_sizes.length == 0 && @application_type.valid_gear_sizes?
-          %h3{:style => 'color: #CD202C'}
-            = "Requires: #{@application_type.valid_gear_sizes.map(&:to_s).join(', ')}."
+        - elsif @gear_sizes.empty? && @application_type.valid_gear_sizes?
+          %h3.error-text
+            -if @application_type.valid_gear_sizes.empty? 
+              = "No gear sizes supported for this cartridge."
+            - else
+              = "Requires: #{@application_type.valid_gear_sizes.map(&:to_s).join(', ')}."
         - else
           %h3= @gear_sizes.first.to_s
           = f.hidden_field :gear_profile, :value => @gear_sizes.first.to_s
@@ -151,11 +154,8 @@
         = f.inline_errors_for :gear_profile
 
       .controls
-        %p.help-block.gear-sizes-help
+        %p.help-block
           = render :partial => 'application_types/gear_size_help', :locals => {:gear_sizes => @gear_sizes}
-        - if @application_type.valid_gear_sizes?
-          %p.help-block
-            %span.text-warning= "Supported gear #{'size'.pluralize(@application_type.valid_gear_sizes.size)}: #{@application_type.valid_gear_sizes.join(', ')}."
 
     = control_group(e.has_key?(:cartridges), :important => true) do
       %h3.control-label Cartridges
@@ -167,7 +167,7 @@
             = map_to_sentence(@cartridges) do |(name, carts)|
               - if carts.length > 1
                 = select_tag 'application[cartridges][]', cartridges_for_select(carts, [carts.map(&:name) & @application.cartridge_names].first), :title => "Choose a cartridge that matches '#{name}'"
-              - elsif carts.length == 1
+              - elsif carts.any?
                 - if carts.first.url
                   = hidden_field_tag('application[cartridges][][url]', [carts.first.url], carts.first.valid_gear_sizes? ? {'data-gear-sizes' => carts.first.valid_gear_sizes.join(',')} : {})
                   = link_to carts.first.display_name, carts.first.url
@@ -185,6 +185,11 @@
         %p.help-block
           Applications are composed of cartridges - each of which exposes a service or 
           capability to your code.  All applications must have a web cartridge.
+        %p.help-block.gear-sizes-help.hide
+
+        - if @application_type.valid_gear_sizes?
+          %p.help-block
+            %span.text-warning= "Supported gear #{'size'.pluralize(@application_type.valid_gear_sizes.size)}: #{@application_type.valid_gear_sizes.empty? ? 'none' : @application_type.valid_gear_sizes.join(', ')}."
 
         - if @unlock_cartridges or (@cartridges and @cartridges.any?{ |(name, carts)| carts.any?{ |c| c.url } })
           %p.help-block
@@ -237,30 +242,26 @@
 - if @cartridges && @cartridges.length > 1
   - content_for :javascripts do
     :javascript
-      has_multiple_cartridge_types = true;
+      window.has_multiple_cartridge_types = true;
 
-      $("#application_cartridges select").change(function() { manage_supported_gear_sizes(); $('form#new_application').valid(); });
-
-      $('p.gear-sizes-help').append("<p class='help-block'><span class='supported-gear-sizes text-warning'></span></p>");
+      $("#application_cartridges select").bind("change keyup", function() { manage_supported_gear_sizes(); $('form#new_application').valid(); });
 
       manage_supported_gear_sizes = function() {
-        var selected_cartridges = $("#application_cartridges select option:selected");
-        
-        $.each(selected_cartridges, function(i, item) {
+        $('p.gear-sizes-help').empty().show();
+        $("#application_cartridges select option:selected").each(function(i, item) {
           var selected_gear_sizes = $(item).data("gear-sizes");
           if (selected_gear_sizes != null) {
-            $('p.gear-sizes-help span.supported-gear-sizes').html("Gear sizes supported by " + $(item).text() + ": " + selected_gear_sizes.split(",").join(", ") + ".");
+            $('p.gear-sizes-help').append("\<span class='supported-gear-sizes text-warning'>" + "Gear sizes supported by " + $(item).text() + ": " + (selected_gear_sizes.length ? selected_gear_sizes.split(",").join(", ") : 'none') + "." + "</span><br />");
           }
         });
-
       }
 
-      $(function() { manage_supported_gear_sizes() });
+      $(manage_supported_gear_sizes);
 
 - if @application_type.valid_gear_sizes? 
   - content_for :javascripts do
     :javascript
-      application_type_valid_gear_sizes = "#{@application_type.valid_gear_sizes.join(',')}".split(",");
+      window.application_type_valid_gear_sizes = "#{@application_type.valid_gear_sizes.join(',')}".split(",");
 
 - content_for :javascripts do
   :javascript
