@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.29.2
+Version: 1.29.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,12 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Aug 14 2014 Adam Miller <admiller@redhat.com> 1.29.3-1
+- Merge pull request #5683 from soltysh/binary_deploy_tests
+  (dmcphers+openshiftbot@redhat.com)
+- Reafactored binary deployment tests for running them faster.
+  (maszulik@redhat.com)
+
 * Tue Aug 12 2014 Adam Miller <admiller@redhat.com> 1.29.2-1
 - Update get_quota to handle grace values (agoldste@redhat.com)
 
