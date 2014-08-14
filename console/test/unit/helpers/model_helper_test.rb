@@ -196,6 +196,22 @@ describe Console::ModelHelper do
     @default = 'region 2'
   end
 
+  describe '#allow_region_selection' do
+
+    it { allow_region_selection?(nil).must_equal false }
+    it { allow_region_selection?([]).must_equal false }
+
+    it 'should be false if all are nil' do 
+      allow_region_selection?(@regions).must_equal false
+    end
+
+    it 'should be true if atleast one is true' do 
+      @regions[1].allow_selection = true
+      allow_region_selection?(@regions).must_equal true
+    end
+
+  end
+
   describe '#default_region' do
 
     it 'should return nil for an empty list' do
