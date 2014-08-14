@@ -3,6 +3,7 @@
 %global consoledir %{_var}/www/openshift/console
 %if 0%{?fedora}%{?rhel} <= 6
     %global scl ruby193
+    %global v8_scl v8314
     %global scl_prefix ruby193-
     %global with_systemd 0
     %global gemdir /opt/rh/ruby193/root/usr/share/gems/gems
@@ -91,7 +92,7 @@ This includes the configuration necessary to run the console with mod_passenger.
 %setup -q
 
 %build
-%{?scl:scl enable %scl - << \EOF}
+%{?scl:scl enable %scl %v8_scl - << \EOF}
 
 set -e
 # Remove dependencies not needed at runtime
