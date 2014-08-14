@@ -72,7 +72,7 @@ class ApplicationTypesController < ConsoleController
     @gear_sizes = new_application_gear_sizes(@user_writeable_domains, @capabilities, @application_type)
 
     if @application_type.valid_gear_sizes? && (@gear_sizes & @application_type.valid_gear_sizes).empty?
-      flash.now[:error] = "Your account doesn't support gear sizes compatible with this cartridge. #{@application_type.display_name} can only run on the following gear sizes: #{@application_type.valid_gear_sizes.map(&:to_s).join(', ')}."
+      flash.now[:error] = "Your account does not support gear sizes compatible with this cartridge. #{@application_type.display_name} can only run on the following gear sizes: #{@application_type.valid_gear_sizes.map(&:to_s).join(', ')}."
     end
 
     @regions = Region.cached.all

@@ -87,6 +87,21 @@ class CartridgeTypesControllerTest < ActionController::TestCase
     assert_select '.text-warning', /Supported gear sizes: medium, large/
   end
 
+  test "should show type page with one gear size match for cartridge" do
+    Domain::Capabilities.any_instance.stubs(:allowed_gear_sizes).returns(%w(small medium))
+
+    CartridgeType.any_instance.stubs(:valid_gear_sizes).returns(['medium'])
+    CartridgeType.any_instance.stubs(:valid_gear_sizes?).returns(true)
+
+    t = CartridgeType.embedded.find(&:service?)
+    get :show, :application_id => with_scalable_app.to_param, :id => t.name
+    assert_response :success
+    assert gear_sizes = assigns(:gear_sizes)
+    assert_equal gear_sizes.length, 1
+    assert_select ".cartridge_gear_size", "medium"
+    assert_select '.text-warning', /Supported gear size: medium/
+  end
+
   test "should show error on type page without valid gear sizes for cartridge" do
     Domain::Capabilities.any_instance.stubs(:allowed_gear_sizes).returns(%w(small))
 
