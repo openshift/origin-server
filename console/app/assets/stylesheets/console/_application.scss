@@ -380,3 +380,28 @@ h1.applications .flow-block.right .gear-icon {
     }
   }
 }
+
+label.region { 
+  margin-top: 10px;
+
+  input[type=radio] {
+    position: absolute; 
+  }
+
+  .region-name {
+    margin-left: 20px;
+    line-height: normal;
+  }
+
+  .region-description {
+    margin-left: 20px;
+    font-size: .8em;
+    line-height: normal;
+    color: $grayLight;
+    word-wrap: break-word;
+  }
+  .single{
+    margin-left: inherit;
+  }
+
+}

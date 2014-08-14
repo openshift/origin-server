@@ -16,7 +16,7 @@ module Console::ModelHelper
   #
   def default_region(regions)
     defaulted_regions = regions.select{|r|r.default}
-    return '' if defaulted_regions.empty?
+    return nil if defaulted_regions.empty?
     return defaulted_regions.first.name
   end
 

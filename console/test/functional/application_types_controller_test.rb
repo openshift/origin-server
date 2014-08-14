@@ -107,32 +107,39 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     ApplicationType.all.select{ |t| t.cartridge? }.sample(1).first.id
   end
 
-  test "should show select list for gear region where there is more than 1" do
+  test "should default 'No preference' radio button for gear region where there is more than 1 and no default" do
+    Region.stub :all, [Region.new(:name => 'west'), Region.new(:name => 'east')] do
+      with_unique_user
+      get :show, :id => random_application_type_id
+
+      assert_response :success
+      assert assigns(:regions)
+      assert no_pref = css_select("input[type=radio][name='application[region]'][checked=checked]").first, 'Exp. No Preference to be the first option'
+    end
+  end
+
+  test "should default the region radio button for gear region where there is more than 1 and a default" do
     Region.stub :all, [Region.new(:name => 'west'), Region.new(:name => 'east', :default => true)] do
       with_unique_user
       get :show, :id => random_application_type_id
 
       assert_response :success
       assert assigns(:regions)
-      assert select = css_select('select#application_region').first
-
-      selected = ""
-      if option = css_select('select#application_region option[selected=selected]').first
-        selected = option.attributes["value"]
-      end
-      assert_equal 'east', selected
+      assert defaulted = css_select("input[type=radio][name='application[region]'][checked=checked]").first, 'Exp. the defaulted region to be selected'
+      assert_equal 'east', defaulted.attributes['value']
     end
   end
 
   test "should show label of default gear region when there is only 1" do
-    Region.stub :all, [Region.new(:name => 'west')] do
+    Region.stub :all, [Region.new(:name => 'west',:description => 'the west')] do
       with_unique_user
       get :show, :id => random_application_type_id
       assert_response :success
       assert assigns(:regions)
       assert_select 'h3.control-label', {:text => 'Region', :count => 1}, 'Exp. the Region block to not be displayed'
       assert_nil css_select('input#application_region').first, 'Exp. no input tag since we are relying on the broker functionality'
-      assert_select 'div.controls.first > h3', {:text => 'west', :count => 1}, 'Exp. the default region to be displayed'
+      assert_select 'div.controls.first  div.region-name.single', {:text => 'west', :count => 1}, 'Exp. the default region to be displayed'
+      assert_select 'div.controls.first  div.region-description.single', {:text => 'the west', :count => 1}, 'Exp. the default region description to be displayed'
     end
   end
 
