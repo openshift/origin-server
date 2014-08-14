@@ -108,7 +108,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
   end
 
   test "should default 'No preference' radio button for gear region where there is more than 1 and no default" do
-    Region.stub :all, [Region.new(:name => 'west'), Region.new(:name => 'east')] do
+    Region.stub :all, [Region.new(:name => 'west', :allow_selection=>true), Region.new(:name => 'east')] do
       with_unique_user
       get :show, :id => random_application_type_id
 
@@ -119,7 +119,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
   end
 
   test "should default the region radio button for gear region where there is more than 1 and a default" do
-    Region.stub :all, [Region.new(:name => 'west'), Region.new(:name => 'east', :default => true)] do
+    Region.stub :all, [Region.new(:name => 'west', :allow_selection=>true), Region.new(:name => 'east', :default => true)] do
       with_unique_user
       get :show, :id => random_application_type_id
 
@@ -131,7 +131,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
   end
 
   test "should show label of default gear region when there is only 1" do
-    Region.stub :all, [Region.new(:name => 'west',:description => 'the west')] do
+    Region.stub :all, [Region.new(:name => 'west',:description => 'the west', :allow_selection=>true)] do
       with_unique_user
       get :show, :id => random_application_type_id
       assert_response :success
