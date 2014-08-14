@@ -1,6 +1,3 @@
-# @markup markdown
-# @title OpenShift Origin Controller
-
 # OpenShift Origin Controller
 
 ## Core Terminology
