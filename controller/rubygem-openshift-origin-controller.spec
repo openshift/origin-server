@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.29.3
+Version: 1.29.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,13 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Aug 14 2014 Adam Miller <admiller@redhat.com> 1.29.4-1
+- Update README.md (dmcphers@redhat.com)
+- Merge pull request #5683 from soltysh/binary_deploy_tests
+  (dmcphers+openshiftbot@redhat.com)
+- Reafactored binary deployment tests for running them faster.
+  (maszulik@redhat.com)
+
 * Wed Aug 13 2014 Adam Miller <admiller@redhat.com> 1.29.3-1
 - Merge pull request #5709 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)
