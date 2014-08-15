@@ -1732,6 +1732,7 @@ class Application
 
         #rollback
         rollback_successful = false
+
         begin
           # reload the application before a rollback
           self.reload
@@ -1751,7 +1752,8 @@ class Application
           # if the original exception was raised just to trigger a rollback
           # then the rollback exception is the only thing of value and hence return/raise it
           raise e_rollback if rollback_pending
-        end unless op_group.rollback_blocked
+        end unless ( op_group.rollback_blocked or Rails.configuration.openshift[:rollback_blocked] )
+
 
         # raise the original exception if it was the actual exception that led to the rollback
         # if not, then we should just continue execution of any remaining op_groups.
