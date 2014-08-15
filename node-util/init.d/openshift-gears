@@ -17,6 +17,10 @@ OPTIONS="$THREADS $TM"
 
 case "$1" in
   start)
+    # Set DONT_HIDE_NETSTAT to true in /etc/sysconfig/openshift-gears to 
+    # disable this
+    [ -z $DONT_HIDE_NETSTAT ] && chmod o-r /proc/net/{tcp*,udp*,unix,raw}*
+
     /usr/sbin/oo-admin-ctl-gears startall $OPTIONS
     ;;
   stop)
