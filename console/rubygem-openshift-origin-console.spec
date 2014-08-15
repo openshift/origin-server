@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.29.3
+Version: 1.29.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -166,6 +166,13 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Aug 15 2014 Troy Dawson <tdawson@redhat.com> 1.29.4-1
+- Merge pull request #5714 from
+  jcantrill/207_hide_regions_when_user_not_allowed
+  (dmcphers+openshiftbot@redhat.com)
+- [Origin UI 207] Show region selection only if user is allowed
+  (jcantril@redhat.com)
+
 * Thu Aug 14 2014 Adam Miller <admiller@redhat.com> 1.29.3-1
 - [Origin UI 194] Add description support to app create page and refactor to
   use radio buttons (jcantril@redhat.com)
