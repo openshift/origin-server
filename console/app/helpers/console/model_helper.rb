@@ -1,6 +1,16 @@
 module Console::ModelHelper
 
   ##
+  # Evaluate if the region is selectable by the user
+  #
+  # @param  (Array)  regions     A list of Regions
+  # @return true if a user is able to select a region
+  #         for an application. false otherwise
+  def allow_region_selection?(regions)
+    !regions.blank? && regions.any?{|r|r.allow_selection}
+  end
+
+  ##
   # Retrieve the assigned region from a list of GearGroups
   #
   # @param  (Array)  gear_groups   A list of gear groups
