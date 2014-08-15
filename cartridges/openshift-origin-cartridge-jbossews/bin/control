@@ -70,7 +70,7 @@ function ishttpup() {
     count=0
     while [ ${count} -lt 64 ]
     do
-        if /usr/sbin/lsof -P -n -i "@${OPENSHIFT_JBOSSEWS_IP}:${OPENSHIFT_JBOSSEWS_HTTP_PORT}" | grep "(LISTEN)" > /dev/null; then
+        if echo 2> /dev/null > "/dev/tcp/${OPENSHIFT_JBOSSEWS_IP}/${OPENSHIFT_JBOSSEWS_HTTP_PORT}"; then
             echo "Found ${OPENSHIFT_JBOSSEWS_IP}:${OPENSHIFT_JBOSSEWS_HTTP_PORT} listening port"
             return 0
         fi
