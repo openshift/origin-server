@@ -168,7 +168,7 @@ function ishttpup() {
     count=0
     while [ ${count} -lt 64 ]
     do
-        if /usr/sbin/lsof -P -n -i "@${OPENSHIFT_JBOSSAS_IP}:${OPENSHIFT_JBOSSAS_HTTP_PORT}" | grep "(LISTEN)" > /dev/null; then
+        if echo 2> /dev/null > "/dev/tcp/${OPENSHIFT_JBOSSAS_IP}/${OPENSHIFT_JBOSSAS_HTTP_PORT}"; then
             echo "Found ${OPENSHIFT_JBOSSAS_IP}:${OPENSHIFT_JBOSSAS_HTTP_PORT} listening port"
             return 0
         fi
@@ -192,7 +192,7 @@ function ismgmtup() {
     let count=0
     while [ ${count} -lt 10 ]
     do
-        if /usr/sbin/lsof -P -n -i "@${OPENSHIFT_JBOSSAS_IP}:${OPENSHIFT_JBOSSAS_MANAGEMENT_NATIVE_PORT}" | grep "(LISTEN)" > /dev/null; then
+        if echo 2> /dev/null > "/dev/tcp/${OPENSHIFT_JBOSSAS_IP}/${OPENSHIFT_JBOSSAS_MANAGEMENT_NATIVE_PORT}"; then
             echo "Found ${OPENSHIFT_JBOSSAS_IP}:${OPENSHIFT_JBOSSAS_MANAGEMENT_NATIVE_PORT} listening port"
             return 0
         fi
