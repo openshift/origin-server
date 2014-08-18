@@ -1,7 +1,12 @@
 #!/bin/bash -e
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
 mysql_version="$1"
 old_cart_version="$2"
 new_cart_version="$3"
+
+env_dir="${0OPENSHIFT_MYSQL_DIR}/env"
 
 if [[ $new_cart_version == 0.2.5 ]]; then
   files=$(shopt -s nullglob; shopt -s dotglob; echo data/ib_logfile*)
@@ -19,4 +24,10 @@ if [[ $new_cart_version == "0.2.9" ]]; then
   if [ -f ${OPENSHIFT_MYSQL_DIR}env/LD_LIBRARY_PATH ]; then
     rm -f ${OPENSHIFT_MYSQL_DIR}env/LD_LIBRARY_PATH
   fi
+fi
+
+# There is now a VERSION variable to allow the detection of 5.5
+# in rhcsh.
+if [[ $new_cart_version == "0.2.16" ]]; then
+  set_env_var 'OPENSHIFT_MYSQL_VERSION' $mysql_version $env_dir
 fi
