@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.28.2
+Version: 1.28.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -167,6 +167,13 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Mon Aug 18 2014 Adam Miller <admiller@redhat.com> 1.28.3-1
+- Merge pull request #5713 from
+  twiest/dev/twiest/regenerate_gear_metadata_options
+  (dmcphers+openshiftbot@redhat.com)
+- oo-admin-regenerate-gear-metadata: Changed to using oo_spawn and node cgroup
+  libraries. Added --quiet and --no-accept-node options. (twiest@redhat.com)
+
 * Wed Aug 13 2014 Adam Miller <admiller@redhat.com> 1.28.2-1
 - Added oo-admin-regenerate-gear-metadata (twiest@redhat.com)
 
