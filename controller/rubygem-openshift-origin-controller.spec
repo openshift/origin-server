@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.29.4
+Version: 1.29.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Aug 18 2014 Adam Miller <admiller@redhat.com> 1.29.5-1
+- Bug 1126826: cleaning up domain env vars and ssh keys on rollback
+  (abhgupta@redhat.com)
+
 * Thu Aug 14 2014 Adam Miller <admiller@redhat.com> 1.29.4-1
 - Update README.md (dmcphers@redhat.com)
 - Merge pull request #5683 from soltysh/binary_deploy_tests
