@@ -373,16 +373,12 @@ module OpenShift
               end
 
               ident_path                               = Dir.glob(File.join(cartridge_path, 'env', 'OPENSHIFT_*_IDENT')).first
-              ident                                    = IO.read(ident_path)
+              ident                                    = File.read(ident_path)
               vendor, name, version, cartridge_version = gear_map_ident(ident)
 
-              unless vendor == 'redhat'
-                progress.log "No upgrade available for cartridge #{ident}, #{vendor} not supported."
-                next
-              end
-
-              next_manifest = cartridge_repository.select(vendor, name, version)
-              unless next_manifest
+              begin
+                next_manifest = cartridge_repository.select(vendor, name, version)
+              rescue KeyError
                 progress.log "No upgrade available for cartridge #{ident}, cartridge not found in repository."
                 next
               end
@@ -495,7 +491,7 @@ module OpenShift
               end
 
               ident_path                               = Dir.glob(File.join(cartridge_path, 'env', 'OPENSHIFT_*_IDENT')).first
-              ident                                    = IO.read(ident_path)
+              ident                                    = File.read(ident_path)
               vendor, name, version, cartridge_version = gear_map_ident(ident)
               next_manifest                            = cartridge_repository.select(vendor, name, version)
 
