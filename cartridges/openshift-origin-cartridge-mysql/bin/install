@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ue
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source "${OPENSHIFT_MYSQL_DIR}/lib/mysql_context"
@@ -19,12 +19,14 @@ fi
 # Generate username, password, and db name and create env variables
 echo 'Generating username and password'
 
+env_dir="${OPENSHIFT_MYSQL_DIR}/env"
 username=$(generate_username)
 password=$(generate_password)
 
-echo "$username" > $OPENSHIFT_MYSQL_DIR/env/OPENSHIFT_MYSQL_DB_USERNAME
-echo "$password" > $OPENSHIFT_MYSQL_DIR/env/OPENSHIFT_MYSQL_DB_PASSWORD
-echo "mysql://$username:$password@$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/" > $OPENSHIFT_MYSQL_DIR/env/OPENSHIFT_MYSQL_DB_URL
+set_env_var 'OPENSHIFT_MYSQL_DB_USERNAME' "$username" $env_dir
+set_env_var 'OPENSHIFT_MYSQL_DB_PASSWORD' $password $env_dir
+set_env_var 'OPENSHIFT_MYSQL_DB_URL' "mysql://$username:$password@$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/" $env_dir
+set_env_var 'OPENSHIFT_MYSQL_VERSION' $version $env_dir
 
 echo 'Installing mysqld'
 
