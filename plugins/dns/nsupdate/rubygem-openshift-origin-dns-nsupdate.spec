@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for DNS update service using nsupdate
 Name:          rubygem-%{gem_name}
-Version:       1.16.2
+Version:       1.16.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -89,6 +89,24 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-dns
 
 
 %changelog
+* Tue Aug 19 2014 Adam Miller <admiller@redhat.com> 1.16.3-1
+- Corrected cmd to enable correctly returning STDERR from nsupdate as STDOUT
+  Added fqdn to modify_dns method Moved Rails.logger.error to before the raise
+  (tiwillia@redhat.com)
+- Pass dns action for logger as a string rather than a boolean
+  (tiwillia@redhat.com)
+- Split duplicate code into seperate method (tiwillia@redhat.com)
+- Follow rc convention and use Rails.logger to avoid large amounts of text in
+  the exception string (tiwillia@redhat.com)
+- nsupdate_plugin: Exception logging now includes error output from nsupdate
+  command (tiwillia@redhat.com)
+- Merge pull request #5368 from Miciah/specify-key-algorithm-in-nsupdate-
+  plugin-del_cmd-and-oo-diagnostics (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4817 from Miciah/plugins-dns-nsupdate-fix-example-of-key-
+  algorithm (dmcphers+openshiftbot@redhat.com)
+- Add key algorithm for record removal (calfonso@redhat.com)
+- plugins/dns/nsupdate: Fix example of key algorithm (miciah.masters@gmail.com)
+
 * Tue Mar 18 2014 Adam Miller <admiller@redhat.com> 1.16.2-1
 - version bump for openshift-origin-console and dns-nsupdate for OSE rebase
   (admiller@redhat.com)
