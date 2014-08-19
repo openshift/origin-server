@@ -195,7 +195,7 @@ module OpenShift
                       end
 
                       f.puts("ProxyPassReverse #{tpath} #{proxy_proto}://#{turi}")
-                      f.puts("ProxyPassReverse #{tpath} #{proxy_proto}://#{fqdn}/")
+                      f.puts("ProxyPassReverse #{tpath} #{proxy_proto}://#{fqdn}#{tpath}")
                     end
 
                     f.fsync
