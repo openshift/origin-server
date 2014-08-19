@@ -16,7 +16,7 @@
 
 Summary:       The OpenShift Management Console
 Name:          openshift-origin-console
-Version:       1.16.2
+Version:       1.16.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -251,6 +251,20 @@ _EOF
 /sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
 %changelog
+* Tue Aug 19 2014 Adam Miller <admiller@redhat.com> 1.16.3-1
+- mgmt console: describe SYSLOG_ENABLED option (lmeyer@redhat.com)
+- console_helper.rb:   - replace hard-coded value of product logo and product
+  title by     dynamic value from Console.config.env console.conf:   - add
+  PRODUCT_LOGO and PRODUCT_TITLE parameters (thierry@tfserver.no-ip.org)
+- Merge pull request #5359 from worldline/improving_config_files
+  (dmcphers+openshiftbot@redhat.com)
+- adding console community helper parameters in /etc/openshift/console.conf
+  (thierry.forli@worldline.com)
+- updates for RHSCL 1.1 (admiller@redhat.com)
+- Bug 1089722: Precompile members_form.css (jliggitt@redhat.com)
+- Update jquery, add typeahead widget (jliggitt@redhat.com)
+- Allow version of jQuery newer than 2.0 (jliggitt@redhat.com)
+
 * Tue Mar 18 2014 Adam Miller <admiller@redhat.com> 1.16.2-1
 - version bump for openshift-origin-console and dns-nsupdate for OSE rebase
   (admiller@redhat.com)
