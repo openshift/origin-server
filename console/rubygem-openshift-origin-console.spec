@@ -10,7 +10,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.29.4
+Version: 1.29.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -167,6 +167,11 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Aug 19 2014 Adam Miller <admiller@redhat.com> 1.29.5-1
+- [origin-ui-192] Adjustments according to feedback (contact@fabianofranz.com)
+- [origin-ui-192] Handle cartridges restricted by gear size
+  (contact@fabianofranz.com)
+
 * Fri Aug 15 2014 Troy Dawson <tdawson@redhat.com> 1.29.4-1
 - Merge pull request #5714 from
   jcantrill/207_hide_regions_when_user_not_allowed
