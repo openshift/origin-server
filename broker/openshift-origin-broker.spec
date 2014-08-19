@@ -16,7 +16,7 @@
 
 Summary:       OpenShift Origin broker components
 Name:          openshift-origin-broker
-Version:       1.16.1
+Version:       1.16.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -276,6 +276,20 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Tue Aug 19 2014 Adam Miller <admiller@redhat.com> 1.16.2-1
+- cloud_user: enable normalization of user logins. (lmeyer@redhat.com)
+- fix whitespace (lmeyer@redhat.com)
+- Add broker flag to disable user selection of region (cewong@redhat.com)
+- Test improvements that were affecting enterprise test scenarios
+  (jdetiber@redhat.com)
+- Bug 1123371: Fixing issue with setting the cartridge multiplier
+  (abhgupta@redhat.com)
+- Bug 1122657: Fixing logic to select gear for scaledown (abhgupta@redhat.com)
+- Bug 1121971: Validate based on domain owner capabilities during app create
+  (jliggitt@redhat.com)
+- Update Application Controller Test for ruby-2.0 cartridge
+  (j.hadvig@gmail.com)
+
 * Thu Jul 10 2014 Adam Miller <admiller@redhat.com> 1.16.1-1
 - bump origin-broker version for origin v4 release (admiller@redhat.com)
 - Updated REST API docs (lnader@redhat.com)
