@@ -919,6 +919,33 @@ Adding marker files to `.openshift/markers` will have the following effects:
 |Will enable server-status application path to be publicly available.
 |===
 
+=== Environment Variables
+The `php` cartridge provides several environment variables to change the default PHP configuration:
+
+[options="header"]
+|===
+|Variable name |Description
+
+|APPLICATION_ENV
+|Application mode, default value is `production`. When set to `development`, the Xdebug extension is enabled, more verbose `error_reporting` and the `APC.stat` setting are set.
+
+|OPENSHIFT_PHP_APC_ENABLED
+|Whether APC op-code cache PECL is enabled, `true` by default. Set value to `false` to turn this extension off.
+
+|OPENSHIFT_PHP_APC_SHM_SIZE
+|The APC shared memory size. The default value is `64M` on Small gears, `128M` on Medium gears and `256M` on Large gears.
+
+|OPENSHIFT_PHP_XDEBUG_ENABLED
+|Whether Xdebug PECL is enabled, `true` by default. Set value to `false` to turn this extension off. This variable overrides behavior set by `APPLICATION_ENV`.
+
+|OPENSHIFT_PHP_<MODULE>_ENABLED
+|Whether `<MODULE>` PECL is enabled, `true` by default. Set value to `false` to turn the specified extension off. To list all enabled modules, run `php -m` command while ssh'd into the gear.
+
+|===
+
+_Note: You must restart the `php` cartridge to pick-up the updated values._
+
+
 [[phpmyadmin]]
 == phpMyAdmin
 The `phpmyadmin` cartridge provides http://www.phpmyadmin.net[phpMyAdmin] on OpenShift. In order to add this cartridge to an application, the link:#mysql[MySQL] cartridge must already be present. Once installed, phpMyAdmin can be used by navigating to http://_app_-_domain_.rhcloud.com/phpmyadmin with the MySQL login credentials.
