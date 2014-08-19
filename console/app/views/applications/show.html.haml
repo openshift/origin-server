@@ -185,7 +185,7 @@
                 = "<strong>#{environment_variable.name}</strong>=#{environment_variable.value}".html_safe
 
     %section
-      - carts = CartridgeType.cached.embedded.select{ |c| !@application.cartridges.include?(c) }.sort
+      - carts = CartridgeType.embedded(:as => current_user).select{ |c| !@application.cartridges.include?(c) }.sort
       - databases = CartridgeType.suggest!(carts, :database?, 3).presence if @application.cartridges.none?(&:database?)
       - jenkins, builders = CartridgeType.suggest!(carts, :builder?).partition(&:jenkins_client?) unless @application.builds?
       - useful = CartridgeType.suggest_useful!(@application, carts).presence

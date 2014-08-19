@@ -108,10 +108,13 @@ module Console::ModelHelper
     "There are not enough free gears available to create a new application. You will either need to scale down or delete existing applications to free up resources."
   end
 
-  def new_application_gear_sizes(writeable_domains, user_capabilities)
+  def new_application_gear_sizes(writeable_domains, user_capabilities, application_type=nil)
     gear_sizes = user_capabilities.allowed_gear_sizes
     if writeable_domains.present?
       gear_sizes = writeable_domains.map(&:capabilities).map(&:allowed_gear_sizes).flatten.uniq
+    end
+    if application_type && application_type.valid_gear_sizes?
+      gear_sizes &= application_type.valid_gear_sizes 
     end
     gear_sizes
   end
@@ -122,6 +125,9 @@ module Console::ModelHelper
       gear_estimate = gear_estimate_for_scaled_app({'1' => [cartridge_type]})
       increasing = (gear_estimate.begin > 0 || gear_estimate.end > 0)
       gear_sizes = capabilities.allowed_gear_sizes if increasing
+      if cartridge_type.valid_gear_sizes?
+        gear_sizes &= cartridge_type.valid_gear_sizes 
+      end
     end
     gear_sizes
   end
@@ -150,6 +156,16 @@ module Console::ModelHelper
         [d.name, d.name]
       end
     end
+  end
+
+  def cartridges_for_select(cartridges, selected=nil)
+    options_for_select(cartridges.sort.map do |c|
+      if c.valid_gear_sizes?
+        [c.display_name, c.name, 'data-gear-sizes' => c.valid_gear_sizes.join(',')]
+      else
+        [c.display_name, c.name]
+      end
+    end, selected)
   end
 
   def web_cartridge_scale_title(cartridge)

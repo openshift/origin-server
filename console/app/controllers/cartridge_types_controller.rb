@@ -6,7 +6,7 @@ class CartridgeTypesController < ConsoleController
     @application = Application.find(params[:application_id], :params => {:include => :cartridges}, :as => current_user)
     installed_carts = @application.cartridges
 
-    types = CartridgeType.cached.embedded
+    types = CartridgeType.embedded(:as => current_user)
 
     @blocked = []
 
@@ -32,6 +32,10 @@ class CartridgeTypesController < ConsoleController
     @cartridge_type = url ? CartridgeType.for_url(url) : CartridgeType.cached.find(name)
     @gear_sizes = add_cartridge_gear_sizes(@application, @cartridge_type, @capabilities)
     @cartridge = Cartridge.new :as => current_user
+
+    if @cartridge_type.valid_gear_sizes? && (@gear_sizes.map(&:to_sym) & @cartridge_type.valid_gear_sizes).empty?
+      flash.now[:error] = "The gear sizes available for this application or your account are not compatible with this cartridge. #{@cartridge_type.display_name} can only run on the following gear sizes: #{@cartridge_type.valid_gear_sizes.map(&:to_s).join(', ')}."
+    end
   end
 
   def estimate
