@@ -608,8 +608,10 @@ def check_system_httpd_configs
     return
   end
 
-  return unless $CONF.get('OPENSHIFT_FRONTEND_HTTP_PLUGINS').split(',').include?('openshift-origin-frontend-apache-mod-rewrite')
-  return unless $CONF.get('OPENSHIFT_FRONTEND_HTTP_PLUGINS').split(',').include?('openshift-origin-frontend-nodejs-websocket')
+  http_plugins = $CONF.get('OPENSHIFT_FRONTEND_HTTP_PLUGINS').split(',')
+  # xor between mod-rewrite and vhost plugins. One of them has to exist and both of them cannot.
+  return unless (http_plugins.include?('openshift-origin-frontend-apache-mod-rewrite') ^ http_plugins.include?('openshift-origin-frontend-apache-vhost'))
+  return unless http_plugins.include?('openshift-origin-frontend-nodejs-websocket')
 
   ['aliases.db', 'idler.db', 'nodes.db', 'sts.db'].each do |db|
     begin
