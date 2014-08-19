@@ -739,6 +739,15 @@ class Application
         end
       end
 
+      # check if a cartridge with a min gear requirement of 2+ is being added to a non-scalable application
+      if !self.scalable
+        min_gears = 1
+        cart.components.each do |component|
+          min_gears = [min_gears, component.scaling.min].max
+          raise OpenShift::UserException.new("The cartridge '#{cart.name}' requies a minimum of #{min_gears} gears and cannot be added to a non-scalable application.", 109, 'scalable') if min_gears > 1
+        end
+      end
+
       # Validate that this feature either does not have the domain_scope category
       # or if it does, then no other application within the domain has this feature already
       if cart.is_domain_scoped?

@@ -1279,6 +1279,50 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  test "higher min scaling limit cartridges with non scalable app" do
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
+      ---
+      Name: mock
+      Version: '0.1'
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: mock
+      Source-Url: manifest://test.zip
+      Provides:
+      - mycart
+      Categories:
+      - web_framework
+      Scaling:
+        Min: 2
+        Max: -1
+      MANIFEST
+
+    @app_name = "app#{@random}"
+    post :create, {"name" => @app_name, "cartridge" => [php_version, {"url" => "manifest://test"}], "domain_id" => @domain.namespace, "scale" => false}
+    assert_response :unprocessable_entity
+  end
+
+  test "higher min scaling limit cartridges with scalable app" do
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
+      ---
+      Name: mock
+      Version: '0.1'
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: mock
+      Source-Url: manifest://test.zip
+      Provides:
+      - mycart
+      Categories:
+      - web_framework
+      Scaling:
+        Min: 2
+        Max: -1
+      MANIFEST
+
+    @app_name = "app#{@random}"
+    post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test"}], "domain_id" => @domain.namespace, "scale" => true}
+    assert_response :success
+  end
+
   test "invalid region" do
     post :create, {"domain_id" => @domain.namespace, "name" => "invlidregion#{@random}", "cartridge" => php_version, "region" => "bogus"}
     assert_response :unprocessable_entity
