@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.29.5
+Version: 1.29.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,11 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Aug 20 2014 Adam Miller <admiller@redhat.com> 1.29.6-1
+- Update extended test for online/enterprise (jdetiber@redhat.com)
+- Bug 1130496: Blocking carts with 2+ min gears in non-scalable apps
+  (abhgupta@redhat.com)
+
 * Mon Aug 18 2014 Adam Miller <admiller@redhat.com> 1.29.5-1
 - Bug 1126826: cleaning up domain env vars and ssh keys on rollback
   (abhgupta@redhat.com)
