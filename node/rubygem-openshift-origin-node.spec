@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.29.3
+Version: 1.29.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Aug 20 2014 Adam Miller <admiller@redhat.com> 1.29.4-1
+- Fix bug 1131089: use correct mysql client for 5.5 (pmorie@gmail.com)
+
 * Thu Aug 14 2014 Adam Miller <admiller@redhat.com> 1.29.3-1
 - Merge pull request #5683 from soltysh/binary_deploy_tests
   (dmcphers+openshiftbot@redhat.com)
