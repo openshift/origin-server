@@ -541,19 +541,26 @@ def check_quotas
     verbose("checking filesystem quotas")
     oo_device=%x[/bin/df -P #{$GEAR_BASE_DIR} | /usr/bin/tail -1].split[0]
     oo_mount=%x[/bin/df -P #{$GEAR_BASE_DIR} | /usr/bin/tail -1 | /usr/bin/tr -s ' '].split[5]
-    unless %x[/sbin/quotaon -u -p #{oo_mount} 2>&1].strip == "user quota on #{oo_mount} (#{oo_device}) is on"
-        do_fail "quotas are not enabled on #{oo_mount} (#{oo_device})"
-    end
-
-    quota_db_file=File.join(oo_mount,"/aquota.user")
-    if File.exists? quota_db_file
-        verbose("checking quota db file selinux label")
-        quota_db_type = %x[/usr/bin/secon -f #{quota_db_file} | /bin/grep type: ]
-        if quota_db_type !~ /quota_db_t/
-            do_fail("quota db file: selinux type is incorrect: #{quota_db_type}")
-        end
+    fs_type=%x[df -T #{oo_mount} | tail -1 2>&1].split[1]
+    if fs_type=="xfs"
+      unless %x[repquota -v #{oo_mount} | grep "Accounting.*Enforcement"].strip == "Accounting: ON; Enforcement: ON"
+          do_fail "quotas are not enabled on #{oo_mount} (#{oo_device})"
+      end
     else
-        do_fail("quota db file #{quota_db_file} does not exist")
+      unless %x[/sbin/quotaon -u -p #{oo_mount} 2>&1].strip == "user quota on #{oo_mount} (#{oo_device}) is on"
+          do_fail "quotas are not enabled on #{oo_mount} (#{oo_device})"
+      end
+
+      quota_db_file=File.join(oo_mount,"/aquota.user")
+      if File.exists? quota_db_file
+          verbose("checking quota db file selinux label")
+          quota_db_type = %x[/usr/bin/secon -f #{quota_db_file} | /bin/grep type: ]
+          if quota_db_type !~ /quota_db_t/
+              do_fail("quota db file: selinux type is incorrect: #{quota_db_type}")
+          end
+      else
+          do_fail("quota db file #{quota_db_file} does not exist")
+      end
     end
 end
 
