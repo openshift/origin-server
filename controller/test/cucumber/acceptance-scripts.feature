@@ -9,6 +9,13 @@ Feature: Acceptance scripts for sanity checking infrastructure
     Then running <script> should yield <output> with a <exitcode> exitstatus
     And no stack traces should have occurred
 
+  @not-origin
+  @not-enterprise
   Scenarios: Acceptance script scenarios
     |     script                                   |   output   | exitcode |
     | oo-broker-attach /usr/sbin/oo-accept-systems |   PASS     |     0    |
+
+  @not-online
+  Scenarios: Acceptance script scenarios
+    |     script        |   output   | exitcode |
+    | oo-accept-systems |   PASS     |     0    |
