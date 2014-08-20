@@ -145,7 +145,15 @@ function mysql() {
       esac
    done
 
-   /usr/bin/mysql ${hostopt} ${portopt} ${useropt} ${passopt} "$@"
+   CMD=`which mysql`
+   if [[ ! -z $OPENSHIFT_MYSQL_VERSION && $OPENSHIFT_MYSQL_VERSION = '5.5' ]]; then
+     which scl 2>&1 >/dev/null
+     if [ $? -eq 0 ]; then
+       CMD=`scl enable mysql55 "which mysql"`
+     fi
+   fi
+
+  $CMD ${hostopt} ${portopt} ${useropt} ${passopt} "$@"
 
 }  #  End of  mysql  function.
 

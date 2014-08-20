@@ -15,7 +15,7 @@ function update_configuration {
         #
         # $ scl enable mysql55 "mysql"
         #
-        # set_env_var 'OPENSHIFT_MYSQL_PATH_ELEMENT' $pe $env_dir
+        #set_env_var 'OPENSHIFT_MYSQL_PATH_ELEMENT' $pe $env_dir
 
         local ld_path=$(LD_LIBRARY_PATH="" scl enable mysql55 "printenv LD_LIBRARY_PATH")
         set_env_var 'OPENSHIFT_MYSQL_LD_LIBRARY_PATH_ELEMENT' $ld_path $env_dir
