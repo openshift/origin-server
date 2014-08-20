@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.29.2
+Version: 1.29.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -74,6 +74,9 @@ find versions/ -name .gitkeep -delete
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Aug 20 2014 Adam Miller <admiller@redhat.com> 1.29.3-1
+- Bump cartridge versions for Sprint 49 (maszulik@redhat.com)
+
 * Thu Aug 14 2014 Adam Miller <admiller@redhat.com> 1.29.2-1
 - Bug 1128717 - set production as a default node environment
   (maszulik@redhat.com)
