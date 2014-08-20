@@ -10,7 +10,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.22.1
+Version: 1.22.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -66,6 +66,9 @@ fi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Aug 20 2014 Adam Miller <admiller@redhat.com> 1.22.2-1
+- Bump cartridge versions for Sprint 49 (maszulik@redhat.com)
+
 * Fri Aug 08 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
 - mongodb cart: clean up `mongodb_context`, `rhcsh` (jolamb@redhat.com)
 - mongodb cart: Support non-SCL systems (jolamb@redhat.com)
