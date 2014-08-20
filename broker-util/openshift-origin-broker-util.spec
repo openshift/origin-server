@@ -8,7 +8,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.28.4
+Version: 1.28.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -109,6 +109,9 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Wed Aug 20 2014 Adam Miller <admiller@redhat.com> 1.28.5-1
+- Fix formatting (dmcphers@redhat.com)
+
 * Wed Aug 13 2014 Adam Miller <admiller@redhat.com> 1.28.4-1
 - broker oo scripts: enable login normalization (lmeyer@redhat.com)
 
