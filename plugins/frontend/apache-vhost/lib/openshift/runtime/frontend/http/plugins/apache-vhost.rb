@@ -424,7 +424,7 @@ module OpenShift
                   end
                 end
               end
-              ::OpenShift::Runtime::Frontend::Http::Plugins::reload_httpd
+              ::OpenShift::Runtime::Frontend::Http::Plugins::reload_httpd unless ENV['APACHE_VHOST_DO_NOT_RELOAD']
             end
 
             def with_lock_and_reload(&block)
