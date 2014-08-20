@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.28.3
+Version: 1.28.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -167,6 +167,12 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Wed Aug 20 2014 Adam Miller <admiller@redhat.com> 1.28.4-1
+- Merge pull request #5718 from rajatchopra/xfs
+  (dmcphers+openshiftbot@redhat.com)
+- fix accept-node for vhost vs rewrite plugin presence (rchopra@redhat.com)
+- use repquota for xfs - bz1128932 (rchopra@redhat.com)
+
 * Mon Aug 18 2014 Adam Miller <admiller@redhat.com> 1.28.3-1
 - Merge pull request #5713 from
   twiest/dev/twiest/regenerate_gear_metadata_options
