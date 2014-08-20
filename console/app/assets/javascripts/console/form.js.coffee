@@ -37,7 +37,7 @@ $ ->
   $.validator.addMethod "intersected_cartridge_sizes", ((value) ->
     $intersected_cartridge_sizes = true
 
-    for current in $("select[name='application[cartridges][]'] option:selected")
+    for current in $("select[name='application[cartridges][]'] option:selected, input[name='application[cartridges][]']")
       $current_cart_gear_sizes = $(current).data("gear-sizes")
 
       if $current_cart_gear_sizes? && $intersected_cartridge_sizes
@@ -47,9 +47,10 @@ $ ->
           if $other_cart_gear_sizes? && $intersected_cartridge_sizes
             $other_cart_gear_sizes = $other_cart_gear_sizes.split(',')
 
-            $current_cart_gear_sizes.split(',').filter (n) ->
-              if $other_cart_gear_sizes.indexOf(n) == -1
-                $intersected_cartridge_sizes = false
+            if $current_cart_gear_sizes.split(',').filter((n) ->
+              return $.inArray(n, $other_cart_gear_sizes) > -1
+            ).length == 0
+              $intersected_cartridge_sizes = false
 
     return $intersected_cartridge_sizes
   ), "The cartridges selected require gear sizes that are not compatible with each other."
@@ -150,6 +151,7 @@ $ ->
           $cartridge_sizes = application_type_valid_gear_sizes ? null
 
           $quickstart_sizes = has_multiple_cartridge_types ? null
+
           if $quickstart_sizes
             $cart_sizes = []
             $(element)
@@ -157,17 +159,21 @@ $ ->
               .find('#application_cartridges select option:selected, #application_cartridges input[type=hidden]')
               .each((i) ->
                 if $(this).data('gear-sizes')
-                  $.each $(this).data('gear-sizes').split(','), ((i, item) ->
-                    $cart_sizes.push(item)
-                  )
+                  $cart_sizes.push($(this).data('gear-sizes').split(','))
               )
+
               if $cart_sizes.length > 0
-                $quickstart_sizes = $cart_sizes.filter((e, pos) ->
-                  return $cart_sizes.indexOf(e) == pos
-                ) 
+                $quickstart_sizes = 
+                  $cart_sizes.sort((a, b) ->
+                    return a.length - b.length
+                  ).shift().filter((v) ->
+                    return $cart_sizes.every((a) ->
+                      return a.indexOf(v) != -1
+                    )
+                  )  
               else 
                 $quickstart_sizes = null
-          
+
           if $domain_sizes == ""
             $domain_sizes = []
           else if !$domain_sizes
@@ -187,7 +193,8 @@ $ ->
               "The owner of the selected domain has disabled all gear sizes from being created. You will not be able to create an application in this domain."
             else
               if $.isArray(params[1]) && $.inArray($(element).val(), params[1]) == -1
-                jQuery.format("The gear size <strong>{0}</strong> is not supported by this <strong>cartridge</strong>. Allowed for cartridge: {1}.", $(element).val(), (if params[1].length == 0 then 'none' else params[1].join(', ')))
+                $number_of_carts = $('#application_cartridges select option:selected, #application_cartridges input[type=hidden]').length
+                jQuery.format("The gear size <strong>{0}</strong> is not supported by this <strong>{1}</strong>.{2}", $(element).val(), (if $number_of_carts > 1 then 'set of cartridges' else 'cartridge'), (if params[1].length == 0 then '' else " Allowed: " + params[1].join(', ') + "."))
               else
                 jQuery.format("The gear size <strong>{0}</strong> is not valid for the selected <strong>domain</strong>. Allowed for domain: {1}.", $(element).val(), params[0].join(', '))
 
