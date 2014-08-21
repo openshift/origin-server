@@ -10,7 +10,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.23.0
+Version: 1.23.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -66,6 +66,9 @@ fi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Aug 21 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
+- bump_minor_versions for sprint 50 (admiller@redhat.com)
+
 * Wed Aug 20 2014 Adam Miller <admiller@redhat.com> 1.22.2-1
 - Bump cartridge versions for Sprint 49 (maszulik@redhat.com)
 
