@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.28.4
+Version: 1.28.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -167,6 +167,10 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Thu Aug 21 2014 Adam Miller <admiller@redhat.com> 1.28.5-1
+- re-arrange oo-accept-node to test mod_rewrite stuff only when the plugin is
+  present (rchopra@redhat.com)
+
 * Wed Aug 20 2014 Adam Miller <admiller@redhat.com> 1.28.4-1
 - Merge pull request #5718 from rajatchopra/xfs
   (dmcphers+openshiftbot@redhat.com)
