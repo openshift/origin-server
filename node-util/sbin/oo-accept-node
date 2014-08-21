@@ -620,13 +620,14 @@ def check_system_httpd_configs
   return unless (http_plugins.include?('openshift-origin-frontend-apache-mod-rewrite') ^ http_plugins.include?('openshift-origin-frontend-apache-vhost'))
   return unless http_plugins.include?('openshift-origin-frontend-nodejs-websocket')
 
+  mod_rewrite = http_plugins.include? 'openshift-origin-frontend-apache-mod-rewrite'
   ['aliases.db', 'idler.db', 'nodes.db', 'sts.db'].each do |db|
     begin
       File.open(File.join($CONF.get('OPENSHIFT_HTTP_CONF_DIR'), db))
     rescue => e
       do_fail("#{e}")
     end
-  end
+  end if mod_rewrite
 
   httpconfs = Hash.new
   ['aliases.txt', 'idler.txt', 'nodes.txt', 'sts.txt'].each do |db|
@@ -643,7 +644,7 @@ def check_system_httpd_configs
     rescue => e
       do_fail("#{e}")
     end
-  end
+  end if mod_rewrite
 
   ['routes.json', 'geardb.json'].each do |db|
     begin
@@ -656,7 +657,7 @@ def check_system_httpd_configs
     end
   end
 
-  httpconfs['nodes.txt'].delete_if   { |k,v|  k.split('/')[0] == '__default__' }
+  httpconfs['nodes.txt'].delete_if   { |k,v|  k.split('/')[0] == '__default__' } if mod_rewrite
   mangled_gears=[]
   $USERS.each do |u|
     dnsfile = File.join($GEAR_BASE_DIR, u.name, '.env', 'OPENSHIFT_GEAR_DNS')
@@ -725,7 +726,7 @@ def check_system_httpd_configs
         }
       }
 
-      if has_framework and not httpconfs['nodes.txt'].has_key?(fqdn)
+      if mod_rewrite and has_framework and not httpconfs['nodes.txt'].has_key?(fqdn)
         user_fail(u.name, "Gear has a web framework cartridge but no Apache configuration: #{u.name}")
       end
 
@@ -734,10 +735,12 @@ def check_system_httpd_configs
       end
 
 
-      httpconfs['nodes.txt'].delete_if   { |k,v|  k.split('/')[0] == fqdn }
-      httpconfs['aliases.txt'].delete_if { |k,v|  v == fqdn }
-      httpconfs['idler.txt'].delete(fqdn)
-      httpconfs['sts.txt'].delete(fqdn)
+      if mod_rewrite
+        httpconfs['nodes.txt'].delete_if   { |k,v|  k.split('/')[0] == fqdn }
+        httpconfs['aliases.txt'].delete_if { |k,v|  v == fqdn }
+        httpconfs['idler.txt'].delete(fqdn)
+        httpconfs['sts.txt'].delete(fqdn)
+      end
       httpconfs['routes.json'].delete_if   { |k,v|  k.split('/')[0] == fqdn }
       httpconfs['routes.json'].delete_if { |k, v| v["alias"] == fqdn }
       httpconfs['geardb.json'].delete_if { |k, v| v["fqdn"] == fqdn }
@@ -746,10 +749,12 @@ def check_system_httpd_configs
   end
 
   fail_dns_names = Hash.new
-  httpconfs['nodes.txt'].each   { |k, v| fail_dns_names[k.split('/')[0]]=1 }
-  httpconfs['aliases.txt'].each { |k, v| fail_dns_names[v]=1 }
-  httpconfs['idler.txt'].each   { |k, v| fail_dns_names[k]=1 }
-  httpconfs['sts.txt'].each     { |k, v| fail_dns_names[k]=1 }
+  if mod_rewrite
+    httpconfs['nodes.txt'].each   { |k, v| fail_dns_names[k.split('/')[0]]=1 }
+    httpconfs['aliases.txt'].each { |k, v| fail_dns_names[v]=1 }
+    httpconfs['idler.txt'].each   { |k, v| fail_dns_names[k]=1 }
+    httpconfs['sts.txt'].each     { |k, v| fail_dns_names[k]=1 }
+  end
   httpconfs['routes.json'].each do |k, v|
     if v["alias"]
       fail_dns_names[v["alias"]]=1
