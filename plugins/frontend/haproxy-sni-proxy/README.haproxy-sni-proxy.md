@@ -80,7 +80,7 @@ Endpoints:
 
 The exposed port will be reported back as a client result.
 ```
-  Cartridge mock exposed URL tls:foo.example.com:2303
+  Cartridge mock endpoint AMQPS_PORT is exposed at URL tls:foo.example.com:2303
 ```
 
 The reported URL reports the protocol as "tls" instead of the
