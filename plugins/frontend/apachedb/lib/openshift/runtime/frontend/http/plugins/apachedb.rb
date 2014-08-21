@@ -39,7 +39,7 @@ module OpenShift
           def self.reload_httpd(async=false)
             async_opt="-b" if async
             begin
-              ::OpenShift::Runtime::Utils::oo_spawn("/usr/sbin/oo-httpd-singular #{async_opt} graceful", :expected_exitstatus=> 0)
+              ::OpenShift::Runtime::Utils::oo_spawn("/usr/sbin/oo-httpd-singular #{async_opt} graceful", :expected_exitstatus=> 0) unless ENV['APACHE_HTTPD_DO_NOT_RELOAD']
             rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
               NodeLogger.logger.error("ERROR: failure from oo-httpd-singular(#{e.rc}): #{@container_uuid}: stdout: #{e.stdout} stderr:#{e.stderr}")
             end
