@@ -15,7 +15,7 @@
 
 Summary:       OpenShift ApacheDB frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.4.3
+Version: 0.4.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -105,6 +105,11 @@ mv httpd/000001_openshift_origin_node_servername.conf %{buildroot}/etc/httpd/con
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Thu Aug 21 2014 Adam Miller <admiller@redhat.com> 0.4.4-1
+- bump spepc to fix tags (admiller@redhat.com)
+- move env var guard for all http plugins and not just the vhost plugin
+  (rchopra@redhat.com)
+
 * Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 0.4.1-1
 - bump_minor_versions for sprint 41 (admiller@redhat.com)
 
