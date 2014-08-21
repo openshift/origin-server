@@ -199,6 +199,32 @@ module OpenShift
         Manifest.new(manifest_path, version, :file, @container.container_dir)
       end
 
+      def archive_gear()
+        archive_dir = @config.get("ARCHIVE_DESTROYED_GEARS_DIR")
+        if @config.get_bool("ARCHIVE_DESTROYED_GEARS")
+          if not File.directory? archive_dir
+            logger.warn "Cannot archive destroyed gears; #{archive_dir} is not a directory"
+            return
+          elsif not File.writable? archive_dir
+            logger.warn "Cannot archive destroyed gears; #{archive_dir} is not writable"
+            return
+          elsif File.world_readable? archive_dir or File.world_writable? archive_dir
+            logger.warn "Cannot archive destroyed gears; #{archive_dir} is world readable and/or writable"
+            return
+          end
+          archive_filespec = PathUtils.join(archive_dir, "#{@container.application_name}-#{@container.uuid}.tar.bz2")
+          if File.exists? archive_filespec
+            logger.warn "Cannot archive destroyed gears; #{archive_filespec} already exists"
+          else
+            command = "tar --selinux --acls --preserve --create --bzip2 --file=#{archive_filespec} #{@container.container_dir}"
+            tarout, tarerr, rc = Utils.oo_spawn(command)
+            unless rc == 0
+              logger.warn "Error occurred running \"#{command}\"; rc=#{rc}, stdout=#{tarout}, stderr=#{tarerr}"
+            end
+          end
+        end
+      end
+
       # destroy(skip_hooks = false) -> [buffer, '', 0]
       #
       # Remove all cartridges from a gear and delete the gear.  Accepts
@@ -211,6 +237,7 @@ module OpenShift
 
         buffer = ''
         begin
+          archive_gear
           unless skip_hooks
             each_cartridge do |cartridge|
               unlock_gear(cartridge, false) do |c|
