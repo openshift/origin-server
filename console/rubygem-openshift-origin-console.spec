@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.29.5
+Version: 1.29.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -166,6 +166,10 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Aug 21 2014 Adam Miller <admiller@redhat.com> 1.29.6-1
+- Bug 1131967 - fixes validation of gear sizes on quickstarts page
+  (contact@fabianofranz.com)
+
 * Tue Aug 19 2014 Adam Miller <admiller@redhat.com> 1.29.5-1
 - [origin-ui-192] Adjustments according to feedback (contact@fabianofranz.com)
 - [origin-ui-192] Handle cartridges restricted by gear size
