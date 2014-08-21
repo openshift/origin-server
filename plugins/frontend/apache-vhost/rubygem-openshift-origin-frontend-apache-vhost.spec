@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.9.0
+Version: 0.9.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -109,6 +109,11 @@ mv httpd/openshift-vhost-logconf.include %{buildroot}/etc/httpd/conf.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Thu Aug 21 2014 Adam Miller <admiller@redhat.com> 0.9.1-1
+- move env var guard for all http plugins and not just the vhost plugin
+  (rchopra@redhat.com)
+- bump_minor_versions for sprint 50 (admiller@redhat.com)
+
 * Wed Aug 20 2014 Adam Miller <admiller@redhat.com> 0.8.2-1
 - put apache reload in guard of an env variable (rchopra@redhat.com)
 - bz1131404 - ProxyPassReverse fix (rchopra@redhat.com)
