@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.30.0
+Version: 1.30.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Aug 21 2014 Adam Miller <admiller@redhat.com> 1.30.1-1
+- bump_minor_versions for sprint 50 (admiller@redhat.com)
+
 * Wed Aug 20 2014 Adam Miller <admiller@redhat.com> 1.29.4-1
 - Fix bug 1131089: use correct mysql client for 5.5 (pmorie@gmail.com)
 
