@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.30.0
+Version: 1.30.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Aug 21 2014 Adam Miller <admiller@redhat.com> 1.30.1-1
+- Merge pull request #5731 from bparees/unique_json_filenames
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 50 (admiller@redhat.com)
+- use unique filenames for each TestApp persisted file (bparees@redhat.com)
+
 * Wed Aug 20 2014 Adam Miller <admiller@redhat.com> 1.29.6-1
 - Update extended test for online/enterprise (jdetiber@redhat.com)
 - Bug 1130496: Blocking carts with 2+ min gears in non-scalable apps
