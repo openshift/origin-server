@@ -30,7 +30,7 @@ module AppHelper
       @name, @namespace, @login, @type, @password, @owner = name, namespace, login, type, password, owner
       @hostname = "#{name}-#{namespace}.#{$domain}"
       @repo = "#{$temp}/#{namespace}_#{name}_repo"
-      @file = "#{$temp}/#{namespace}.json"
+      @file = "#{$temp}/#{namespace}_#{name}.json"
       @embed = []
       @scalable = scalable
     end
