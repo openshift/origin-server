@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.30.1
+Version: 1.30.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Aug 22 2014 Adam Miller <admiller@redhat.com> 1.30.2-1
+- remove the check on Apache DB files because the plugin may not be present
+  (rchopra@redhat.com)
+
 * Thu Aug 21 2014 Adam Miller <admiller@redhat.com> 1.30.1-1
 - Merge pull request #5731 from bparees/unique_json_filenames
   (dmcphers+openshiftbot@redhat.com)
