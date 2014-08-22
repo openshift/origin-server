@@ -1,6 +1,8 @@
 %if 0%{?fedora}%{?rhel} <= 6
     %global scl ruby193
     %global scl_prefix ruby193-
+    %global nodejs_scl nodejs010
+    %global nodejs_scl_reflex nodejs010-
 %endif
 %{!?scl:%global pkg_name %{name}}
 %{?scl:%scl_package rubygem-%{gem_name}}
@@ -57,6 +59,7 @@ BuildRequires: %{?scl:%scl_prefix}rubygem(sprockets)
 BuildRequires: %{?scl:%scl_prefix}rubygem(therubyracer)
 BuildRequires: %{?scl:%scl_prefix}rubygem(uglifier)
 BuildRequires: %{?scl:%scl_prefix}rubygem(syslog-logger)
+BuildRequires: %{?scl:%nodejs_scl_prefix}nodejs
 
 
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
@@ -82,7 +85,7 @@ OpenShift Origin Management Console ri documentation
 %setup -q
 
 %build
-%{?scl:scl enable %scl - << \EOF}
+%{?scl:scl enable %scl %nodejs_scl - << \EOF}
 
 set -e
 mkdir -p .%{gem_dir}
