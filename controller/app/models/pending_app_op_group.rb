@@ -29,7 +29,7 @@ class PendingAppOpGroup
       attrs.delete(:parent_op)
     end
     super
-    self.parent_op_id = parent_opid 
+    self.parent_op_id = parent_opid
   end
 
   def eligible_rollback_ops
