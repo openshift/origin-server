@@ -6,7 +6,7 @@ mysql_version="$1"
 old_cart_version="$2"
 new_cart_version="$3"
 
-env_dir="${0OPENSHIFT_MYSQL_DIR}/env"
+env_dir="${OPENSHIFT_MYSQL_DIR}/env"
 
 if [[ $new_cart_version == 0.2.5 ]]; then
   files=$(shopt -s nullglob; shopt -s dotglob; echo data/ib_logfile*)
