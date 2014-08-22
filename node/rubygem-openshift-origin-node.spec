@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.30.1
+Version: 1.30.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,12 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Aug 22 2014 Adam Miller <admiller@redhat.com> 1.30.2-1
+- Merge pull request #5738 from bparees/sni_port_message
+  (dmcphers+openshiftbot@redhat.com)
+- The output message about TLS URLs is not clear when creating jboss-amq
+  cartridge (bparees@redhat.com)
+
 * Thu Aug 21 2014 Adam Miller <admiller@redhat.com> 1.30.1-1
 - bump_minor_versions for sprint 50 (admiller@redhat.com)
 
