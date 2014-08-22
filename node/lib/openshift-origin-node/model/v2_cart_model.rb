@@ -1106,7 +1106,7 @@ module OpenShift
               end
               if reported_urls
                 reported_urls.each do |url|
-                  outstr = "Cartridge #{cartridge.name} exposed URL #{url}"
+                  outstr = "Cartridge #{cartridge.name} endpoint #{endpoint.private_port_name} is exposed at URL #{url}"
                   if endpoint.description
                     outstr << " for #{endpoint.description}"
                   end
