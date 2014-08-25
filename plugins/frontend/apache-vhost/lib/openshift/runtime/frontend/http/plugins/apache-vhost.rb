@@ -184,15 +184,20 @@ module OpenShift
                     if gen_default_rule
                       tpath = path.empty? ? "/" : path
 
-                      f.puts("ProxyPass #{tpath} #{proxy_proto}://#{uri}/ retry=0")
-
                       if uri.empty?
                         turi = "127.0.0.1:80"
-                      elsif uri.end_with?("/")
-                        turi = uri
+                      elsif tpath[-1] != uri[-1]
+                        # tpath and uri are unequal, fix uri to match tpath
+                        if uri.end_with?("/")
+                          turi = uri[0..-2]
+                        else
+                          turi = uri + "/"
+                        end
                       else
-                        turi = uri + "/"
+                        turi = uri
                       end
+
+                      f.puts("ProxyPass #{tpath} #{proxy_proto}://#{turi} retry=0")
 
                       f.puts("ProxyPassReverse #{tpath} #{proxy_proto}://#{turi}")
                       f.puts("ProxyPassReverse #{tpath} #{proxy_proto}://#{fqdn}#{tpath}")
