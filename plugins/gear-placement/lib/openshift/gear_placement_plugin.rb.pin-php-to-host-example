@@ -1,0 +1,41 @@
+#
+# This plugin can customize the node selection algorithm used to determine where a gear resides 
+#
+
+module OpenShift
+  class GearPlacementPlugin
+
+    # Takes in a list of nodes and the relevant information related to the app/user/gear/components 
+    # and returns a single node where the gear will reside
+    #
+    # INPUTS:
+    # * server_infos: Array of server information (array of objects of class NodeProperties)
+    # * app_props: Properties of the application to which gear is being added (object of class ApplicationProperties)
+    # * current_gears: Array of existing gears in the application (objects of class GearProperties)
+    # * comp_list: Array of components that will be present on the new gear (objects of class ComponentProperties)
+    # * user_props: Properties of the user (object of class UserProperties)
+    # * request_time: the time that the request was sent to the plugin
+    #
+    # RETURNS:
+    # * NodeProperties: the server information for a single node where the gear will reside
+    #
+    def self.select_best_fit_node_impl(server_infos, app_props, current_gears, comp_list, user_props, request_time)
+      config = Broker::Application.config.gear_placement
+      php_host = config[:PHP_HOST]
+      if php_host.nil?
+        raise "The gear-placemement plugin expects a configuration setting for :PHP_HOST and it's missing"
+      end
+      check_server_infos = server_infos
+      check_server_infos.select {|x| x.name.eql? php_host}
+      if check_server_infos.empty?
+        raise "The gear-placement configuration has a :PHP_HOST setting that doesn't match any of the NodeProfile names"
+      end
+      server_infos.each do |server_info|
+        if (server_info.name.eql? php_host) && ("php".eql? app_props.web_cartridge)
+          return server_info
+        end
+      end
+      return server_infos.first
+    end
+  end
+end
