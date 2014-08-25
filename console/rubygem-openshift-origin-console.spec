@@ -1,5 +1,6 @@
 %if 0%{?fedora}%{?rhel} <= 6
     %global scl ruby193
+    %global v8_scl v8314
     %global scl_prefix ruby193-
 %endif
 %{!?scl:%global pkg_name %{name}}
@@ -82,7 +83,7 @@ OpenShift Origin Management Console ri documentation
 %setup -q
 
 %build
-%{?scl:scl enable %scl - << \EOF}
+%{?scl:scl enable %scl %v8_scl - << \EOF}
 
 set -e
 mkdir -p .%{gem_dir}
