@@ -1,0 +1,19 @@
+require 'openshift-origin-common'
+
+Broker::Application.configure do
+  conf_file = File.join(OpenShift::Config::PLUGINS_DIR, File.basename(__FILE__, '.rb') + '.conf')
+  if Rails.env.development?
+    dev_conf_file = File.join(OpenShift::Config::PLUGINS_DIR, File.basename(__FILE__, '.rb') + '-dev.conf')
+    if File.exist? dev_conf_file
+      conf_file = dev_conf_file
+    else
+      Rails.logger.info "Development configuration for #{File.basename(__FILE__, '.rb')} not found. Using production configuration."
+    end
+  end
+  conf = OpenShift::Config.new(conf_file)
+
+  config.gear_placement = {
+    :SLOW_HOST => conf.get("GEAR_PLACEMENT_SLOW_HOST", "node.example.com"),
+    :PINNED_USER => conf.get("GEAR_PLACEMENT_PINNED_USER", "gshipley")
+  }
+end
