@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for customizing the gear placement algorithm
 Name:          rubygem-%{gem_name}
-Version:       0.0.1
+Version:       0.0.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,3 +78,6 @@ cp conf/openshift-origin-gear-placement.conf.pin-user-to-host-example %{buildroo
 /etc/openshift/plugins.d/openshift-origin-gear-placement.conf.pin-user-to-host-example
 
 %changelog
+* Tue Aug 26 2014 Adam Miller <admiller@redhat.com> 0.0.2-1
+- new package built with tito
+
