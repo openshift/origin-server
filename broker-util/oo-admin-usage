@@ -160,18 +160,19 @@ end
 if args["--help"]
   show_usage
 end
-login = args["--login"]
-app = args["--app"]
-gear = args["--gear"]
-plan_id = args["--plan"]
-start_date = args["--start"]
-end_date = args["--end"]
 
 # load the rails environment
 require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
 include AdminHelper
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
+
+login = CloudUser.normalize_login(args["--login"])
+app = args["--app"]
+gear = args["--gear"]
+plan_id = args["--plan"]
+start_date = args["--start"]
+end_date = args["--end"]
 
 unless BSON::ObjectId.legal?(gear)
   puts "Error: Invalid gear format"
