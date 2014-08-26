@@ -121,7 +121,7 @@ class DomainMembersControllerTest < ActionController::TestCase
       :max_members_per_resource  => 100,
       :max_teams_per_resource    => 100,
     )
-    testname = @member.login.upcase + "@EXAMPLE.COM"
+    testname = @member.login.upcase + " @EXAMPLE.COM" #note: method not idempotent on this
     post :create, {"domain_id" => @domain.namespace, "login" => testname, "role" => "edit"}
     assert_response :success
     assert json = JSON.parse(response.body)
