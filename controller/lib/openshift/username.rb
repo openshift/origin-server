@@ -8,17 +8,26 @@ module OpenShift
     end
 
     def self.normalize(login)
-      @method_provider.normalize_impl(login)
+      # Normalization should ideally be idempotent or there will be problems
+      # when a stored normalization is retrieved and re-normalized.
+      normal = login
+      10.times do # Make sure by normalizing until it stays the same.
+        normaler = @method_provider.normalize_impl(normal)
+        return normal if normal == normaler # same, done normalizing
+        normal = normaler
+      end
+      raise OpenShift::OOException.new("Login normalization should be idempotent. Could not normalize '#{login}'")
     end
 
-    # default implementation can be configured via broker.conf
+    # A custom implementation can be inserted with provider=
+    # This default implementation can be configured via broker.conf
     def self.normalize_impl(login)
       (Rails.configuration.openshift[:normalize_username_method] || 'noop').split(',').each do |method|
         method = method.strip.to_sym
         if respond_to?(method)
           login = send(method, login)
         else
-          Rails.logger.warn "ERROR: No such method '#{method}' available in OpenShift::Username::normalize_impl"
+          Rails.logger.error "No such method '#{method}' available in OpenShift::Username::normalize_impl"
         end
       end
       login
@@ -38,7 +47,7 @@ module OpenShift
 
     def self.remove_domain(login)
       login = login.to_s
-      if i = login.rindex('@')
+      if i = login.index('@')
         login[0,i]
       else
         login
