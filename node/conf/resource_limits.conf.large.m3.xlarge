@@ -8,16 +8,16 @@
 #       oo-admin-ctl-tc restart
 #
 #
-# Default Profile
+# Large Profile
 #
-node_profile=small
+node_profile=large
 
 # Gear usage limits per node:
 #
 # max_active_gears is used for limiting/guiding gear placement. This counts only
 # currently active gears. Stopped and idled gears are not limited.
 # For no over-commit, should be (Total System Memory - 1G) / memory_limit_in_bytes
-max_active_gears=60
+max_active_gears=15
 
 # no_overcommit_active enforces max_active_gears in a more stringent manner than normal,
 # however it also adds overhead to gear creation, so should only be set to true
@@ -29,8 +29,8 @@ no_overcommit_active=false
 # number of files (inodes) gear can own:
 quota_files=80000
 # size of storage allowed (1 block = 1024byte):
-# 1 GB
-quota_blocks=1048576
+# 4 GB
+quota_blocks=4194304
 
 #
 # Memory and CPU management per gear (controlled by cgroups)
@@ -39,8 +39,8 @@ quota_blocks=1048576
 # be the defaults for a gear.
 #
 # memory (RAM)
-memory_limit_in_bytes=536870912       # 512MB
-memory_memsw_limit_in_bytes=641728512 # 512M + 100M (100M swap)
+memory_limit_in_bytes=2147483648        # 2G
+memory_memsw_limit_in_bytes=2252341248  # 2G + 100M (100M swap)
 # memory_soft_limit_in_bytes=-1
 # memory_swappiness=60
 memory_move_charge_at_immigrate=1
@@ -48,7 +48,7 @@ memory_oom_control=1
 # CPU - explanations in http://red.ht/XORAiC
 # cpu cpu_rt_period_us=100000 cpu_rt_runtime_us=950000
 cpu_shares=128
-cpu_cfs_quota_us=200000
+cpu_cfs_quota_us=300000
 #
 
 # PAM - resource limits per gear
@@ -62,7 +62,7 @@ cpu_cfs_quota_us=200000
 # limits_rss=unlimited          # max resident set size (KB)
 # limits_stack=unlimited        # max stack size (KB)
 # limits_cpu=unlimited          # max CPU time (MIN)
-limits_nproc=250        # max number of processes
+limits_nproc=2142        # max number of processes
 # limits_as=unlimited           # address space limit (KB)
 # limits_maxlogins=unlimited    # max number of logins for this user
 # limits_maxsyslogins=unlimited # max number of logins on the system
@@ -78,8 +78,8 @@ limits_nproc=250        # max number of processes
 # For these settings to be active TRAFFIC_CONTROL_ENABLED=true must be set in
 # /etc/openshift/node.conf
 #
-# tc_max_bandwidth=800   # mbit/sec - Total bandwidth allowed for all gears
-# tc_user_share=2    # mbit/sec - one gear is allotted...
+tc_max_bandwidth=800   # mbit/sec - Total bandwidth allowed for all gears
+tc_user_share=50       # mbit/sec - one gear is allotted...
 
 #
 # Cgroup templates
@@ -101,7 +101,7 @@ limits_nproc=250        # max number of processes
 # As a rule of thumb, throttle with half the standard quota.
 [cg_template_throttled]
   cpu_shares=128
-  cpu_cfs_quota_us=100000
+  cpu_cfs_quota_us=150000
   apply_period=120
   apply_percent=30
   restore_percent=70
@@ -117,8 +117,8 @@ limits_nproc=250        # max number of processes
 
 # Boosted template
 #
-# This is used during certain gear operations to enhance performance.
+# This is used during certain gear operations to enhance performance
 # As a rule of thumb, boost to twice the number of cpu shares.
 [cg_template_boosted]
   cpu_shares=256
-  cpu_cfs_quota_us=200000
+  cpu_cfs_quota_us=300000

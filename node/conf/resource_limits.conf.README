@@ -1,0 +1,16 @@
+resource_limits.conf is used for nodes to set constraints on guest gear
+access to resources as well as how many gears the node can support. It
+is also where the node profile is set. The profile is just a name; actual
+resource limits may vary under different hosts with the same profile.
+
+There are many settings that can be expected to need tuning depending on
+the actual host being used. A few example configurations are included in
+this directory, but these are intended mainly for trial purposes.
+Administrators are expected to customize resource_limits.conf freely.
+
+This README would be a good place for more detailed discussions of the
+available options and perhaps a future tuning guide.
+
+In general, it is best to start with a conservative tuning. It is easier
+to increase resource limits based on observing real-world usage than to
+decrease limits after hosts become over-burdened.
