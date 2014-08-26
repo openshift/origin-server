@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for customizing the gear placement algorithm
 Name:          rubygem-%{gem_name}
-Version:       0.1
+Version:       0.0.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
