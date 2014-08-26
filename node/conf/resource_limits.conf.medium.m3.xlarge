@@ -1,42 +1,57 @@
-# Recommended resource limits for gears running xPaaS cartridges such
-# as Fuse and AMQ.  These limits are based on a node with equivalent
-# resources to an EC2 m3.xlarge instance.  The values should be scaled
-# appropriately based on the capacity of the node this profile is deployed on.
 #
-# NOTE: If you change these, please run the following commands:
-#       service mcollective restart
+# Limit resources for a new OpenShift guest user on a node
+#
+# NOTE: After you change these, please run the following commands:
+#       service ruby193-mcollective restart
 #       oo-cgroup-enable --with-all-containers
 #       oo-pam-enable --with-all-containers
 #       oo-admin-ctl-tc restart
 #
 #
-# Standard Profile
+# medium Profile
 #
-node_profile=xpaas
+node_profile=medium
 
+# Gear usage limits per node:
 #
-# Quotas: File system limits
-#
-quota_files=80000
-# 5GB.  1 block = 1024byte
-quota_blocks=5242880
-
-# Gear usage limits:
-# "apps" accounting used outdated logic ("git repos" not "gears"). It is being
-# replaced with "gears" accounting. Logic for max_active_gears falls back to
-# use max{_active,}_apps if not set, and vice versa. Gears usage/capacity/limits
-# are counted according to actual gears regardless.
-#
-# max_active_gears is used for limiting/guiding gear placement.
+# max_active_gears is used for limiting/guiding gear placement. This counts only
+# currently active gears. Stopped and idled gears are not limited.
 # For no over-commit, should be (Total System Memory - 1G) / memory_limit_in_bytes
-max_active_gears=50
+max_active_gears=30
 
 # no_overcommit_active enforces max_active_gears in a more stringent manner than normal,
 # however it also adds overhead to gear creation, so should only be set to true
 # when needed, like in the case of enforcing single tenancy on a node.
 no_overcommit_active=false
 
-# PAM - resource limits
+# Quotas: File system limits per gear
+#
+# number of files (inodes) gear can own:
+quota_files=80000
+# size of storage allowed (1 block = 1024byte):
+# 2 GB
+quota_blocks=2097152
+
+#
+# Memory and CPU management per gear (controlled by cgroups)
+#
+# Names and values may be implementation-specific. These values will
+# be the defaults for a gear.
+#
+# memory (RAM)
+memory_limit_in_bytes=1073741824       # 1024MB = 1GB
+memory_memsw_limit_in_bytes=1178599424 # 1GB + 100M (100M swap)
+# memory_soft_limit_in_bytes=-1
+# memory_swappiness=60
+memory_move_charge_at_immigrate=1
+memory_oom_control=1
+# CPU - explanations in http://red.ht/XORAiC
+# cpu cpu_rt_period_us=100000 cpu_rt_runtime_us=950000
+cpu_shares=128
+cpu_cfs_quota_us=200000
+#
+
+# PAM - resource limits per gear
 # limits_core
 #<item> can be one of the following:
 # limits_core=unlimited         # limits the core file size (KB)
@@ -63,26 +78,8 @@ limits_nproc=2142        # max number of processes
 # For these settings to be active TRAFFIC_CONTROL_ENABLED=true must be set in
 # /etc/openshift/node.conf
 #
-# tc_max_bandwidth=800   # mbit/sec - Total bandwidth allowed for Libra
-# tc_user_share=2    # mbit/sec - one user is allotted...
-
-#
-# Cgroups resource management
-#
-# Names and values may be implementation specific. These values will
-# be the defaults for a gear.
-#
-# cpu cpu_rt_period_us=100000 cpu_rt_runtime_us=950000
-cpu_shares=128
-cpu_cfs_quota_us=200000
-#
-# memory
-memory_limit_in_bytes=1073741824       # 1024MB
-memory_memsw_limit_in_bytes=1610612736 # 1024MB + 512MB (512MB swap)
-# memory_soft_limit_in_bytes=-1
-# memory_swappiness=60
-memory_move_charge_at_immigrate=1
-memory_oom_control=1
+tc_max_bandwidth=800   # mbit/sec - Total bandwidth allowed for all gears
+tc_user_share=50    # mbit/sec - one gear is allotted...
 
 #
 # Cgroup templates
@@ -100,7 +97,8 @@ memory_oom_control=1
 
 # Throttle template
 #
-# This is used to reign in a poorly behaving gear.
+# This is used to rein in a poorly behaving gear.
+# As a rule of thumb, throttle with half the standard quota.
 [cg_template_throttled]
   cpu_shares=128
   cpu_cfs_quota_us=100000
@@ -110,7 +108,7 @@ memory_oom_control=1
 
 # Freeze and Thaw templates
 #
-# These are used during gear destroy to lock a cgroup from chainging.
+# These are used during gear destroy to lock a cgroup from changing.
 [cg_template_frozen]
   freezer_state="FROZEN"
 
@@ -120,6 +118,7 @@ memory_oom_control=1
 # Boosted template
 #
 # This is used during certain gear operations to enhance performance
+# As a rule of thumb, boost to twice the number of cpu shares.
 [cg_template_boosted]
   cpu_shares=256
-  cpu_cfs_quota_us=400000
+  cpu_cfs_quota_us=200000

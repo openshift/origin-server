@@ -1,5 +1,5 @@
-#
-# Limit resources for a new OpenShift guest user on a node
+# Recommended resource limits for gears running xPaaS cartridges such
+# as Fuse and AMQ
 #
 # NOTE: After you change these, please run the following commands:
 #       service ruby193-mcollective restart
@@ -8,16 +8,21 @@
 #       oo-admin-ctl-tc restart
 #
 #
-# Default Profile
+# xPaaS Profile
 #
-node_profile=small
+# Recommended resource limits for gears running xPaaS cartridges such
+# as Fuse and AMQ.  These limits are based on a node with equivalent
+# resources to an EC2 m3.xlarge instance.  The values should be scaled
+# appropriately based on the capacity of the node this profile is deployed on.
+#
+node_profile=xpaas
 
 # Gear usage limits per node:
 #
 # max_active_gears is used for limiting/guiding gear placement. This counts only
 # currently active gears. Stopped and idled gears are not limited.
 # For no over-commit, should be (Total System Memory - 1G) / memory_limit_in_bytes
-max_active_gears=60
+max_active_gears=30
 
 # no_overcommit_active enforces max_active_gears in a more stringent manner than normal,
 # however it also adds overhead to gear creation, so should only be set to true
@@ -29,18 +34,18 @@ no_overcommit_active=false
 # number of files (inodes) gear can own:
 quota_files=80000
 # size of storage allowed (1 block = 1024byte):
-# 1 GB
-quota_blocks=1048576
+# 5GB required for Fuse
+quota_blocks=5242880
 
 #
 # Memory and CPU management per gear (controlled by cgroups)
 #
-# Names and values may be implementation-specific. These values will
+# Names and values may be implementation specific. These values will
 # be the defaults for a gear.
 #
-# memory (RAM)
-memory_limit_in_bytes=536870912       # 512MB
-memory_memsw_limit_in_bytes=641728512 # 512M + 100M (100M swap)
+# memory
+memory_limit_in_bytes=1073741824       # 1024MB = 1 GB
+memory_memsw_limit_in_bytes=1610612736 # 1024MB + 512MB (512MB swap)
 # memory_soft_limit_in_bytes=-1
 # memory_swappiness=60
 memory_move_charge_at_immigrate=1
@@ -51,7 +56,7 @@ cpu_shares=128
 cpu_cfs_quota_us=200000
 #
 
-# PAM - resource limits per gear
+# PAM - resource limits
 # limits_core
 #<item> can be one of the following:
 # limits_core=unlimited         # limits the core file size (KB)
@@ -62,7 +67,7 @@ cpu_cfs_quota_us=200000
 # limits_rss=unlimited          # max resident set size (KB)
 # limits_stack=unlimited        # max stack size (KB)
 # limits_cpu=unlimited          # max CPU time (MIN)
-limits_nproc=250        # max number of processes
+limits_nproc=2142        # max number of processes
 # limits_as=unlimited           # address space limit (KB)
 # limits_maxlogins=unlimited    # max number of logins for this user
 # limits_maxsyslogins=unlimited # max number of logins on the system
@@ -78,8 +83,8 @@ limits_nproc=250        # max number of processes
 # For these settings to be active TRAFFIC_CONTROL_ENABLED=true must be set in
 # /etc/openshift/node.conf
 #
-# tc_max_bandwidth=800   # mbit/sec - Total bandwidth allowed for all gears
-# tc_user_share=2    # mbit/sec - one gear is allotted...
+# tc_max_bandwidth=800   # mbit/sec - Total bandwidth allowed for Libra
+# tc_user_share=2    # mbit/sec - one user is allotted...
 
 #
 # Cgroup templates
@@ -108,7 +113,7 @@ limits_nproc=250        # max number of processes
 
 # Freeze and Thaw templates
 #
-# These are used during gear destroy to lock a cgroup from changing.
+# These are used during gear destroy to lock a cgroup from chainging.
 [cg_template_frozen]
   freezer_state="FROZEN"
 
@@ -117,8 +122,8 @@ limits_nproc=250        # max number of processes
 
 # Boosted template
 #
-# This is used during certain gear operations to enhance performance.
+# This is used during certain gear operations to enhance performance
 # As a rule of thumb, boost to twice the number of cpu shares.
 [cg_template_boosted]
   cpu_shares=256
-  cpu_cfs_quota_us=200000
+  cpu_cfs_quota_us=400000
