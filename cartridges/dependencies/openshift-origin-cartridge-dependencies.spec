@@ -35,7 +35,7 @@ Requires:  %{name}-recommended-python
 Requires:  %{name}-recommended-ruby
 
 %description recommended-all
-This package pulls in all the recommended OpenShift 
+This package pulls in all the recommended OpenShift
 Cartridge dependency packages.
 
 Those packages pulls in other packages that a user
@@ -59,7 +59,7 @@ Requires:  %{name}-optional-python
 Requires:  %{name}-optional-ruby
 
 %description optional-all
-This package pulls in all the optional OpenShift 
+This package pulls in all the optional OpenShift
 Cartridge dependency packages.
 
 Those packages pulls in other packages that a user
@@ -376,7 +376,11 @@ Requires:  ta-lib-devel
 Requires:  xz-devel
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:  python27-numpy
+Requires:  python27-numpy-f2py
+Requires:  python27-scipy
 Requires:  python33-numpy
+Requires:  python33-numpy-f2py
+Requires:  python33-scipy
 Requires:  python33-python-pymongo
 %endif
 
