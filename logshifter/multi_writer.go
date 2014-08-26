@@ -28,10 +28,7 @@ func (writer *MultiWriter) Write(b []byte) (n int, err error) {
 	
 	n = 0
 	for _, w := range writer.writers {
-		_, err := w.Write(b)
-		if err != nil {
-			return len(b), err
-		}
+		_, _ = w.Write(b)
 	}
 
 	return n, nil
