@@ -31,9 +31,8 @@ func (writer *MultiWriter) Write(b []byte) (n int, err error) {
 	n = 0
 	for _, w := range writer.writers {
 		num, err := w.Write(b)
-		n += num
 		if err != nil {
-			return n, err
+			return len(b), err
 		}
 	}
 
