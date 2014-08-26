@@ -141,14 +141,21 @@ func main() {
 func createWriter(config *Config, tag string, verbose bool) (Writer, error) {
 	switch config.outputType {
 	case Syslog:
-		return &SyslogWriter{bufferSize: config.syslogBufferSize, tag: tag}, nil
+		return createSyslogWriter(config, tag, verbose)
 	case File:
 		return createFileWriter(config, tag, verbose)
 	case Multi:
 		fileWriter, err := createFileWriter(config, tag, verbose)
+		if err != nil {
+			return nil, err
+		}
+		syslogWriter, err := createSyslogWriter(config, tag, verbose)
+		if err != nil {
+			return nil, err
+		}		
 		return &MultiWriter {
-			writers: []Writer{ &SyslogWriter{bufferSize: config.syslogBufferSize, tag: tag}, fileWriter },
-		}, err
+			writers: []Writer{ syslogWriter, fileWriter },
+		}, nil
 	default:
 		return nil, errors.New("unsupported output type")
 	}
@@ -185,6 +192,10 @@ func createFileWriter(config *Config, tag string, verbose bool) (Writer, error) 
 		}
 
 		return writer, nil
+}
+
+func createSyslogWriter(config *Config, tag string, verbose bool) (Writer, error) {
+	return &SyslogWriter{bufferSize: config.syslogBufferSize, tag: tag}, nil
 }
 
 // Read stats from statsChannel asynchronously. Collect them on interval, accumulate totals,
