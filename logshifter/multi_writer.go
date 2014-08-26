@@ -17,20 +17,18 @@ func (writer *MultiWriter) Init() error {
 
 func (writer *MultiWriter) Close() error {
 
+	var err error = nil
 	for _, w := range writer.writers {
-		err := w.Close()
-		if err != nil {
-			return err
-		}		
+		err = w.Close()
 	}
-	return nil
+	return err
 }
 
 func (writer *MultiWriter) Write(b []byte) (n int, err error) {
 	
 	n = 0
 	for _, w := range writer.writers {
-		num, err := w.Write(b)
+		_, err := w.Write(b)
 		if err != nil {
 			return len(b), err
 		}
