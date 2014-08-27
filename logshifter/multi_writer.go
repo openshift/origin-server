@@ -26,10 +26,9 @@ func (writer *MultiWriter) Close() error {
 
 func (writer *MultiWriter) Write(b []byte) (n int, err error) {
 	
-	n = 0
 	for _, w := range writer.writers {
 		_, _ = w.Write(b)
 	}
 
-	return n, nil
+	return len(b), nil
 }
