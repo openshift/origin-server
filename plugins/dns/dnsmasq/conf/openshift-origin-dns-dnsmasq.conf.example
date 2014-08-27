@@ -1,0 +1,5 @@
+DNSMASQ_SERVER="127.0.0.1"
+DNSMASQ_PORT=53
+DNSMASQ_ZONE="example.com"
+DNSMASQ_CONF="/etc/dnsmasq.conf"
+DNSMASQ_HOSTS_DIR="/etc/dnsmasq.d"
