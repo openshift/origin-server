@@ -924,13 +924,12 @@ oo-restorer is what restorer.php calls to start the gear when access is made. It
 
 restorer.php currently relies on oddjob to restart a gear; normally a web request would be in the wrong context to restart a gear and httpd, so oddjob is used to send a request to oo-restorer so that the restore can be performed from the right context. Restoring will not work if the oddjobd and messagebus services are not running.
 
-===== `oo-last-access`, `oo-list-stale`, and `oo-autoidler`
+===== `oo-last-access`, `oo-autoidler`
 
 These tools enable automatic idling of stale gears.
 
 * `oo-last-access` is used to record in the gear operations directory how long it has been since the last access either via the web or git. This should be run regularly in a cron job.
-* `oo-list-stale` retrieves a list of gears that are older than a given age (by default, 15 days).
-* `oo-autoidler` uses `oo-list-stale` to retrieve a list of stale gears and run oo-idler on all of them to make them idle. It should be run regularly from a cron job.
+* `oo-autoidler` retrieves a list of stale gears and run oo-idler on all of them to make them idle. It should be run regularly from a cron job.
 
 An example auto-idler cron script might look like:
 
