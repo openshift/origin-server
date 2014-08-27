@@ -118,7 +118,7 @@ Given /^an additional client created( scalable)? (.+) application named "([^\"]*
      rhc_create_app(@app, true, '-s')
   else
      rhc_create_app(@app)
-  end 
+  end
  end
 
  raise "Could not create application #{@app.create_app_code}" unless @app.create_app_code == 0
@@ -489,4 +489,8 @@ end
 When /^the jvm is using JAVA_OPTS_EXT$/ do
   %x(pgrep -fl 'java.*Dcucumber=true')
   assert_equal(0, $?.exitstatus, 'JAVA_OPTS_EXT is not being used')
+end
+
+And /^I sleep (.+) seconds/ do |seconds|
+  sleep seconds.to_i
 end
