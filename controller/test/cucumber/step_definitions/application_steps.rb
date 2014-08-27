@@ -27,6 +27,17 @@ Given /^an existing (.+) application( without an embedded cartridge)?$/ do |type
   @app.should_not be_nil
 end
 
+Given /^an existing application named (.+)$/ do |name|
+  TestApp.find_on_fs.each do |app|
+    if app.name == name
+      @app = app
+      break
+    end
+  end
+
+  @app.should_not be_nil
+end
+
 Given /^a new client created( scalable)? (.+) application$/ do |scalable, type|
   @app = TestApp.create_unique(type, nil, scalable)
   @apps ||= []
@@ -354,6 +365,10 @@ Then /^the (.+) application should (not )?be accessible$/ do |app_name, negate|
   assert_application_accessible(app, negate)
 end
 
+Then /^the application should (not )?be accessible with path (.+)$/ do |negate, path|
+  assert_application_path_accessible(@app, negate, path)
+end
+
 def assert_application_accessible(app, negate=false)
   if negate
     app.is_accessible?(false, 1).should be_false
@@ -361,6 +376,16 @@ def assert_application_accessible(app, negate=false)
   else
     app.is_accessible?.should be_true
     app.is_accessible?(true).should be_true
+  end
+end
+
+def assert_application_path_accessible(app, negate=false, path=nil)
+  if negate
+    app.is_path_accessible?(false, 1, path).should be_false
+    app.is_path_accessible?(true, 1, path).should be_false
+  else
+    app.is_path_accessible?(false, 120, path).should be_true
+    app.is_path_accessible?(true, 120, path).should be_true
   end
 end
 

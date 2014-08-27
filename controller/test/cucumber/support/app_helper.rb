@@ -224,11 +224,19 @@ jenkins_build    = #{@jenkins_build}
 
     # Host is for the host header
     def is_accessible?(use_https=false, max_retries=120, host=nil, port=nil)
+      return is_path_accessible?(use_https, max_retries, nil, host, port)
+    end
+
+    def is_path_accessible?(use_https=false, max_retries=120, path=nil, host=nil, port=nil)
       prefix = use_https ? "https://" : "http://"
       url = prefix + hostname
 
       if port
          url = url + ":" + port.to_s
+      end
+
+      if path
+        url = url + path
       end
 
       max_retries.times do |i|
