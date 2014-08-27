@@ -161,6 +161,7 @@ func createWriter(config *Config, tag string, verbose bool) (Writer, error) {
 	}
 }
 
+// Create file writer instance based on config
 func createFileWriter(config *Config, tag string, verbose bool) (Writer, error) {
 		var maxFileSize ByteSize
 		maxFileSizeConfig := os.Getenv("LOGSHIFTER_" + strings.ToUpper(tag) + "_MAX_FILESIZE")
@@ -194,6 +195,7 @@ func createFileWriter(config *Config, tag string, verbose bool) (Writer, error) 
 		return writer, nil
 }
 
+// Create syslog writer instance based on config
 func createSyslogWriter(config *Config, tag string, verbose bool) (Writer, error) {
 	return &SyslogWriter{bufferSize: config.syslogBufferSize, tag: tag}, nil
 }
