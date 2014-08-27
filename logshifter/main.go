@@ -141,7 +141,7 @@ func main() {
 func createWriter(config *Config, tag string, verbose bool) (Writer, error) {
 	switch config.outputType {
 	case Syslog:
-		return createSyslogWriter(config, tag, verbose)
+		return createSyslogWriter(config.syslogBufferSize, tag, verbose)
 	case File:
 		return createFileWriter(config, tag, verbose)
 	case Multi:
@@ -149,7 +149,7 @@ func createWriter(config *Config, tag string, verbose bool) (Writer, error) {
 		if err != nil {
 			return nil, err
 		}
-		syslogWriter, err := createSyslogWriter(config, tag, verbose)
+		syslogWriter, err := createSyslogWriter(config.syslogBufferSize, tag, verbose)
 		if err != nil {
 			return nil, err
 		}		
@@ -196,8 +196,8 @@ func createFileWriter(config *Config, tag string, verbose bool) (Writer, error) 
 }
 
 // Create syslog writer instance based on config
-func createSyslogWriter(config *Config, tag string, verbose bool) (Writer, error) {
-	return &SyslogWriter{bufferSize: config.syslogBufferSize, tag: tag}, nil
+func createSyslogWriter(bytes int, tag string, verbose bool) (Writer, error) {
+	return &SyslogWriter{bufferSize: bytes, tag: tag}, nil
 }
 
 // Read stats from statsChannel asynchronously. Collect them on interval, accumulate totals,
