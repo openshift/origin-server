@@ -13,7 +13,7 @@ Broker::Application.configure do
   conf = OpenShift::Config.new(conf_file)
 
   config.routing_activemq = {
-    :topic => conf.get("ACTIVEMQ_TOPIC", "/topic/routing"),
+    :destination => conf.get("ACTIVEMQ_DESTINATION", conf.get("ACTIVEMQ_TOPIC", "/topic/routing")),
     :hosts => conf.get("ACTIVEMQ_HOST", "127.0.0.1").split(',').map do |hp|
       hp.split(":").instance_eval do |h,p|
         {
