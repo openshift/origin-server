@@ -6,17 +6,19 @@ Feature: Platform Plugin Tests
 
     When I embed a mock-plugin-0.1 cartridge into the application
     Then the mock-plugin-0.1 cartridge private endpoints will be exposed
-    And the mock-plugin setup_called marker will exist
-    And the mock-plugin setup_version marker will exist
-    And the mock-plugin setup_failure marker will not exist
-    And the mock-plugin install_called marker will exist
-    And the mock-plugin install_version marker will exist
-    And the mock-plugin install_failure marker will not exist
-    And the mock-plugin post_install_called marker will exist
-    And the mock-plugin post_install_version marker will exist
-    And the mock-plugin post_install_failure marker will not exist
-    And the mock-plugin-0.1 MOCK_PLUGIN_EXAMPLE env entry will exist
-    And the mock-plugin-0.1 MOCK_PLUGIN_SERVICE_URL env entry will exist
+    Then the following mock-plugin markers will exist
+      |marker                 |exist?|
+      |setup_called           |true  |
+      |setup_version          |true  |
+      |setup_failure          |false |
+      |install_called         |true  |
+      |install_version        |true  |
+      |install_failure        |false |
+      |post_install_called    |true  |
+      |post_install_version   |true  |
+      |post_install_failure   |false |
+      |MOCK_PLUGIN_EXAMPLE    |true  |
+      |MOCK_PLUGIN_SERVICE_URL|true  |
     And the application state will be started
     And the mock-0.1 cartridge status should be running
     And the mock-plugin-0.1 cartridge status should be running

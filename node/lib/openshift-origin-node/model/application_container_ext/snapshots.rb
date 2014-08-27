@@ -99,6 +99,55 @@ module OpenShift
           result
         end
 
+        def write_dbdump_archive(exclusions, cartridge)
+          gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
+
+          exclusions = exclusions.map { |x| "--exclude=./$OPENSHIFT_GEAR_UUID/#{x}" }.join(' ')
+
+          tar_cmd = %Q{
+/bin/tar --ignore-failed-read -czf - \
+          #{exclusions} $OPENSHIFT_DATA_DIR/#{cartridge.short_name.downcase}_*
+}
+
+          $stderr.puts 'Creating and sending tar.gz'
+
+          run_in_container_context(tar_cmd,
+                                   env: gear_env,
+                                   out: $stdout,
+                                   err: $stderr,
+                                   chdir: @config.get('GEAR_BASE_DIR'),
+                                   timeout: @hourglass.remaining,
+                                   expected_exitstatus: 0)
+        end
+
+        def dbdump
+          stop_gear
+          @cartridge_model.each_cartridge do |cartridge|
+            $stderr.puts "cartridge_inspect_start"
+            $stderr.puts cartridge.categories.class
+            # NOTE Add a check if a cartridge is a db-cartridge. If not - raise an exception
+            if cartridge.categories.include? "database"
+              @cartridge_model.do_control('pre-snapshot',
+                                          cartridge,
+                                          err: $stderr,
+                                          pre_action_hooks_enabled: false,
+                                          post_action_hooks_enabled: false,
+                                          prefix_action_hooks:      false,)
+            exclusions = []
+
+            @cartridge_model.each_cartridge do |cartridge|
+              exclusions |= snapshot_exclusions(cartridge)
+            end
+
+            write_dbdump_archive(exclusions, cartridge)
+          else 
+            $stderr.puts "not a database cartridge"
+          end
+        end
+	  start_gear
+	end
+
+
         def handle_scalable_snapshot
           gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
 
