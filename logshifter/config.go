@@ -11,7 +11,7 @@ import (
 type Config struct {
 	queueSize             int    // size of the internal log message queue
 	inputBufferSize       int    // input up to \n or this number of bytes is considered a line
-	outputType            string // one of syslog, file
+	outputType            string // one of syslog, file, multi (syslog + file)
 	syslogBufferSize      int    // lines bound for syslog lines are split at this size
 	fileBufferSize        int    // lines bound for a file are split at this size
 	fileWriterDir         string // base dir for the file writer output's file
@@ -34,6 +34,7 @@ const (
 	// output types
 	Syslog = "syslog"
 	File   = "file"
+	Multi = "multi"
 
 	DefaultConfigFile = "/etc/openshift/logshifter.conf"
 )
@@ -85,6 +86,8 @@ func ParseConfig(file string) (*Config, error) {
 				config.outputType = Syslog
 			case "file":
 				config.outputType = File
+			case "multi":
+				config.outputType = Multi
 			}
 		case "syslogbuffersize":
 			config.syslogBufferSize, _ = strconv.Atoi(v)

@@ -87,6 +87,8 @@ func main() {
 			config.outputType = Syslog
 		case "file":
 			config.outputType = File
+		case "multi":
+			config.outputType = Multi
 		}
 	}
 
@@ -139,8 +141,28 @@ func main() {
 func createWriter(config *Config, tag string, verbose bool) (Writer, error) {
 	switch config.outputType {
 	case Syslog:
-		return &SyslogWriter{bufferSize: config.syslogBufferSize, tag: tag}, nil
+		return createSyslogWriter(config.syslogBufferSize, tag)
 	case File:
+		return createFileWriter(config, tag, verbose)
+	case Multi:
+		fileWriter, err := createFileWriter(config, tag, verbose)
+		if err != nil {
+			return nil, err
+		}
+		syslogWriter, err := createSyslogWriter(config.syslogBufferSize, tag)
+		if err != nil {
+			return nil, err
+		}		
+		return &MultiWriter {
+			writers: []Writer{ syslogWriter, fileWriter },
+		}, nil
+	default:
+		return nil, errors.New("unsupported output type")
+	}
+}
+
+// Create file writer instance based on config
+func createFileWriter(config *Config, tag string, verbose bool) (Writer, error) {
 		var maxFileSize ByteSize
 		maxFileSizeConfig := os.Getenv("LOGSHIFTER_" + strings.ToUpper(tag) + "_MAX_FILESIZE")
 		maxFileSize, err := ParseByteSize([]byte(strings.ToUpper(maxFileSizeConfig)))
@@ -171,9 +193,11 @@ func createWriter(config *Config, tag string, verbose bool) (Writer, error) {
 		}
 
 		return writer, nil
-	default:
-		return nil, errors.New("unsupported output type")
-	}
+}
+
+// Create syslog writer instance based on config
+func createSyslogWriter(bufferSize int, tag string) (Writer, error) {
+	return &SyslogWriter{bufferSize: bufferSize, tag: tag}, nil
 }
 
 // Read stats from statsChannel asynchronously. Collect them on interval, accumulate totals,
