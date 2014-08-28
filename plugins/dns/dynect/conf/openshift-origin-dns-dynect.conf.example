@@ -1,0 +1,7 @@
+# Settings related to the dyn variant of an OpenShift DNS plugin
+
+ZONE=example.com
+DYNECT_CUSTOMER_NAME=customer_name
+DYNECT_USER_NAME=username
+DYNECT_PASSWORD=
+DYNECT_URL=https://api2.dynect.net
