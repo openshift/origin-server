@@ -23,8 +23,6 @@ require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-node/model/cartridge_repository'
 require 'openshift-origin-common/models/manifest'
 require 'digest'
-require 'webmock'
-require 'webmock/minitest'
 
 class CartridgeRepositoryWebFunctionalTest < OpenShift::NodeTestCase
   include WEBrick
@@ -59,7 +57,6 @@ class CartridgeRepositoryWebFunctionalTest < OpenShift::NodeTestCase
     @tgz_hash = %x(md5sum #{@tgz_file} |cut -d' ' -f1)
 
     @manifest = IO.read(File.join(@cartridge.manifest_path))
-
   end
 
   def after_teardown
@@ -67,8 +64,6 @@ class CartridgeRepositoryWebFunctionalTest < OpenShift::NodeTestCase
   end
 
   def setup
-    WebMock.allow_net_connect!
-
     private_file = File.join(@config_home, 'private_key.pem')
     %x(/usr/bin/openssl genrsa -out #{private_file} 2048 2>&1)
 
@@ -106,11 +101,8 @@ class CartridgeRepositoryWebFunctionalTest < OpenShift::NodeTestCase
   end
 
   def test_https_get
-    skip 'Will restore test once deteremined why it is failing.'
     manifest = @manifest + "Source-Url: https://localhost:#{@port}/mock_plugin.tar.gz\n"
     manifest = change_cartridge_vendor_of manifest
-
-    puts %x[lsof -Pnlw -iTCP -sTCP:LISTEN 2>&1]
 
     cartridge      = OpenShift::Runtime::Manifest.new(manifest)
     cartridge_home = '/tmp/var/home/gear/mock'

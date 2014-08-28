@@ -6,12 +6,11 @@ require 'fakefs/safe'
 module OpenShift
   module Runtime
     class UpgradeVendorTest < ::OpenShift::NodeTestCase
-      include FakeFS
       attr_reader :progress, :current_manifest, :current_version, :gear_home, :itinerary, :next_manifest, :version, :container, :upgrader
 
       def setup
         FakeFS.activate!
-        FileSystem.clear
+        FakeFS::FileSystem.clear
 
         @next_manifest = mock()
         @next_manifest.stubs(:short_name).returns('mock')
