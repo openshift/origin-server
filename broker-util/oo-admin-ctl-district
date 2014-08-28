@@ -213,11 +213,17 @@ begin
     end
     collate_errors(server_identity, reply) do |server|
       node_platform = OpenShift::MCollectiveApplicationContainerProxy.rpc_get_fact("kernel", server) {|_, _|}
-      district_platform = district.attributes["platform"] || DEFAULT_PLATFORM
-      if node_platform.casecmp(district_platform) == 0
-        district.add_node(server, region, zone)
+      if node_platform.nil?
+        reply.errorIO << "Cannot connect to node.\n"
+        reply.exitcode = 1
+        break
       else
-        reply.resultIO << "Cannot add a node with platform '#{node_platform}' to a district with platform '#{district_platform}'"
+        district_platform = district.attributes["platform"] || DEFAULT_PLATFORM
+        if node_platform.casecmp(district_platform) == 0
+          district.add_node(server, region, zone)
+        else
+          reply.resultIO << "Cannot add a node with platform '#{node_platform}' to a district with platform '#{district_platform}'"
+        end
       end
     end
   when "set-region"
