@@ -79,6 +79,8 @@ require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/en
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
 
+login = CloudUser.normalize_login(login)
+
 reply = ResultIO.new
 case args["--command"]
 when "env_add"

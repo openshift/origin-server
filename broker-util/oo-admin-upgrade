@@ -1035,7 +1035,7 @@ class UpgraderCli < Thor
   method_option :ignore_cartridge_version, :type => :boolean, :default => false, :desc => "Force cartridge upgrade even if cartridge versions match"
   def upgrade_gear
     with_upgrader do |upgrader|
-      gear_result = upgrader.upgrade_gear(options.login, options.app_name, options.upgrade_gear, options.version, options.ignore_cartridge_version?)
+      gear_result = upgrader.upgrade_gear(CloudUser.normalize_login(options.login), options.app_name, options.upgrade_gear, options.version, options.ignore_cartridge_version?)
       puts gear_result.to_json
     end
   end
