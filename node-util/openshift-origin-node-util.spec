@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.28.5
+Version: 1.28.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -167,6 +167,9 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Thu Aug 28 2014 Adam Miller <admiller@redhat.com> 1.28.6-1
+- Use portable output format df commands (ironcladlou@gmail.com)
+
 * Thu Aug 21 2014 Adam Miller <admiller@redhat.com> 1.28.5-1
 - re-arrange oo-accept-node to test mod_rewrite stuff only when the plugin is
   present (rchopra@redhat.com)
