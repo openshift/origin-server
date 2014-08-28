@@ -80,8 +80,12 @@ USE_SCL=""
 
 if which scl 1> /dev/null 2> /dev/null && scl -l | grep -q '^ruby193$' ; then
     USE_SCL="TRUE"
+    SCLS="ruby193"
+    if scl -l | grep -q '^v8314$' ; then
+        SCLS+=" v8314"
+    fi
     function safe_bundle() {
-        scl enable ruby193 "bundle exec \"$@\""
+        scl enable ${SCLS} "bundle exec \"$@\""
     }
 
     PACKAGES+="  ruby193-rubygem-rails
