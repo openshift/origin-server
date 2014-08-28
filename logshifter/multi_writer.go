@@ -36,7 +36,7 @@ func (writer *MultiWriter) Close() error {
 // Write loops through 'writers' slice and calls the writer.Write() method on each
 // Write will attempt a write for each and supress any errors encountered, as 
 // there are no delivery guarantees by design
-func (writer *MultiWriter) Write(b []byte) (n int, err error) {
+func (writer *MultiWriter) Write(b []byte) (int, error) {
 	
 	for _, w := range writer.writers {
 		_, _ = w.Write(b)
