@@ -19,14 +19,13 @@ require 'yaml'
 require 'pp'
 
 class CartridgeRepositoryTest < OpenShift::NodeTestCase
-  include FakeFS
 
   def setup
     FakeFS.activate!
-    FileSystem.clear
+    FakeFS::FileSystem.clear
 
-    @path = '/var/lib/openshift/.cartridge_repository'
     OpenShift::Runtime::CartridgeRepository.instance.clear
+    @path = OpenShift::Runtime::CartridgeRepository::CARTRIDGE_REPO_DIR
   end
 
   def teardown
