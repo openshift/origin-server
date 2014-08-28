@@ -248,8 +248,7 @@ fi
 %attr(0600,-,-) %config(noreplace) /etc/openshift/iptables.nat.rules
 %config(noreplace) /etc/openshift/env/*
 %config(noreplace) /etc/logrotate.d/%{name}
-%attr(0640,-,-) %config(noreplace) /etc/openshift/resource_limits.conf
-%attr(0640,-,-) %config(noreplace) /etc/openshift/resource_limits.xpaas_m3.xlarge
+%attr(0640,-,-) %config(noreplace) /etc/openshift/resource_limits.conf*
 %dir %attr(0755,-,-) %{appdir}
 %dir %attr(0750,-,-) %{appdir}/.tc_user_dir
 

@@ -8,7 +8,7 @@
 #       oo-admin-ctl-tc restart
 #
 #
-# Default Profile
+# Small Profile
 #
 node_profile=small
 
@@ -117,7 +117,7 @@ limits_nproc=250        # max number of processes
 
 # Boosted template
 #
-# This is used during certain gear operations to enhance performance.
+# This is used during certain gear operations to enhance performance
 # As a rule of thumb, boost to twice the number of cpu shares.
 [cg_template_boosted]
   cpu_shares=256
