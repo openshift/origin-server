@@ -52,12 +52,12 @@ if options[:all]
         restore_con(container.container_dir, mcs_label, options[:verbose])
     end
 else
-    ARGV.each do |contan|
-        if OpenShift::Runtime::ApplicationContainer.exists?(contan.to_s)
-            mcs_label = SelinuxContext.instance.get_mcs_label(contan.to_s)
-            restore_con(OpenShift::Runtime::ApplicationContainer.from_uuid(contan.to_s).container_dir, mcs_label, options[:verbose])
+    ARGV.each do |uuid|
+        if OpenShift::Runtime::ApplicationContainer.exists?(uuid.to_s)
+            mcs_label = SelinuxContext.instance.get_mcs_label(uuid.to_s)
+            restore_con(OpenShift::Runtime::ApplicationContainer.from_uuid(uuid.to_s).container_dir, mcs_label, options[:verbose])
         else
-            puts "ERROR: Gear #{contan} does not exist!"
+            puts "ERROR: Gear #{uuid} does not exist!"
         end
     end
 end
