@@ -2432,7 +2432,9 @@ module OpenShift
         rpc_client.disconnect
       end
 
-      raise OpenShift::NodeException.new("Node execution failure (error getting result from node).", 143) unless result
+      # checking for nil explicitly instead of "unless result" 
+      # this is to prevent raising exception in case of a boolean false return value 
+      raise OpenShift::NodeException.new("Node execution failure (error getting result from node).", 143) if result.nil?
 
       result
     end
@@ -2906,7 +2908,7 @@ module OpenShift
       MCollectiveApplicationContainerProxy.rpc_exec('openshift', @id) do |client|
         client.has_app_cartridge(:app_uuid => app_uuid, :gear_uuid => gear_uuid, :cartridge => cart) do |response|
           # the output is a boolean that is true if the cartridge exists on the gear and false otherwise
-          response[:body][:data][:output]
+          return response[:body][:data][:output]
         end
       end
     end
