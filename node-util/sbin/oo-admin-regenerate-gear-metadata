@@ -64,29 +64,32 @@ module OpenShift
       end
 
       def passwd_entry_exist?()
-        begin
-          return Etc.getpwnam(@uuid).nil? == false
-        rescue ArgumentError => ex
-          return false
-        end
+        return Etc.getpwnam(@uuid).nil? == false
+      rescue ArgumentError => ex
+        return false
+      end
+
+      def group_entry_exist?()
+        return Etc.getgrnam(@uuid).nil? == false
+      rescue ArgumentError => ex
+        return false
+      end
+
+      def groupadd_gear_entry()
+        cmd = %{groupadd -g #{@uid} #{@uuid}}
+        out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
+        raise %Q[ERROR: unable to create user group(#{rc}): #{cmd.squeeze(" ")} ] + \
+              %Q[stdout: #{out} stderr: #{err}] unless rc == 0
       end
 
       def useradd_gear_entry()
-        # Don't try to add gear users that already have entries
-        return if passwd_entry_exist?
-
         gear_gecos = config.get('GEAR_GECOS')
         do_fail('GEAR_GECOS isn\'t set in config') if gear_gecos.nil?
 
         gear_shell = config.get('GEAR_SHELL')
         do_fail('GEAR_SHELL isn\'t set in config') if gear_shell.nil?
 
-        cmd = %{groupadd -g #{@uid} #{@uuid}}
-        out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
-        raise %Q[ERROR: unable to create user group(#{rc}): #{cmd.squeeze(" ")} ] + \
-              %Q[stdout: #{out} stderr: #{err}] unless rc == 0
-
-        cmd = "/usr/sbin/useradd -r --uid #{@uid} --gid #{@uid} --comment '#{gear_gecos}' --no-create-home --home #{@path} --shell #{gear_shell} #{@uuid}"
+        cmd = "/usr/sbin/useradd --uid #{@uid} --gid #{@uid} --comment '#{gear_gecos}' --no-create-home --home #{@path} --shell #{gear_shell} #{@uuid}"
 
         out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
         raise %Q[ERROR: unable to create user user account(#{rc}): #{cmd.squeeze(" ")} ] + \
@@ -116,7 +119,12 @@ module OpenShift
         # Don't add the file if one exists
         return if limits_d_file_exists?
 
-        add_line_to_file(@limits_d_file, "#{@uuid}        soft    nproc   250")
+        add_line_to_file(@limits_d_file, "# PAM process limits for guest #{@uuid}")
+        add_line_to_file(@limits_d_file, "# see limits.conf(5) for details")
+        add_line_to_file(@limits_d_file, "#Each line describes a limit for a user in the form:")
+        add_line_to_file(@limits_d_file, "#")
+        add_line_to_file(@limits_d_file, "#<domain>        <type>  <item>  <value>")
+        add_line_to_file(@limits_d_file, "#{@uuid}\tsoft\tnproc\t250")
       end
 
       private
@@ -174,6 +182,22 @@ if __FILE__ == $0
 
   failures = 0
   OpenShift::Runtime::GearMetadataRegenerator.get_all_gear_info.each do |gear|
+    vprint.call "Checking for group entry for #{gear.uuid}... "
+    if gear.group_entry_exist?
+      vputs.call "found, skipping."
+    else
+      vprint.call "absent, fixing... "
+
+      out, err, rc = nil
+      begin
+        out, err, rc = gear.groupadd_gear_entry()
+        vputs.call "Done."
+      rescue Exception => ex
+        failures += 1
+        $stderr.puts "FAILED passwd: #{ex.message}"
+      end
+    end
+
     vprint.call "Checking for passwd entry for #{gear.uuid}... "
     if gear.passwd_entry_exist?
       vputs.call "found, skipping."
@@ -226,7 +250,7 @@ if __FILE__ == $0
     out, err, rc = OpenShift::Runtime::Utils.oo_spawn(cmd)
 
     vputs.call out
-    if err != 0
+    if rc != 0
       $stderr.puts err
       failures += 1
     end

@@ -568,6 +568,19 @@ def check_users
   verbose("checking #{$USERS.length} user accounts")
   conf_dir_templ = "#{$LIMITS_CONF_DIR}/84-%s.conf"
 
+  missing_shadow_entries = %x[pwck -q -r].split("\n").select {|line| line =~ /add user/}.map {|line| line.match(/.+'(.*)'.+/)[1]}
+  unless missing_shadow_entries.empty?
+    openshift_usernames = $USERS.map {|u| u.name}
+
+    (missing_shadow_entries & openshift_usernames).each do |u|
+      user_fail(u, "OpenShift user #{u} is configurated for shadow passwords but has no corresponding /etc/shadow entry.  Verify and run pwconv to resolve.")
+    end
+
+    (missing_shadow_entries - openshift_usernames).each do |u|
+      user_fail(u, "Warning: Non-OpenShift user #{u} is configured for shadow passwords but has no corresponding /etc/shadow entry.  Verify and run pwconv to resolve.")
+    end
+  end
+
   $USERS.each do |user|
     #Test home dir
     if File.exists? user.dir

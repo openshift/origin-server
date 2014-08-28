@@ -23,6 +23,7 @@ Requires:      %{?scl:%scl_prefix}rubygem-daemons
 Requires:      httpd
 Requires:      php >= 5.3.2
 Requires:      lsof
+Requires:      shadow-utils
 %if %{with_systemd}
 Requires:      systemd-units
 BuildRequires: systemd-units
