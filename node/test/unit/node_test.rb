@@ -19,11 +19,10 @@ require 'yaml'
 require 'pp'
 
 class NodeTest < OpenShift::NodeTestCase
-  include FakeFS
 
   def setup
     FakeFS.activate!
-    FileSystem.clear
+    FakeFS::FileSystem.clear
 
     @path = '/var/lib/openshift/.cartridge_repository'
     OpenShift::Runtime::CartridgeRepository.instance.clear
