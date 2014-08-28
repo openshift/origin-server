@@ -541,7 +541,7 @@ def check_quotas
     verbose("checking filesystem quotas")
     oo_device=%x[/bin/df -P #{$GEAR_BASE_DIR} | /usr/bin/tail -1].split[0]
     oo_mount=%x[/bin/df -P #{$GEAR_BASE_DIR} | /usr/bin/tail -1 | /usr/bin/tr -s ' '].split[5]
-    fs_type=%x[df -T #{oo_mount} | tail -1 2>&1].split[1]
+    fs_type=%x[df -TP #{oo_mount} | tail -1 2>&1].split[1]
     if fs_type=="xfs"
       unless %x[repquota -v #{oo_mount} | grep "Accounting.*Enforcement"].strip == "Accounting: ON; Enforcement: ON"
           do_fail "quotas are not enabled on #{oo_mount} (#{oo_device})"
