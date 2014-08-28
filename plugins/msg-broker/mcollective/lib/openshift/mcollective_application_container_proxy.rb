@@ -3721,11 +3721,11 @@ module OpenShift
     end
 
     def build_ssh_key_args_with_content(ssh_keys)
-      ssh_keys.map { |k| {'key' => k['content'], 'type' => k['type'], 'comment' => k['name'], 'content' => k['content']} }
+      ssh_keys.map { |k| {'key' => k['content'], 'type' => k['type'], 'comment' => k['name'], 'content' => k['content'], 'login' => k['login']} }
     end
 
     def build_ssh_key_args(ssh_keys)
-      ssh_keys.map { |k| {'key' => k['content'], 'type' => k['type'], 'comment' => k['name']} }
+      ssh_keys.map { |k| {'key' => k['content'], 'type' => k['type'], 'comment' => k['name'], 'login' => k['login']} }
     end
 
   end
