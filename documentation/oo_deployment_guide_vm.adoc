@@ -304,27 +304,25 @@ applications and components.  The web browser will also be used to
 verify the test applications during development.
 
 === User Accounts
+When you boot the VM, the system automatically logs in the root user. The startup screen that is displayed includes the root login information:
 
-There are two user accounts which are used to access the OpenShift
-Origin VM.  Both are displayed on the VM console when it boots as
-shown in the examples above. 
+* Username: root
+* Password: changeme
 
-The first one is the OpenShift service account.  This is used to
-access the web console and to run the `rhc` CLI commands as a
-developer.  
+The VM also includes one registered OpenShift user:
 
-* Username: admin 
-* Password: admin
+* Username: demo
+* Password: changeme
 
-The second account is the developer account.  This is a UNIX account
-which is used to log into the OpenShift VM via SSH. It provides a work space
-for exploring the CLI and development environment of OpenShift Origin.
+This OpenShift user account can be used to log into the web console and can also be used to create and manage apps via the `rhc` command line utility.
 
-* Username: openshift
-* Password: openshift
+To create a new OpenShift user account, run the following command as the root user on the VM:
 
-If you try logging in with one of thse and it fails, try using the
-other.
+----
+$ htpasswd /etc/openshift/htpasswd <username>
+----
+
+You will be prompted to set a password for the new user.
 
 === Using a browser to view the OpenShift Console
 
