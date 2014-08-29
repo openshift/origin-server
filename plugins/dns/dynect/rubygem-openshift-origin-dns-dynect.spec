@@ -1,4 +1,4 @@
-%if 0%{?rhel} <= 6
+%if 0%{?fedora}%{?rhel} <= 6
     %global scl ruby193
     %global scl_prefix ruby193-
 %endif
@@ -8,7 +8,6 @@
 %global rubyabi 1.9.1
 
 Summary:        OpenShift plugin for Dynect DNS service
-
 Name:           rubygem-%{gem_name}
 Version: 1.12.2
 Release:        1%{?dist}
@@ -16,19 +15,24 @@ Group:          Development/Languages
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
 Source0:        rubygem-%{gem_name}-%{version}.tar.gz
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires:       %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
-Requires:       %{?scl:%scl_prefix}ruby
+%if 0%{?fedora} >= 19
+Requires:      ruby(release)
+%else
+Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
+%endif
 Requires:       %{?scl:%scl_prefix}rubygems
 Requires:       rubygem(openshift-origin-common)
 Requires:       %{?scl:%scl_prefix}rubygem(json)
 
-%if 0%{?rhel} <= 6
-BuildRequires:  ruby193-build
+%if 0%{?fedora}%{?rhel} <= 6
+BuildRequires:  %{?scl:%scl_prefix}build
 BuildRequires:  scl-utils-build
 %endif
-BuildRequires:  %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
-BuildRequires:  %{?scl:%scl_prefix}ruby
+%if 0%{?fedora} >= 19
+BuildRequires: ruby(release)
+%else
+BuildRequires: %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
+%endif
 BuildRequires:  %{?scl:%scl_prefix}rubygems
 BuildRequires:  %{?scl:%scl_prefix}rubygems-devel
 BuildArch:      noarch
