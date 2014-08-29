@@ -1,0 +1,12 @@
+# Settings related to the Fog DNS service
+
+# Provider
+FOG_PROVIDER="rackspace"
+
+# Zone
+FOG_ZONE="oo.example.com"
+
+# Rackspace Provider Keys
+FOG_RACKSPACE_USERNAME="racker"
+FOG_RACKSPACE_API_KEY="apikey"
+FOG_RACKSPACE_REGION="ord"
