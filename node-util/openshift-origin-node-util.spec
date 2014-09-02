@@ -86,6 +86,7 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 
 %post
 /sbin/restorecon /usr/sbin/oo-restorer* || :
+/sbin/restorecon /usr/bin/oo-lists-posts || :
 
 %if %{with_systemd}
 %systemd_post openshift-gears.service
@@ -133,6 +134,7 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %attr(0755,-,-) %{_bindir}/unidle_gear.sh
 %attr(0755,-,-) %{_bindir}/oo-config-eval
 %attr(0755,-,-) %{_bindir}/oo-gear-registry
+%attr(0755,-,-) %{_bindir}/oo-lists-ports
 %attr(0755,-,-) %{_sysconfdir}/openshift/watchman/plugins.d/
 %attr(0744,-,-) %{_sysconfdir}/openshift/watchman/plugins.d/*
 
