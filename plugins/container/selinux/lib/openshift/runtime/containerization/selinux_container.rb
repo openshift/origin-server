@@ -73,6 +73,7 @@ module OpenShift
                     -c '#{@container.gecos}' \
                     -m \
                     -k #{@container.skel_dir} \
+                    -K PASS_MAX_DAYS=-1 \
                     #{@container.uuid}}
             if @container.supplementary_groups != ""
               cmd << %{ -G "#{@container.supplementary_groups}"}
