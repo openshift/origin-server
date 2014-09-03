@@ -3,8 +3,16 @@
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source "${OPENSHIFT_MYSQL_DIR}/lib/mysql_context"
 
-export STOPTIMEOUT=30
 export OPENSHIFT_MYSQL_VERSION=$(mysql_version)
+
+start_timeout=45
+stop_timeout=30
+if [[ -n "${OPENSHIFT_MYSQL_START_TIMEOUT}" && "${OPENSHIFT_MYSQL_START_TIMEOUT}" =~ ^[0-9]+$ ]] ; then
+    start_timeout="${OPENSHIFT_MYSQL_START_TIMEOUT}"
+fi
+if [[ -n "${OPENSHIFT_MYSQL_STOP_TIMEOUT}" && "${OPENSHIFT_MYSQL_STOP_TIMEOUT}" =~ ^[0-9]+$ ]] ; then
+    stop_timeout="${OPENSHIFT_MYSQL_STOP_TIMEOUT}"
+fi
 
 # Run mysql commands
 function run_sql {
@@ -45,7 +53,7 @@ function start {
 function wait_for_mysqld_availability {
   test_select=${1:-false}
 
-  for i in {1..30}; do
+  for (( i=1 ; i<=$start_timeout ; i++ )) ; do
     if is_running; then
       if $test_select; then
         run_sql 'select 1' 2> /dev/null && return 0
@@ -75,12 +83,12 @@ function stop {
       /bin/kill $pid
       ret=$?
       if [ $ret -eq 0 ]; then
-        TIMEOUT="$STOPTIMEOUT"
-        while [ $TIMEOUT -gt 0 ] && [ -f "$pidfile" ]
+        TIMEOUT="${stop_timeout}"
+        while [[ "${TIMEOUT}" > 0 && -f "${pidfile}" ]]
         do
-          /bin/kill -0 "$pid" >/dev/null 2>&1 || break
+          /bin/kill -0 "${pid}" >/dev/null 2>&1 || break
           sleep 1
-          let TIMEOUT=${TIMEOUT}-1
+          (( TIMEOUT-=1 ))
         done
       fi
     else
