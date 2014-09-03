@@ -6,18 +6,57 @@ require 'ostruct'
 PATH = "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
 
 class Command
+  def import_profile(options)
+    env!(options)
+    # load all known nodes with their profiles and platforms, then just pick one representative each
+    node_for_prof = Hash.new
+    begin
+      OpenShift::ApplicationContainerProxy.get_details_for_all(%w[node_profile platform]).each do |node,details|
+        details.stringify_keys!
+        hash = node_for_prof[details['node_profile']] ||= Hash.new
+        hash[details['platform'] || 'linux'] = node
+      end
+    rescue OpenShift::OOException
+      warn "Unable to retrieve node information: #{$!}"
+      return 1
+    end
+    # attempt to import from representatives, tracking failures
+    failed = []
+    (options.profiles || node_for_prof.keys).each do |profile|
+      node_plats = node_for_prof[profile]
+      if !node_plats
+        failed << profile
+        warn "No nodes responded for profile '#{profile}'."
+        next
+      end
+      node_plats.each do |platform,node|
+        puts "Importing cartridges for profile '#{profile}' and platform '#{platform}'."
+        options.node = node
+        import_node(options) == 0 or failed << profile
+      end
+    end
+    if !failed.empty?
+      warn "Summary: failed to import the following:"
+      failed.uniq.each {|profile| warn "Profile '#{profile}'" }
+    end
+    failed.size
+  end
+
   def import_node(options)
     env!(options)
 
     carts = []
 
     if options.node
+      puts "Importing cartridges from node '#{options.node}'."
       carts = OpenShift::ApplicationContainerProxy.instance(options.node).get_available_cartridges
     else
       node_platforms = Rails.configuration.openshift[:node_platforms]
 
       node_platforms.each do |platform|
-        node_carts = OpenShift::ApplicationContainerProxy.find_one(nil, platform).get_available_cartridges
+        node = OpenShift::ApplicationContainerProxy.find_one(nil, platform)
+        puts "Importing cartridges from node '#{node.id}'."
+        node_carts = node.get_available_cartridges
         node_carts.each do |cart|
           carts << cart unless carts.any? {|existing_cart| existing_cart.name == cart.name }
         end
@@ -455,33 +494,38 @@ p = OptionParser.new do |opts|
 #{File.basename $0}: Manage cartridges
 
 Commands:
-  activate    - Make a specific cartridge active.
-                Requires id or name, or input from STDIN.
+  activate       - Make a specific cartridge active.
+                   Requires id or name, or input from STDIN.
 
-  deactivate  - Disable a cartridge from being visible to users
-                Requires id or name, or input from STDIN.
+  deactivate     - Disable a cartridge from being visible to users
+                   Requires id or name, or input from STDIN.
 
-  categorize  - Add/remove categories on a cartridge.
-                Requires id or name, or input from STDIN. Pass categories
-                to set with '+<category>' or remove with '=<category>'
+  categorize     - Add/remove categories on a cartridge.
+                   Requires id or name, or input from STDIN. Pass categories
+                   to set with '+<category>' or remove with '=<category>'
 
-  clean       - Delete all cartridges in the broker
+  clean          - Delete all cartridges in the broker
 
-  delete      - Remove one or more named cartridges
+  delete         - Remove one or more named cartridges
 
-  diff        - Compare two cartridges
-                Requires two ids or names
+  diff           - Compare two cartridges
+                   Requires two ids or names
 
-  import      - Import a manifest as one or more cartridges
-                Requires --url
+  import         - Import a manifest as one or more cartridges
+                   Requires --url
 
-  import-node - Import the latest cartridges from a randomly selected node.
+  import-node    - Import the latest cartridges from a single node.
+                   The node is selected randomly if not specified.
 
-  list        - List all cartridges
+  import-profile - Import the latest cartridges from one or more profiles.
+                   A randomly selected node in each profile is imported.
+                   Unless specified, imports cartridges from all profiles.
 
-  migrate     - Run a migration of old cartridge versions to the latest
-                active version.  Does not migrate cartridges without an
-                active version.
+  list           - List all cartridges
+
+  migrate        - Run a migration of old cartridge versions to the latest
+                   active version.  Does not migrate cartridges without an
+                   active version.
 
 For delete, activate, and deactivate, you may pass a file containing ids
 or names.
@@ -537,8 +581,12 @@ or names.
     options.ids = ids.split(/[\, ]/)
   end
 
-  opts.on('--node NODE', "Identifier for a node (server-identity) to import from.") do |node|
+  opts.on('--node NODE', "With import-node, server-identity for a node to import from.") do |node|
     options.node = node
+  end
+
+  opts.on('-p', '--profile PROFILES', "With import-profile, profile to import from (may be comma-separated list).") do |profile|
+    options.profiles = profile.split(/\s*,\s*/)
   end
 
   opts.on('-u URL', '--url URL', "URL of a cartrige manifest to import.") do |url|
