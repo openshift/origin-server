@@ -33,6 +33,10 @@ BROKER_URL=https://localhost/broker/rest
 # The server url hosting the static assets for the console
 # ASSET_HOST=https://openshift.redhat.com
 
+# The URL to use for logging a user out of the console
+# When set to nothing, no logout link is displayed
+# LOGOUT_LINK=
+
 #
 # SSL settings for the connection between the console and broker.
 # Specified as a Ruby hash of options to be passed to Net::HTTP.
