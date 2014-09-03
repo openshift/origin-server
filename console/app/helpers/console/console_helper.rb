@@ -1,8 +1,11 @@
 module Console::ConsoleHelper
 
-  #FIXME: Replace with real isolation of login state
-  def logout_path
-    nil
+  def can_logout?
+    logout_path.present?
+  end
+
+  def logout_path(*args)
+    Console.config.env(:LOGOUT_LINK).presence
   end
 
   def outage_notification
