@@ -29,12 +29,14 @@ Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      rubygem(openshift-origin-node)
 Requires:      rubygem(openshift-origin-frontend-apachedb)
-Requires:      httpd
+Requires:      httpd24
+Requires:      httpd24-httpd-tools
+BuildRequires: httpd24-httpd-tools
 %if 0%{?fedora} >= 18
-Requires:      httpd-tools
-BuildRequires: httpd-tools
+Requires:      httpd24-httpd-tools
+BuildRequires: httpd24-httpd-tools
 %else
-BuildRequires: httpd
+BuildRequires: httpd24
 %endif
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires: %{?scl:%scl_prefix}build
@@ -106,11 +108,15 @@ done
   sed -i 's/^#LogLevel/LogLevel/g' httpd/openshift_route.include
 %endif
 
-mkdir -p %{buildroot}/etc/httpd/conf.d
-mv httpd/000001_openshift_origin_node.conf %{buildroot}/etc/httpd/conf.d/
-mv httpd/openshift_route.include %{buildroot}/etc/httpd/conf.d/
-mv httpd/openshift_route_logconf.include %{buildroot}/etc/httpd/conf.d/
-
+# httpd24 from scl
+sed -i 's/include /IncludeOptional /g' httpd/000001_openshift_origin_node.conf
+sed -i 's/^RewriteLog/#RewriteLog/g' httpd/openshift_route.include
+sed -i 's/^RewriteLogLevel/#RewriteLogLevel/g' httpd/openshift_route.include
+sed -i 's/^#LogLevel/LogLevel/g' httpd/openshift_route.include
+mkdir -p %{buildroot}/opt/rh/httpd24/root/etc/httpd/conf.d
+mv httpd/000001_openshift_origin_node.conf %{buildroot}/opt/rh/httpd24/root/etc/httpd/conf.d/
+mv httpd/openshift_route.include %{buildroot}/opt/rh/httpd24/root/etc/httpd/conf.d/
+mv httpd/openshift_route_logconf.include %{buildroot}/opt/rh/httpd24/root/etc/httpd/conf.d/
 mv httpd/frontend-mod-rewrite-https-template.erb %{buildroot}%{appdir}/.httpd.d/frontend-mod-rewrite-https-template.erb
 
 %files
@@ -118,9 +124,9 @@ mv httpd/frontend-mod-rewrite-https-template.erb %{buildroot}%{appdir}/.httpd.d/
 %{gem_instdir}
 %{gem_spec}
 %{gem_cache}
-%config /etc/httpd/conf.d/openshift_route.include
-%config(noreplace) /etc/httpd/conf.d/openshift_route_logconf.include
-%config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node.conf
+%config /opt/rh/httpd24/root/etc/httpd/conf.d/openshift_route.include
+%config(noreplace) /opt/rh/httpd24/root/etc/httpd/conf.d/openshift_route_logconf.include
+%config(noreplace) /opt/rh/httpd24/root/etc/httpd/conf.d/000001_openshift_origin_node.conf
 %attr(0644,root,root)   %config(noreplace) %{appdir}/.httpd.d/frontend-mod-rewrite-https-template.erb
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/nodes.txt
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/aliases.txt
