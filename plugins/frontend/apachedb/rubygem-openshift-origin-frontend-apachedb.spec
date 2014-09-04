@@ -30,14 +30,12 @@ Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      rubygem(openshift-origin-node)
 Requires:      %{?scl:%scl_prefix}rubygem(json)
 Requires:      openshift-origin-node-util
-Requires:      httpd24
-Requires:      httpd24-httpd-tools
-BuildRequires: httpd24-httpd-tools
+Requires:      httpd
 %if 0%{?fedora} >= 18
-Requires:      httpd24-httpd-tools
-BuildRequires: httpd24-httpd-tools
+Requires:      httpd-tools
+BuildRequires: httpd-tools
 %else
-BuildRequires: httpd24
+BuildRequires: httpd
 %endif
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires: %{?scl:%scl_prefix}build
@@ -84,15 +82,15 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 mkdir -p %{buildroot}/etc/openshift/node-plugins.d
 cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-frontend-apachedb.conf.example %{buildroot}/etc/openshift/node-plugins.d/
 
-mkdir -p %{buildroot}/opt/rh/httpd24/root/etc/httpd/conf.d
-mkdir -p %{buildroot}/opt/rh/httpd24/root/etc/httpd/conf.d/openshift
+mkdir -p %{buildroot}/etc/httpd/conf.d
 mkdir -p %{buildroot}%{appdir}/.httpd.d
-ln -sf %{appdir}/.httpd.d %{buildroot}/opt/rh/httpd24/root/etc/httpd/conf.d/openshift
+ln -sf %{appdir}/.httpd.d %{buildroot}/etc/httpd/conf.d/openshift
 
 echo '{}' > "%{buildroot}%{appdir}/.httpd.d/geardb.json"
 
-mkdir -p %{buildroot}/opt/rh/httpd24/root/etc/httpd/conf.d
-mv httpd/000001_openshift_origin_node_servername.conf %{buildroot}/opt/rh/httpd24/root/etc/httpd/conf.d/
+mkdir -p %{buildroot}/etc/httpd/conf.d
+mv httpd/000001_openshift_origin_node_servername.conf %{buildroot}/etc/httpd/conf.d/
+
 
 
 %files
@@ -100,8 +98,8 @@ mv httpd/000001_openshift_origin_node_servername.conf %{buildroot}/opt/rh/httpd2
 %{gem_instdir}
 %{gem_spec}
 %{gem_cache}
-%config(noreplace) /opt/rh/httpd24/root/etc/httpd/conf.d/000001_openshift_origin_node_servername.conf
-%attr(0750,-,-) /opt/rh/httpd24/root/etc/httpd/conf.d/openshift
+%config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node_servername.conf
+%attr(0750,-,-) /etc/httpd/conf.d/openshift
 %dir %attr(0750,root,apache) %{appdir}/.httpd.d
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/geardb.json
 /etc/openshift/node-plugins.d/

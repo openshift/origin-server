@@ -23,14 +23,12 @@ Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      rubygem(openshift-origin-node)
 Requires:      rubygem(openshift-origin-frontend-apachedb)
-Requires:      httpd24
-Requires:      httpd24-httpd-tools
-BuildRequires: httpd24-httpd-tools
+Requires:      httpd
 %if 0%{?fedora} >= 18
-Requires:      httpd24-httpd-tools
-BuildRequires: httpd24-httpd-tools
+Requires:      httpd-tools
+BuildRequires: httpd-tools
 %else
-BuildRequires: httpd24
+BuildRequires: httpd
 %endif
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires: %{?scl:%scl_prefix}build
@@ -90,23 +88,25 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-frontend-apache-vhost.conf.
   sed -i 's/include /IncludeOptional /g' httpd/000001_openshift_origin_frontend_vhost.conf
 %endif
 
-# httpd24 from scl
+
+
 sed -i 's/include /IncludeOptional /g' httpd/000001_openshift_origin_frontend_vhost.conf
-mkdir -p %{buildroot}/opt/rh/httpd24/root/etc/httpd/conf.d/openshift
-mv httpd/000001_openshift_origin_frontend_vhost.conf %{buildroot}/opt/rh/httpd24/root/etc/httpd/conf.d/
-mv httpd/frontend-vhost-https-template.erb %{buildroot}/opt/rh/httpd24/root/etc/httpd/conf.d/openshift/
-mv httpd/frontend-vhost-http-template.erb %{buildroot}/opt/rh/httpd24/root/etc/httpd/conf.d/openshift/
-mv httpd/openshift-vhost-logconf.include %{buildroot}/opt/rh/httpd24/root/etc/httpd/conf.d/
+mkdir -p %{buildroot}/etc/httpd/conf.d/openshift
+mv httpd/000001_openshift_origin_frontend_vhost.conf %{buildroot}/etc/httpd/conf.d/
+mv httpd/frontend-vhost-https-template.erb %{buildroot}/etc/httpd/conf.d/openshift/
+mv httpd/frontend-vhost-http-template.erb %{buildroot}/etc/httpd/conf.d/openshift/
+mv httpd/openshift-vhost-logconf.include %{buildroot}/etc/httpd/conf.d/
+
 
 %files
 %doc %{gem_docdir}
 %{gem_instdir}
 %{gem_spec}
 %{gem_cache}
-%config(noreplace) /opt/rh/httpd24/root/etc/httpd/conf.d/000001_openshift_origin_frontend_vhost.conf
-%config(noreplace) /opt/rh/httpd24/root/etc/httpd/conf.d/openshift/frontend-vhost-http-template.erb
-%config(noreplace) /opt/rh/httpd24/root/etc/httpd/conf.d/openshift/frontend-vhost-https-template.erb
-%config(noreplace) /opt/rh/httpd24/root/etc/httpd/conf.d/openshift-vhost-logconf.include
+%config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_frontend_vhost.conf
+%config(noreplace) /etc/httpd/conf.d/openshift/frontend-vhost-http-template.erb
+%config(noreplace) /etc/httpd/conf.d/openshift/frontend-vhost-https-template.erb
+%config(noreplace) /etc/httpd/conf.d/openshift-vhost-logconf.include
 /etc/openshift/node-plugins.d/
 
 %changelog
