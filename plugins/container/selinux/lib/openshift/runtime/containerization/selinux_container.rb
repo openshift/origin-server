@@ -74,6 +74,8 @@ module OpenShift
                     -m \
                     -k #{@container.skel_dir} \
                     -K PASS_MAX_DAYS=-1 \
+                    -K PASS_MIN_DAYS=-1 \
+                    -K PASS_WARN_AGE=-1 \
                     #{@container.uuid}}
             if @container.supplementary_groups != ""
               cmd << %{ -G "#{@container.supplementary_groups}"}
