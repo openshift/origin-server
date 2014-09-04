@@ -15,11 +15,39 @@ Feature: Snapshot and restore
     Then the mock control_post_restore marker will exist in the gear
     And the new file will not be present in the gear app-root repo
     And the gear state will be started
-    
+
     When the application is stopped
     And I snapshot the application
     Then the gear state will be stopped
-    
+
     When I restore the application
     Then the gear state will be stopped
-    
+
+  Scenario: Scaled application restore should preserve application state
+    Given the libra client tools
+    And a new client created scalable mock-0.1 application
+
+    Then the application should be accessible
+    Then the haproxy-status page will be responding
+
+    When the minimum scaling parameter is set to 3
+    Then the application should be accessible
+
+    And the gear members will be UP
+    When I snapshot the application
+
+    When I restore the application
+    Then the application should be accessible
+
+    Then the gear state will be started
+    And the gear members will be UP
+
+    When the application is stopped
+    When I restore the application
+
+    Then the application should not be accessible
+    And the gear members will be DOWN
+
+    When the application is destroyed
+    Then the application should not be accessible
+

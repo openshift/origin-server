@@ -446,7 +446,7 @@ Then /^the gear members will be (UP|DOWN)$/ do |state|
 
   OpenShift::timeout(120) do
     while found != 0
-      found = gear_up?("#{@app.name}-#{@app.namespace}.#{$domain}", state)
+      found = all_gears_up?(state)
       sleep 1
     end
   end
@@ -482,25 +482,20 @@ Then /^(at least )?(\d+) gears will be in the cluster$/ do |fuzzy, expected|
   assert_equal false, gear_test.call(expected, actual)
 end
 
-def gear_up?(hostname, state='UP')
-  csv = `/usr/bin/curl -s -H 'Host: #{hostname}' -s 'http://localhost/haproxy-status/;csv'`
-  assert $?.success?, "Failed to retrieve haproxy-status results: #{csv}"
-  $logger.debug("============ GEAR CSV #{Process.pid} ============")
-  $logger.debug(csv)
-  $logger.debug('============ GEAR CSV END ============')
-  found = 1
-  csv.split.each do | haproxy_worker |
+def all_gears_up?(state='UP')
+  gear_registry = File.join($home_root, @app.uid, 'gear-registry', 'gear-registry.json')
+  gears_uuid = JSON.parse( IO.read(gear_registry))['web'].keys
 
-    worker_attrib_array = haproxy_worker.split(',')
-    if worker_attrib_array[17] and worker_attrib_array[1].to_s == "local-gear" and worker_attrib_array[17].to_s.start_with?(state)
-      $logger.debug("Found: #{worker_attrib_array[1]} - #{worker_attrib_array[17]}")
-      found = 0
-    elsif worker_attrib_array[17] and worker_attrib_array[1].to_s.start_with?('gear') and not worker_attrib_array[17].to_s.start_with?(state)
-      return 1
+  gears_uuid.each do |gear_uuid|
+    gear_state = File.read( File.join($home_root, gear_uuid, 'app-root', 'runtime', '.state')).chop
+    if state == 'UP'
+      return 1 if gear_state != 'started'
+    elsif state == "DOWN"
+      return 1 if gear_state != 'stopped'
     end
   end
-  $logger.debug("No gears found")
-  return found
+
+  return 0
 end
 
 When /^JAVA_OPTS_EXT is available$/ do
