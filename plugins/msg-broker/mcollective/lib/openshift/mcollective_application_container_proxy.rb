@@ -1826,8 +1826,8 @@ module OpenShift
         end
       end
 
-      log_debug "DEBUG: Fixing DNS and mongo for gear '#{gear.name}' after move"
-      log_debug "DEBUG: Changing server identity of '#{gear.name}' from '#{source_container.id}' to '#{destination_container.id}'"
+      log_debug "DEBUG: Fixing DNS and mongo for gear '#{gear.uuid}' after move"
+      log_debug "DEBUG: Changing server identity of '#{gear.uuid}' from '#{source_container.id}' to '#{destination_container.id}'"
       gear.server_identity = destination_container.id
       # Persist server identity for gear in mongo
       res = Application.where({"_id" => app.id, "gears.uuid" => gear.uuid}).update({"$set" => {"gears.$.server_identity" => gear.server_identity}})
@@ -2069,7 +2069,7 @@ module OpenShift
           res = Application.where({"_id" => app.id, "group_instances._id" => gear.group_instance.id}).update({"$set" => {"group_instances.$.gear_size" => gear.group_instance.gear_size}})
           raise OpenShift::OOException.new("Could not set group instance gear_size to #{gear.group_instance.gear_size}") if res.nil? or !res["updatedExisting"]
           # destroy destination
-          log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' in '#{app.name}' with delete on '#{destination_container.id}'"
+          log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.uuid}' in '#{app.name}' with delete on '#{destination_container.id}'"
           reply.append destination_container.destroy(gear, !district_changed, nil, true)
 
           raise
@@ -2244,12 +2244,12 @@ module OpenShift
       source_container = gear.get_proxy
       platform = gear.group_instance.platform
       log_debug "DEBUG: Gear platform is '#{platform}'"
-      log_debug "DEBUG: Creating new account for gear '#{gear.name}' on #{destination_container.id}"
+      log_debug "DEBUG: Creating new account for gear '#{gear.uuid}' on #{destination_container.id}"
       sshkey_required = false
       initial_deployment_dir_required = false
       reply.append destination_container.create(gear, quota_blocks, quota_files, sshkey_required, initial_deployment_dir_required)
       rsync_keyfile = Rails.configuration.auth[:rsync_keyfile]
-      log_debug "DEBUG: Moving content for app '#{app.name}', gear '#{gear.name}' to #{destination_container.id}"
+      log_debug "DEBUG: Moving content for app '#{app.name}', gear '#{gear.uuid}' to #{destination_container.id}"
       case platform.downcase
         when "windows"
           #Rsync arguments had to be changed for windows to move the gear with full rights and reset them correctly in the post move method
@@ -2259,10 +2259,10 @@ module OpenShift
       end
 
       if $?.exitstatus != 0
-        raise OpenShift::NodeException.new("Error moving app '#{app.name}',platform '#{platform}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
+        raise OpenShift::NodeException.new("Error moving app '#{app.name}',platform '#{platform}', gear '#{gear.uuid}' from #{source_container.id} to #{destination_container.id}", 143)
       end
 
-      log_debug "DEBUG: Moving system components for app '#{app.name}', gear '#{gear.name}' to #{destination_container.id}"
+      log_debug "DEBUG: Moving system components for app '#{app.name}', gear '#{gear.uuid}' to #{destination_container.id}"
       case platform.downcase
         when "windows"
           #Rsync arguments changed, preserving extended attributes and ACLs cannot be used on windows
@@ -2272,7 +2272,7 @@ module OpenShift
       end
 
       if $?.exitstatus != 0
-        raise OpenShift::NodeException.new("Error moving system components for app '#{app.name}', platform '#{platform}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
+        raise OpenShift::NodeException.new("Error moving system components for app '#{app.name}', platform '#{platform}', gear '#{gear.uuid}' from #{source_container.id} to #{destination_container.id}", 143)
       end
 
       unless platform.downcase == "windows"
