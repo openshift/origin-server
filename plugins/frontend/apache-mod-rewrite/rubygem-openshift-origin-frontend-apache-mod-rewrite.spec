@@ -106,11 +106,6 @@ done
   sed -i 's/^#LogLevel/LogLevel/g' httpd/openshift_route.include
 %endif
 
-sed -i 's/include /IncludeOptional /g' httpd/000001_openshift_origin_node.conf
-sed -i 's/^RewriteLog/#RewriteLog/g' httpd/openshift_route.include
-sed -i 's/^RewriteLogLevel/#RewriteLogLevel/g' httpd/openshift_route.include
-sed -i 's/^#LogLevel/LogLevel/g' httpd/openshift_route.include
-
 mkdir -p %{buildroot}/etc/httpd/conf.d
 mv httpd/000001_openshift_origin_node.conf %{buildroot}/etc/httpd/conf.d/
 mv httpd/openshift_route.include %{buildroot}/etc/httpd/conf.d/

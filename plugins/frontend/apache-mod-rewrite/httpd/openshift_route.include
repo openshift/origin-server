@@ -9,11 +9,11 @@ RewriteEngine              On
 ProxyPassInterpolateEnv On
 
 # Set RewriteLogLevel to 6 for debugging
-RewriteLog logs/rewrite_log
-RewriteLogLevel 0
+#RewriteLog logs/rewrite_log
+#RewriteLogLevel 0
 
 # Apache 2.4
-#LogLevel alert rewrite:trace3
+LogLevel alert rewrite:trace3
 
 # Maps
 RewriteMap    lowercase int:tolower

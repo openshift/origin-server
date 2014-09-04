@@ -90,7 +90,6 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-frontend-apache-vhost.conf.
 
 
 
-sed -i 's/include /IncludeOptional /g' httpd/000001_openshift_origin_frontend_vhost.conf
 mkdir -p %{buildroot}/etc/httpd/conf.d/openshift
 mv httpd/000001_openshift_origin_frontend_vhost.conf %{buildroot}/etc/httpd/conf.d/
 mv httpd/frontend-vhost-https-template.erb %{buildroot}/etc/httpd/conf.d/openshift/
