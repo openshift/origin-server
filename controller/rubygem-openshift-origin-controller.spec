@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.30.2
+Version: 1.30.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,15 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Sep 05 2014 Adam Miller <admiller@redhat.com> 1.30.3-1
+- Merge pull request #5766 from ncdc/fix-scale-snapshot-test
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5762 from bparees/xpaas_tests
+  (dmcphers+openshiftbot@redhat.com)
+- Fix scalable platform snapshot test (agoldste@redhat.com)
+- broker: ensure normalization is idempotent (lmeyer@redhat.com)
+- move xpaas cucumber tests upstream (bparees@redhat.com)
+
 * Fri Aug 22 2014 Adam Miller <admiller@redhat.com> 1.30.2-1
 - remove the check on Apache DB files because the plugin may not be present
   (rchopra@redhat.com)
