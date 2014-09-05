@@ -3,7 +3,7 @@
 %global import_path github.com/openshift
 
 Name:          openshift-origin-logshifter
-Version: 1.7.1
+Version: 1.7.2
 Release:       1%{?dist}
 Summary:       Log transport for OpenShift gear processes.
 License:       ASL 2.0
@@ -41,6 +41,23 @@ cp -p man/*.1 %{buildroot}%{_mandir}/man1/
 %{_mandir}/man1/*
 
 %changelog
+* Fri Sep 05 2014 Adam Miller <admiller@redhat.com> 1.7.2-1
+- Removing the named parameters from Write method. (etsauer@gmail.com)
+- Renamed bytes to bufferSize and removed verbose from createSyslogWriter
+  (etsauer@gmail.com)
+- createSyslogWriter takes int bufferSize instead of entire config
+  (etsauer@gmail.com)
+- Adding proper commenting to new methods in main (etsauer@gmail.com)
+- Added proper commenting to multi writer (etsauer@gmail.com)
+- Returning len(b) for Write function (etsauer@gmail.com)
+- Changed error handling in various places. (etsauer@gmail.com)
+- Close all writers before returning error. Also fixed bug in last commit
+  (etsauer@gmail.com)
+- Don't want to aggregate bytes here, just returning len(b) for failed writer
+  (etsauer@gmail.com)
+- Created a multi writer option which logs to both syslog and files
+  (etsauer@gmail.com)
+
 * Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.7.1-1
 - bump_minor_versions for sprint 45 (admiller@redhat.com)
 
