@@ -1937,19 +1937,20 @@ class Application
     # Add and/or push user env vars when this is not an app create or user_env_vars are specified
     user_vars_op_id = nil
     # FIXME this condition should be stronger (only fired when env vars are specified OR other gears already exist)
+    # If this is a new group instance creation (gear creation and not a scale up), we can skip rollback
     if maybe_notify_app_create_op.empty? || user_env_vars.present?
       prereq = gear_id_prereqs[app_dns_gear_id].nil? ? [ops.last._id.to_s] : [gear_id_prereqs[app_dns_gear_id]]
-      op = PatchUserEnvVarsOp.new(group_instance_id: ginst_id, user_env_vars: user_env_vars, push_vars: true, prereq: prereq)
+      op = PatchUserEnvVarsOp.new(group_instance_id: ginst_id, user_env_vars: user_env_vars, push_vars: true, 
+                                  skip_rollback: !is_scale_up, prereq: prereq)
       ops << op
       user_vars_op_id = op._id.to_s
     end
 
+    # Since this is a new gear creation, we can skip rollback for some operations
     prereq_op_id = prereq_op._id.to_s rescue nil
-    # since this component add operation is part of a new gear creation, we can skip rollback for everything other that gear creation
-    is_gear_creation = true
     add, usage = calculate_add_component_ops(gear_comp_specs, comp_spec_gears, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops,
                                              is_scale_up, (user_vars_op_id || prereq_op_id), init_git_url,
-                                             app_dns_gear_id, is_gear_creation)
+                                             app_dns_gear_id, true)
     ops.concat(add)
     track_usage_ops.concat(usage)
 
