@@ -131,6 +131,9 @@ class ResultIO
           elsif line.start_with?('ENV_VAR_ADD: ')
             env_var = line['ENV_VAR_ADD: '.length..-1].chomp.split('=')
             self.cart_commands.push({:command => "ENV_VAR_ADD", :args => [env_var[0], env_var[1]]})
+          elsif line.start_with?('ENV_VAR_ADD_UNIQUE: ')
+            env_var = line['ENV_VAR_ADD_UNIQUE: '.length..-1].chomp.split('=')
+            self.cart_commands.push({:command => "ENV_VAR_ADD_UNIQUE", :args => [env_var[0], env_var[1]]})
           elsif line =~ /^BROKER_AUTH_KEY_(ADD): /
             if $1 == 'ADD'
               self.cart_commands.push({:command => "BROKER_KEY_ADD", :args => []})
