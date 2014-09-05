@@ -8,7 +8,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.29.1
+Version: 1.29.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -109,6 +109,18 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Fri Sep 05 2014 Adam Miller <admiller@redhat.com> 1.29.2-1
+- ctl-cartridge manpage: update for import-profile (lmeyer@redhat.com)
+- oo-admin-ctl-cartridge: import-profile command (lmeyer@redhat.com)
+- <broker-util> Fix oo-accept-broker when admin-console installed
+  (jdetiber@redhat.com)
+- Merge pull request #5663 from sztsian/master
+  (dmcphers+openshiftbot@redhat.com)
+- broker utils: complete normalization of input logins (lmeyer@redhat.com)
+- fix bug 1122339 https://bugzilla.redhat.com/show_bug.cgi?id=1122339 add
+  detection to make sure node_platform is not nil before casecmp
+  (sztsian@gmail.com)
+
 * Thu Aug 21 2014 Adam Miller <admiller@redhat.com> 1.29.1-1
 - bump_minor_versions for sprint 50 (admiller@redhat.com)
 
