@@ -101,6 +101,16 @@ function add_domain_env_var {
     echo "ENV_VAR_ADD: $1"
 }
 
+# Add environment variable visible to all gears in a domain
+# Environment variable key will be checked for uniqueness
+# before being added, app creation will fail if it is not
+# unique.
+# Argument(s):
+# - name of environment variable to add plus value
+function add_domain_env_var_unique {
+    echo "ENV_VAR_ADD_UNIQUE: $1"
+}
+
 # remove environment variable visible to all gears in application
 # Argument(s):
 # - name of environment variable to remove
