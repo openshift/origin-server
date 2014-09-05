@@ -31,10 +31,14 @@ popd
 %install
 install -d %{buildroot}%{_bindir}
 install -p -m 755 _build/bin/logshifter %{buildroot}%{_bindir}/logshifter
+mkdir -p %{buildroot}%{_mandir}/man1/
+cp -p man/*.1 %{buildroot}%{_mandir}/man1/
+
 
 %files
 %defattr(-,root,root,-)
 %{_bindir}/logshifter
+%{_mandir}/man1/*
 
 %changelog
 * Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.7.1-1
