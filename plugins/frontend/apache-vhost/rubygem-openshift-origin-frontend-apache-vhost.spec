@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.9.1
+Version: 0.9.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -109,6 +109,9 @@ mv httpd/openshift-vhost-logconf.include %{buildroot}/etc/httpd/conf.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Fri Sep 05 2014 Adam Miller <admiller@redhat.com> 0.9.2-1
+- consistent trailing slashes - bz1133694 (rchopra@redhat.com)
+
 * Thu Aug 21 2014 Adam Miller <admiller@redhat.com> 0.9.1-1
 - move env var guard for all http plugins and not just the vhost plugin
   (rchopra@redhat.com)
