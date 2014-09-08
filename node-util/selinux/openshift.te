@@ -1,0 +1,638 @@
+policy_module(openshift,1.0.0)
+
+gen_require(`
+  role system_r;
+')
+ 
+########################################
+#
+# Declarations
+#
+
+## <desc>
+## <p>
+## Allow openshift to access nfs file systems without labels
+## </p>
+## </desc>
+gen_tunable(openshift_use_nfs, false)
+
+# openshift applications that can use the network.
+attribute openshift_net_domain;
+# Attribute representing all openshift user processes (excludes apache processes)
+attribute openshift_user_domain;
+# Attribute representing all openshift processes
+attribute openshift_domain;
+
+# Attribute for all openshift content
+attribute openshift_file_type;
+
+# Type of openshift init script
+type openshift_initrc_t;
+type openshift_initrc_exec_t;
+init_daemon_domain(openshift_initrc_t, openshift_initrc_exec_t)
+init_ranged_daemon_domain(openshift_initrc_t, openshift_initrc_exec_t, s0 - mcs_systemhigh)
+domain_obj_id_change_exemption(openshift_initrc_t)
+optional_policy(`
+  oddjob_ranged_domain(openshift_initrc_t, openshift_initrc_exec_t, s0 - mcs_systemhigh)
+')
+
+type openshift_initrc_tmp_t;
+files_tmp_file(openshift_initrc_tmp_t)
+
+type openshift_tmpfs_t;
+files_tmpfs_file(openshift_tmpfs_t)
+
+type openshift_tmp_t, openshift_file_type;
+files_tmp_file(openshift_tmp_t)
+files_mountpoint(openshift_tmp_t)
+files_poly(openshift_tmp_t)
+files_poly_parent(openshift_tmp_t)
+
+type openshift_var_run_t;
+files_pid_file(openshift_var_run_t)
+
+type openshift_var_lib_t, openshift_file_type;
+userdom_user_home_content(openshift_var_lib_t)
+files_poly(openshift_var_lib_t)
+files_poly_parent(openshift_var_lib_t)
+files_mountpoint(openshift_var_lib_t)
+
+type openshift_rw_file_t, openshift_file_type;
+files_poly(openshift_rw_file_t)
+files_poly_parent(openshift_rw_file_t)
+
+type openshift_log_t;
+logging_log_file(openshift_log_t)
+
+type openshift_port_t;
+corenet_port(openshift_port_t)
+corenet_reserved_port(openshift_port_t)
+
+type openshift_net_read_t;
+type openshift_net_read_exec_t;
+application_domain(openshift_net_read_t, openshift_net_read_exec_t)
+
+type openshift_cgroup_read_t;
+type openshift_cgroup_read_exec_t;
+application_domain(openshift_cgroup_read_t, openshift_cgroup_read_exec_t)
+
+type openshift_cgroup_read_tmp_t, openshift_file_type;
+files_tmp_file(openshift_cgroup_read_tmp_t)
+
+type openshift_cron_t;
+type openshift_cron_exec_t;
+domain_type(openshift_cron_t)
+domain_entry_file(openshift_cron_t, openshift_cron_exec_t)
+role system_r types openshift_cron_t;
+
+optional_policy(`
+   cron_system_entry(openshift_cron_t, openshift_cron_exec_t)
+')
+
+type openshift_cron_tmp_t, openshift_file_type;
+files_tmp_file(openshift_cron_tmp_t)
+
+########################################
+#
+# Template to create openshift_t and openshift_app_t
+#
+openshift_service_domain_template(openshift)
+
+########################################
+#
+# openshift initrc local policy
+#
+
+unconfined_domain_noaudit(openshift_initrc_t)
+mcs_process_set_categories(openshift_initrc_t)
+#virt_lxc_domain(openshift_initrc_t)
+
+manage_dirs_pattern(openshift_initrc_t, openshift_initrc_tmp_t, openshift_initrc_tmp_t)
+manage_files_pattern(openshift_initrc_t, openshift_initrc_tmp_t, openshift_initrc_tmp_t)
+manage_lnk_files_pattern(openshift_initrc_t, openshift_initrc_tmp_t, openshift_initrc_tmp_t)
+files_tmp_filetrans(openshift_initrc_t, openshift_initrc_tmp_t, { file dir })
+
+manage_dirs_pattern(openshift_initrc_t, openshift_var_run_t, openshift_var_run_t)
+manage_files_pattern(openshift_initrc_t, openshift_var_run_t, openshift_var_run_t)
+manage_lnk_files_pattern(openshift_initrc_t, openshift_var_run_t, openshift_var_run_t)
+files_pid_filetrans(openshift_initrc_t, openshift_var_run_t, { file dir })
+
+manage_dirs_pattern(openshift_initrc_t, openshift_log_t, openshift_log_t)
+manage_files_pattern(openshift_initrc_t, openshift_log_t, openshift_log_t)
+logging_log_filetrans(openshift_initrc_t, openshift_log_t, { file dir })
+
+allow openshift_initrc_t openshift_domain:process { getattr getsched setsched transition signal signull sigkill };
+allow openshift_domain openshift_initrc_t:fd use;
+allow openshift_domain openshift_initrc_t:fifo_file rw_inherited_fifo_file_perms;
+allow openshift_domain openshift_initrc_t:process sigchld;
+dontaudit openshift_domain openshift_initrc_t:key view;
+dontaudit openshift_domain openshift_initrc_t:process signull;
+dontaudit openshift_domain openshift_initrc_t:socket_class_set { read write };
+
+init_domtrans_script(openshift_initrc_t)
+init_initrc_domain(openshift_initrc_t)
+
+#optional_policy(`
+    #prelink_transition_domain_attribute(openshift_initrc_t)
+#')
+
+#######################################################
+#
+# Policy for all openshift domains
+#
+allow openshift_domain self:process all_process_perms;
+allow openshift_domain self:msg all_msg_perms;
+allow openshift_domain self:msgq create_msgq_perms;
+allow openshift_domain self:shm create_shm_perms;
+allow openshift_domain self:sem create_sem_perms;
+dontaudit openshift_domain self:dir write;
+
+dontaudit openshift_t self:unix_stream_socket recvfrom;
+dontaudit openshift_domain self:netlink_tcpdiag_socket create;
+dontaudit openshift_domain self:netlink_route_socket nlmsg_write;
+allow openshift_domain self:tcp_socket  create_stream_socket_perms;
+allow openshift_domain self:fifo_file manage_fifo_file_perms;
+allow openshift_domain self:unix_stream_socket { create_stream_socket_perms connectto };
+allow openshift_domain self:unix_dgram_socket { create_socket_perms sendto };
+dontaudit openshift_domain self:netlink_audit_socket { create_socket_perms nlmsg_relay };
+
+manage_dirs_pattern(openshift_domain, openshift_rw_file_t, openshift_rw_file_t)
+manage_files_pattern(openshift_domain, openshift_rw_file_t, openshift_rw_file_t)
+manage_fifo_files_pattern(openshift_domain, openshift_rw_file_t, openshift_rw_file_t)
+manage_sock_files_pattern(openshift_domain, openshift_rw_file_t, openshift_rw_file_t)
+manage_lnk_files_pattern(openshift_domain, openshift_rw_file_t, openshift_rw_file_t)
+allow openshift_domain openshift_rw_file_t:dir_file_class_set { relabelfrom relabelto };
+
+list_dirs_pattern(openshift_domain, openshift_file_type, openshift_file_type)
+read_files_pattern(openshift_domain, openshift_file_type, openshift_file_type)
+rw_fifo_files_pattern(openshift_domain, openshift_file_type, openshift_file_type)
+rw_sock_files_pattern(openshift_domain, openshift_file_type, openshift_file_type)
+read_lnk_files_pattern(openshift_domain, openshift_file_type, openshift_file_type)
+allow openshift_domain openshift_file_type:file execmod;
+can_exec(openshift_domain, openshift_file_type)
+allow openshift_domain openshift_file_type:file entrypoint;
+# Allow users to execute files in their home dir
+allow openshift_domain openshift_file_type:file { execute execute_no_trans };
+
+# Dontaudit openshift domains trying to search other openshift domains directories, 
+# this happens just when users are probing the system
+dontaudit openshift_domain openshift_file_type:dir search_dir_perms
+;
+
+manage_dirs_pattern(openshift_domain, openshift_tmpfs_t, openshift_tmpfs_t)
+manage_files_pattern(openshift_domain, openshift_tmpfs_t, openshift_tmpfs_t)
+manage_lnk_files_pattern(openshift_domain, openshift_tmpfs_t, openshift_tmpfs_t)
+manage_sock_files_pattern(openshift_domain, openshift_tmpfs_t, openshift_tmpfs_t)
+manage_fifo_files_pattern(openshift_domain, openshift_tmpfs_t, openshift_tmpfs_t)
+fs_tmpfs_filetrans(openshift_domain, openshift_tmpfs_t, { dir file sock_file lnk_file fifo_file })
+can_exec(openshift_domain, openshift_tmpfs_t)
+
+append_files_pattern(openshift_cron_t, openshift_log_t, openshift_log_t)
+manage_dirs_pattern(openshift_domain, openshift_tmp_t, openshift_tmp_t)
+manage_fifo_files_pattern(openshift_domain, openshift_tmp_t, openshift_tmp_t)
+manage_files_pattern(openshift_domain, openshift_tmp_t, openshift_tmp_t)
+manage_lnk_files_pattern(openshift_domain, openshift_tmp_t, openshift_tmp_t)
+manage_sock_files_pattern(openshift_domain, openshift_tmp_t, openshift_tmp_t)
+files_tmp_filetrans(openshift_domain, openshift_tmp_t, { lnk_file file dir sock_file fifo_file })
+allow openshift_domain openshift_tmp_t:dir_file_class_set { relabelfrom relabelto };
+
+allow openshift_domain openshift_log_t:file { getattr append lock ioctl };
+
+#lsof
+allow openshift_domain openshift_initrc_t:tcp_socket getattr;
+
+dontaudit openshift_domain openshift_initrc_tmp_t:file append;
+dontaudit openshift_domain openshift_var_run_t:file append;
+dontaudit openshift_domain openshift_file_type:sock_file execute;
+
+kernel_dontaudit_search_network_state(openshift_domain)
+kernel_dontaudit_list_all_proc(openshift_domain)
+kernel_dontaudit_list_all_sysctls(openshift_domain)
+kernel_dontaudit_request_load_module(openshift_domain)
+kernel_get_sysvipc_info(openshift_domain)
+
+corecmd_shell_entry_type(openshift_domain)
+corecmd_bin_entry_type(openshift_domain)
+corecmd_exec_all_executables(openshift_domain)
+
+dev_read_sysfs(openshift_domain)
+dev_read_urand(openshift_domain)
+dev_read_rand(openshift_domain)
+dev_dontaudit_append_rand(openshift_domain)
+dev_dontaudit_write_urand(openshift_domain)
+dev_dontaudit_getattr_all_blk_files(openshift_domain)
+dev_dontaudit_getattr_all_chr_files(openshift_domain)
+dev_dontaudit_getattr_mtrr_dev(openshift_domain)
+
+domain_use_interactive_fds(openshift_domain)
+domain_dontaudit_read_all_domains_state(openshift_domain)
+
+files_read_var_lib_symlinks(openshift_domain)
+
+fs_rw_hugetlbfs_files(openshift_domain)
+fs_rw_anon_inodefs_files(openshift_domain)
+fs_search_tmpfs(openshift_domain)
+fs_getattr_all_fs(openshift_domain)
+fs_dontaudit_getattr_all_fs(openshift_domain)
+fs_list_inotifyfs(openshift_domain)
+fs_dontaudit_list_auto_mountpoints(openshift_domain)
+fs_dontaudit_list_tmpfs(openshift_domain)
+storage_dontaudit_getattr_fixed_disk_dev(openshift_domain)
+storage_getattr_fixed_disk_dev(openshift_domain)
+fs_get_xattr_fs_quotas(openshift_domain)
+fs_rw_inherited_tmpfs_files(openshift_domain)
+fs_dontaudit_rw_anon_inodefs_files(openshift_domain)
+
+dontaudit openshift_domain file_type:dir read;
+files_dontaudit_list_home(openshift_domain)
+files_dontaudit_search_all_pids(openshift_domain)
+files_dontaudit_getattr_all_dirs(openshift_domain)
+files_dontaudit_getattr_all_files(openshift_domain)
+files_dontaudit_list_mnt(openshift_domain)
+files_dontaudit_list_var(openshift_domain)
+files_dontaudit_getattr_lost_found_dirs(openshift_domain)
+files_dontaudit_search_all_mountpoints(openshift_domain)
+files_dontaudit_search_spool(openshift_domain)
+files_dontaudit_search_all_dirs(openshift_domain)
+files_dontaudit_list_var(openshift_domain)
+files_read_etc_files(openshift_domain)
+files_exec_etc_files(openshift_domain)
+files_read_usr_files(openshift_domain)
+files_exec_usr_files(openshift_domain)
+files_dontaudit_getattr_non_security_sockets(openshift_domain)
+files_dontaudit_setattr_non_security_dirs(openshift_domain)
+files_dontaudit_setattr_non_security_files(openshift_domain)
+files_dontaudit_rw_inherited_locks(openshift_domain)
+
+libs_exec_lib_files(openshift_domain)
+libs_exec_ld_so(openshift_domain)
+
+selinux_validate_context(openshift_domain)
+
+logging_inherit_append_all_logs(openshift_domain)
+
+init_dontaudit_read_utmp(openshift_domain)
+
+miscfiles_read_localization(openshift_domain)
+miscfiles_read_fonts(openshift_domain)
+miscfiles_dontaudit_setattr_fonts_cache_dirs(openshift_domain)
+
+mta_dontaudit_read_spool_symlinks(openshift_domain)
+
+term_dontaudit_search_ptys(openshift_domain)
+term_use_generic_ptys(openshift_domain)
+term_dontaudit_getattr_generic_ptys(openshift_domain)
+term_use_ptmx(openshift_domain)
+
+userdom_use_inherited_user_ptys(openshift_domain)
+userdom_dontaudit_search_admin_dir(openshift_domain)
+
+application_exec(openshift_domain)
+
+optional_policy(`
+  apache_exec_modules(openshift_domain)
+  apache_list_modules(openshift_domain)
+  apache_read_config(openshift_domain)
+  apache_search_config(openshift_domain)
+  apache_read_sys_content(openshift_domain)
+  apache_exec_sys_script(openshift_domain)
+  apache_entrypoint(openshift_domain)
+  apache_dontaudit_read_log(openshift_domain)
+
+  #############################################
+  # 
+  # openshift cgi script policy
+  #
+  apache_content_template(openshift)
+  domtrans_pattern(httpd_openshift_script_t, openshift_initrc_exec_t, openshift_initrc_t)
+  optional_policy(`
+    dbus_system_bus_client(httpd_openshift_script_t)
+    optional_policy(`
+      oddjob_dbus_chat(httpd_openshift_script_t)
+      oddjob_dontaudit_rw_fifo_file(openshift_domain)
+    ')
+  ')
+')
+
+optional_policy(`
+  cron_role(system_r, openshift_domain)
+')
+
+optional_policy(`
+  gpg_entry_type(openshift_domain)
+')
+
+optional_policy(`
+  mysql_search_db(openshift_domain)
+')
+
+optional_policy(`
+  screen_exec(openshift_domain)
+')
+
+optional_policy(`
+  ssh_use_ptys(openshift_domain)
+  ssh_getattr_user_home_dir(openshift_domain)
+  ssh_dontaudit_search_user_home_dir(openshift_domain)
+')
+
+optional_policy(`
+       udev_read_pid_files(openshift_domain)
+')
+
+#######################################################
+#
+# Policy for openshift user domain process
+#
+manage_dirs_pattern(openshift_user_domain, openshift_file_type, openshift_file_type)
+manage_files_pattern(openshift_user_domain, openshift_file_type, openshift_file_type)
+manage_fifo_files_pattern(openshift_user_domain, openshift_file_type, openshift_file_type)
+manage_sock_files_pattern(openshift_user_domain, openshift_file_type, openshift_file_type)
+manage_lnk_files_pattern(openshift_user_domain, openshift_file_type, openshift_file_type)
+allow openshift_user_domain openshift_file_type:dir_file_class_set { relabelfrom relabelto };
+
+allow openshift_user_domain openshift_domain:process transition;
+allow openshift_domain openshift_user_domain:fd use;
+allow openshift_domain openshift_user_domain:fifo_file rw_inherited_fifo_file_perms;
+allow openshift_domain openshift_user_domain:process sigchld;
+dontaudit openshift_domain openshift_user_domain:key view;
+dontaudit openshift_domain openshift_user_domain:process signull;
+dontaudit openshift_domain openshift_user_domain:socket_class_set { read write };
+
+allow openshift_user_domain openshift_domain:process ptrace;
+
+mta_signal_user_agent(openshift_user_domain)
+
+optional_policy(`
+       ssh_rw_tcp_sockets(openshift_user_domain)
+')
+
+############################################################################
+#
+# Rules specific to openshift_net_domains
+#
+allow openshift_net_domain openshift_port_t:tcp_socket { name_connect name_bind };
+allow openshift_net_domain openshift_port_t:udp_socket name_bind;
+
+corenet_tcp_connect_mssql_port(openshift_net_domain)
+corenet_tcp_connect_mysqld_port(openshift_net_domain)
+corenet_tcp_connect_postgresql_port(openshift_net_domain)
+corenet_tcp_connect_git_port(openshift_net_domain)
+corenet_tcp_connect_oracle_port(openshift_net_domain)
+corenet_tcp_connect_flash_port(openshift_net_domain)
+corenet_tcp_connect_http_port(openshift_net_domain)
+corenet_tcp_connect_ftp_port(openshift_net_domain)
+#/* These ports are the ephemeral ports needed for ftp */
+corenet_tcp_connect_virt_migration_port(openshift_net_domain)
+corenet_tcp_connect_ssh_port(openshift_net_domain)
+corenet_tcp_connect_jacorb_port(openshift_net_domain)
+corenet_tcp_connect_jboss_management_port(openshift_net_domain)
+corenet_tcp_connect_jboss_debug_port(openshift_net_domain)
+corenet_tcp_connect_jboss_messaging_port(openshift_net_domain)
+corenet_tcp_connect_memcache_port(openshift_net_domain)
+corenet_tcp_connect_http_cache_port(openshift_net_domain)
+corenet_tcp_connect_amqp_port(openshift_net_domain)
+corenet_tcp_connect_generic_port(openshift_net_domain)
+corenet_tcp_connect_mongod_port(openshift_net_domain)
+corenet_tcp_connect_munin_port(openshift_net_domain)
+corenet_tcp_connect_pop_port(openshift_net_domain)
+corenet_tcp_connect_pulseaudio_port(openshift_net_domain)
+corenet_tcp_connect_smtp_port(openshift_net_domain)
+corenet_tcp_connect_whois_port(openshift_net_domain)
+corenet_udp_bind_generic_port(openshift_net_domain)
+corenet_tcp_bind_http_cache_port(openshift_domain)
+corenet_tcp_bind_jacorb_port(openshift_net_domain)
+corenet_tcp_bind_jboss_management_port(openshift_net_domain)
+corenet_tcp_bind_jboss_messaging_port(openshift_net_domain)
+corenet_tcp_bind_jboss_debug_port(openshift_net_domain)
+corenet_tcp_bind_mongod_port(openshift_net_domain)
+corenet_tcp_bind_mysqld_port(openshift_domain)
+corenet_tcp_bind_pulseaudio_port(openshift_net_domain)
+corenet_tcp_bind_postgresql_port(openshift_net_domain)
+
+############################################################################
+#
+# Rules specific to openshift and openshift_app_t
+#
+
+kernel_read_vm_sysctls(openshift_t)
+kernel_read_vm_sysctls(openshift_app_t)
+kernel_search_vm_sysctl(openshift_t)
+kernel_search_vm_sysctl(openshift_app_t)
+
+netutils_domtrans_ping(openshift_t)
+netutils_kill_ping(openshift_t)
+netutils_signal_ping(openshift_t)
+
+openshift_net_type(openshift_app_t)
+openshift_net_type(openshift_t)
+
+optional_policy(`
+       postfix_rw_public_pipes(openshift_t)
+       postfix_manage_spool_maildrop_files(openshift_t)
+')
+
+########################################
+#
+# openshift_net_read local policy
+#
+
+allow openshift_net_read_t self:process { getattr signal_perms };
+allow openshift_net_read_t self:fifo_file rw_fifo_file_perms;
+allow openshift_net_read_t self:unix_stream_socket create_stream_socket_perms;
+allow openshift_net_read_t openshift_initrc_t:fifo_file rw_inherited_fifo_file_perms;
+
+allow openshift_net_read_t openshift_file_type:file rw_inherited_file_perms;
+
+kernel_read_network_state(openshift_net_read_t)
+kernel_read_system_state(openshift_net_read_t)
+
+domain_dontaudit_read_all_domains_state(openshift_net_read_t)
+ps_process_pattern(openshift_net_read_t, openshift_domain)
+
+term_dontaudit_use_generic_ptys(openshift_net_read_t)
+
+auth_use_nsswitch(openshift_net_read_t)
+
+miscfiles_read_localization(openshift_net_read_t)
+
+optional_policy(`
+  ssh_use_ptys(openshift_net_read_t)
+')
+
+corecmd_exec_bin(openshift_net_read_t)
+corecmd_exec_shell(openshift_net_read_t)
+
+dev_read_urand(openshift_net_read_t)
+
+domain_use_interactive_fds(openshift_net_read_t)
+
+files_read_etc_files(openshift_cgroup_read_t)
+
+fs_dontaudit_rw_anon_inodefs_files(openshift_net_read_t)
+
+userdom_use_inherited_user_ptys(openshift_net_read_t)
+
+#miscfiles_read_generic_certs(openshift_net_read_t)
+files_read_etc_files(openshift_net_read_t)
+
+domtrans_pattern(openshift_domain, openshift_net_read_exec_t, openshift_net_read_t)
+role system_r types openshift_net_read_t;
+
+allow openshift_domain openshift_net_read_t:process { getattr signal signull sigkill };
+
+allow openshift_net_read_t openshift_var_lib_t:dir list_dir_perms;
+read_lnk_files_pattern(openshift_net_read_t, openshift_var_lib_t, openshift_var_lib_t)
+manage_files_pattern(openshift_net_read_t, openshift_var_lib_t, openshift_var_lib_t)
+allow openshift_net_read_t openshift_file_type:file rw_inherited_file_perms;
+
+########################################
+#
+# openshift_cgroup_read local policy
+#
+
+allow openshift_cgroup_read_t self:process { getattr signal_perms };
+allow openshift_cgroup_read_t self:fifo_file rw_fifo_file_perms;
+allow openshift_cgroup_read_t self:unix_stream_socket create_stream_socket_perms;
+allow openshift_cgroup_read_t openshift_initrc_t:fifo_file rw_inherited_fifo_file_perms;
+
+allow openshift_cgroup_read_t openshift_file_type:file rw_inherited_file_perms;
+
+manage_dirs_pattern(openshift_cgroup_read_t, openshift_cgroup_read_tmp_t, openshift_cgroup_read_tmp_t)
+manage_files_pattern(openshift_cgroup_read_t, openshift_cgroup_read_tmp_t, openshift_cgroup_read_tmp_t)
+files_tmp_filetrans(openshift_cgroup_read_t, openshift_cgroup_read_tmp_t, { file dir })
+
+kernel_read_network_state(openshift_net_read_t)
+kernel_read_system_state(openshift_cgroup_read_t)
+
+term_dontaudit_use_generic_ptys(openshift_cgroup_read_t)
+
+files_read_etc_files(openshift_cgroup_read_t)
+
+miscfiles_read_localization(openshift_cgroup_read_t)
+
+optional_policy(`
+  ssh_use_ptys(openshift_cgroup_read_t)
+')
+
+corecmd_exec_bin(openshift_cgroup_read_t)
+corecmd_exec_shell(openshift_cgroup_read_t)
+
+dev_read_urand(openshift_cgroup_read_t)
+
+domain_use_interactive_fds(openshift_cgroup_read_t)
+
+files_read_etc_files(openshift_cgroup_read_t)
+
+fs_dontaudit_rw_anon_inodefs_files(openshift_cgroup_read_t)
+
+userdom_use_inherited_user_ptys(openshift_cgroup_read_t)
+
+#miscfiles_read_generic_certs(openshift_cgroup_read_t)
+
+domtrans_pattern(openshift_domain, openshift_cgroup_read_exec_t, openshift_cgroup_read_t)
+role system_r types openshift_cgroup_read_t;
+
+allow openshift_domain openshift_cgroup_read_t:process { getattr signal signull sigkill };
+
+fs_list_cgroup_dirs(openshift_cgroup_read_t)
+fs_read_cgroup_files(openshift_cgroup_read_t)
+
+allow openshift_cgroup_read_t openshift_var_lib_t:dir list_dir_perms;
+manage_files_pattern(openshift_cgroup_read_t, openshift_var_lib_t, openshift_var_lib_t)
+getattr_fifo_files_pattern(openshift_cgroup_read_t, openshift_var_lib_t, openshift_var_lib_t)
+getattr_sock_files_pattern(openshift_cgroup_read_t, openshift_var_lib_t, openshift_var_lib_t)
+
+allow openshift_net_read_t openshift_t:socket_class_set getattr;
+
+
+########################################
+#
+# openshift_cron local policy
+#
+allow openshift_cron_t self:capability { dac_override net_admin sys_admin };
+allow openshift_cron_t self:process signal_perms;
+allow openshift_cron_t self:tcp_socket create_stream_socket_perms;
+allow openshift_cron_t self:udp_socket create_socket_perms;
+allow openshift_cron_t self:unix_dgram_socket create_socket_perms;
+allow openshift_cron_t self:netlink_route_socket rw_netlink_socket_perms;
+
+append_files_pattern(openshift_cron_t, openshift_log_t, openshift_log_t)
+manage_dirs_pattern(openshift_cron_t, openshift_cron_tmp_t, openshift_cron_tmp_t)
+manage_fifo_files_pattern(openshift_cron_t, openshift_cron_tmp_t, openshift_cron_tmp_t)
+manage_files_pattern(openshift_cron_t, openshift_cron_tmp_t, openshift_cron_tmp_t)
+manage_lnk_files_pattern(openshift_cron_t, openshift_cron_tmp_t, openshift_cron_tmp_t)
+manage_sock_files_pattern(openshift_cron_t, openshift_cron_tmp_t, openshift_cron_tmp_t)
+files_tmp_filetrans(openshift_cron_t, openshift_cron_tmp_t, { lnk_file file dir sock_file fifo_file })
+
+openshift_manage_lib_dirs(openshift_cron_t)
+openshift_manage_lib_files(openshift_cron_t)
+
+kernel_search_network_sysctl(openshift_cron_t)
+kernel_search_xen_state(openshift_cron_t)
+kernel_read_network_state(openshift_cron_t)
+kernel_read_system_state(openshift_cron_t)
+
+files_dontaudit_search_all_mountpoints(openshift_cron_t)
+
+corecmd_exec_bin(openshift_cron_t)
+corecmd_exec_shell(openshift_cron_t)
+
+dev_read_raw_memory(openshift_cron_t)
+dev_read_urand(openshift_cron_t)
+
+corenet_udp_bind_generic_node(openshift_cron_t)
+corenet_udp_bind_generic_port(openshift_cron_t)
+
+dev_getattr_fs(openshift_cron_t)
+dev_list_sysfs(openshift_cron_t)
+dev_read_sysfs(openshift_cron_t)
+
+files_getattr_home_dir(openshift_cron_t)
+files_manage_etc_files(openshift_cron_t)
+
+fs_getattr_tmpfs_dirs(openshift_cron_t)
+fs_getattr_all_fs(openshift_cron_t)
+fs_list_hugetlbfs(openshift_cron_t)
+fs_search_cgroup_dirs(openshift_cron_t)
+
+seutil_domtrans_setfiles(openshift_cron_t)
+
+term_getattr_pty_fs(openshift_cron_t)
+term_search_ptys(openshift_cron_t)
+
+auth_use_nsswitch(openshift_cron_t)
+
+#miscfiles_read_generic_certs(openshift_cron_t)
+miscfiles_read_hwdata(openshift_cron_t)
+miscfiles_read_localization(openshift_cron_t)
+
+sysnet_exec_ifconfig(openshift_cron_t)
+sysnet_read_config(openshift_cron_t)
+
+optional_policy(`
+   dmidecode_exec(openshift_cron_t)
+')
+
+optional_policy(`
+   hostname_exec(openshift_cron_t)
+')
+
+optional_policy(`
+    quota_read_db(openshift_cron_t)
+')
+
+optional_policy(`
+   ssh_domtrans_keygen(openshift_cron_t)
+   ssh_dontaudit_read_server_keys(openshift_cron_t)
+')
+
+tunable_policy(`openshift_use_nfs',`
+        fs_list_auto_mountpoints(openshift_domain)
+        fs_manage_nfs_dirs(openshift_domain)
+        fs_manage_nfs_files(openshift_domain)
+        fs_manage_nfs_symlinks(openshift_domain)
+        fs_exec_nfs_files(openshift_domain)
+')
+
+

@@ -1,0 +1,29 @@
+/etc/rc\.d/init\.d/libra        gen_context(system_u:object_r:openshift_initrc_exec_t,s0)
+/etc/rc\.d/init\.d/mcollective        gen_context(system_u:object_r:openshift_initrc_exec_t,s0)
+
+/etc/cron.minutely/openshift-facts -- gen_context(system_u:object_r:openshift_cron_exec_t,s0)
+
+/var/lib/stickshift(/.*)?            gen_context(system_u:object_r:openshift_var_lib_t,s0)
+/var/lib/stickshift/.*/data(/.*)?	       gen_context(system_u:object_r:openshift_rw_file_t,s0)
+
+/var/lib/openshift(/.*)?            gen_context(system_u:object_r:openshift_var_lib_t,s0)
+/var/lib/openshift/.*/data(/.*)?	       gen_context(system_u:object_r:openshift_rw_file_t,s0)
+
+/var/lib/stickshift/.*/\.tmp(/.*)?        gen_context(system_u:object_r:openshift_tmp_t,s0)
+/var/lib/stickshift/.*/\.sandbox(/.*)?        gen_context(system_u:object_r:openshift_tmp_t,s0)
+/var/lib/openshift/.*/\.tmp(/.*)?        gen_context(system_u:object_r:openshift_tmp_t,s0)
+/var/lib/openshift/.*/\.sandbox(/.*)?        gen_context(system_u:object_r:openshift_tmp_t,s0)
+
+/var/log/mcollective\.log.*	       --    gen_context(system_u:object_r:openshift_log_t,s0)
+
+/usr/s?bin/(oo|rhc)-cgroup-read        --    gen_context(system_u:object_r:openshift_cgroup_read_exec_t,s0)
+
+/usr/s?bin/oo-lists-ports        --    gen_context(system_u:object_r:openshift_net_read_exec_t,s0)
+
+/usr/s?bin/(oo|rhc)-restorer           --    gen_context(system_u:object_r:openshift_initrc_exec_t,s0)
+/usr/s?bin/(oo|rhc)-restorer-wrapper.sh    --  gen_context(unconfined_u:object_r:httpd_openshift_script_exec_t,s0)
+/usr/s?bin/(oo|rhc)-admin-ctl-gears    --      gen_context(system_u:object_r:openshift_initrc_exec_t,s0)
+/usr/s?bin/mcollectived				--		gen_context(system_u:object_r:openshift_initrc_exec_t,s0)
+
+/var/run/stickshift(/.*)?		    	gen_context(system_u:object_r:openshift_var_run_t,s0)
+/var/run/openshift(/.*)?		    	gen_context(system_u:object_r:openshift_var_run_t,s0)
