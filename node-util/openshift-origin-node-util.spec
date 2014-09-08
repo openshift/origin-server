@@ -30,6 +30,13 @@ BuildRequires: systemd-units
 %endif
 BuildArch:     noarch
 
+# Needed for custom openshift policy. Bug 1024531
+BuildRequires: selinux-policy >= 3.7.19-176
+Requires:      selinux-policy-targeted >= 3.7.19-176
+Requires:      policycoreutils-python
+Requires:      policycoreutils
+
+
 %description
 This package contains a set of utility scripts for a OpenShift node.
 They must be run on a OpenShift node instance.
@@ -38,10 +45,24 @@ They must be run on a OpenShift node instance.
 %setup -q
 
 %build
+# Needed for custom openshift policy  Bug 1024531
+pushd selinux >/dev/null
+make -f /usr/share/selinux/devel/Makefile
+bzip2 -9 openshift.pp
+popd >/dev/null
+
 
 %install
+rm -rf %{buildroot}
 mkdir -p %{buildroot}%{_sbindir}
 mkdir -p %{buildroot}%{_bindir}
+
+# Needed for custom openshift policy. Bug 1024531
+mkdir -p %{buildroot}%{_datadir}/selinux/packages
+mkdir -p %{buildroot}%{_datadir}/selinux/include/services
+
+install -m 644 selinux/openshift.pp.bz2 %{buildroot}%{_datadir}/selinux/packages/openshift.pp.bz2
+install -m 644 selinux/openshift.if     %{buildroot}%{_datadir}/selinux/include/services/openshift.if
 
 cp -p sbin/* %{buildroot}%{_sbindir}/
 cp -p bin/*  %{buildroot}%{_bindir}/
@@ -84,9 +105,15 @@ mv services/openshift-watchman.service %{buildroot}/etc/systemd/system/openshift
 cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
+%clean
+rm -rf %{buildroot}
+
 %post
+# Needed for custom openshift policy. Bug 1024531
+/usr/sbin/semodule -i %{_datadir}/selinux/packages/openshift.pp.bz2 || :
+
 /sbin/restorecon /usr/sbin/oo-restorer* || :
-/sbin/restorecon /usr/bin/oo-lists-posts || :
+/sbin/restorecon /usr/bin/oo-lists-ports || :
 
 %if %{with_systemd}
 %systemd_post openshift-gears.service
@@ -137,6 +164,10 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %attr(0755,-,-) %{_bindir}/oo-lists-ports
 %attr(0755,-,-) %{_sysconfdir}/openshift/watchman/plugins.d/
 %attr(0744,-,-) %{_sysconfdir}/openshift/watchman/plugins.d/*
+
+# Needed for custom openshift policy. Bug 1024531
+%attr(0644,-,-) %{_datadir}/selinux/packages/openshift.pp.bz2
+%{_datadir}/selinux/include/services/openshift.if
 
 %{_mandir}/man8/oo-accept-node.8.gz
 %{_mandir}/man8/oo-admin-gear.8.gz
