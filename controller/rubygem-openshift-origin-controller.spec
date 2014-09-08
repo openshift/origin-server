@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.30.3
+Version: 1.30.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Sep 08 2014 Adam Miller <admiller@redhat.com> 1.30.4-1
+- Merge pull request #5787 from bparees/unique_domain_env_vars
+  (dmcphers+openshiftbot@redhat.com)
+- check for domain environment variable uniqueness on app create
+  (bparees@redhat.com)
+
 * Fri Sep 05 2014 Adam Miller <admiller@redhat.com> 1.30.3-1
 - Merge pull request #5766 from ncdc/fix-scale-snapshot-test
   (dmcphers+openshiftbot@redhat.com)
