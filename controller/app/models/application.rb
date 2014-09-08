@@ -1662,7 +1662,9 @@ class Application
       when "APP_ENV_VAR_REMOVE"
         remove_env_vars.push({"key" => command_item[:args][0]})
       when "ENV_VAR_ADD"
-        domain_env_vars_to_add.push({"key" => command_item[:args][0], "value" => command_item[:args][1], "component_id" => component_id})
+        domain_env_vars_to_add.push({"key" => command_item[:args][0], "value" => command_item[:args][1], "component_id" => component_id, "unique" => false})
+      when "ENV_VAR_ADD_UNIQUE"
+        domain_env_vars_to_add.push({"key" => command_item[:args][0], "value" => command_item[:args][1], "component_id" => component_id, "unique" => true})
       when "BROKER_KEY_ADD"
         op_group = AddBrokerAuthKeyOpGroup.new(user_agent: self.user_agent)
         op_group.set_created_at
