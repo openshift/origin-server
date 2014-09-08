@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.9.2
+Version: 0.9.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -109,6 +109,9 @@ mv httpd/openshift-vhost-logconf.include %{buildroot}/etc/httpd/conf.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Mon Sep 08 2014 Adam Miller <admiller@redhat.com> 0.9.3-1
+- Apply more restrictive permissions to cert files (ironcladlou@gmail.com)
+
 * Fri Sep 05 2014 Adam Miller <admiller@redhat.com> 0.9.2-1
 - consistent trailing slashes - bz1133694 (rchopra@redhat.com)
 
