@@ -372,12 +372,12 @@ module OpenShift
                 ssl_certificate_file = ssl_certificate_path(server_alias)
                 ssl_key_file = ssl_key_path(server_alias)
 
-                File.open(ssl_certificate_file, File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
+                File.open(ssl_certificate_file, File::RDWR | File::CREAT | File::TRUNC, 0600) do |f|
                   f.write(ssl_cert)
                   f.fsync
                 end
 
-                File.open(ssl_key_file, File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
+                File.open(ssl_key_file, File::RDWR | File::CREAT | File::TRUNC, 0600) do |f|
                   f.write(priv_key)
                   f.fsync
                 end
