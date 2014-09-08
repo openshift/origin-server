@@ -10,7 +10,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.30.2
+Version: 1.30.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -168,6 +168,9 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Sep 08 2014 Adam Miller <admiller@redhat.com> 1.30.3-1
+- add build dep for RHEL6 to pull in RHSCL 1.1 v8314 (admiller@redhat.com)
+
 * Fri Sep 05 2014 Adam Miller <admiller@redhat.com> 1.30.2-1
 - Merge pull request #5779 from liggitt/logout_link_example
   (dmcphers+openshiftbot@redhat.com)
