@@ -12,7 +12,9 @@ Broker::Application.configure do
   end
   conf = OpenShift::Config.new(conf_file)
 
+  hosts = conf.get("PHP_HOSTS")
+  hosts.nil? and raise "The gear-placemement plugin expects a configuration setting for PHP_HOSTS but it's missing"
   config.gear_placement = {
-    :PHP_HOST => conf.get("GEAR_PLACEMENT_PHP_HOST", "node.example.com")
+    :php_hosts => hosts.split(/,\s*/)
   }
 end

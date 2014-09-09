@@ -20,13 +20,24 @@ module OpenShift
     # * NodeProperties: the server information for a single node where the gear will reside
     #
     def self.select_best_fit_node_impl(server_infos, app_props, current_gears, comp_list, user_props, request_time)
-      nodes = Hash.new
-      OpenShift::MCollectiveApplicationContainerProxy.rpc_get_fact('memoryfree')  do |x, profile|
-        nodes[x] = profile
+      Rails.logger.debug("Using free memory gear placement plugin to choose node.")
+      Rails.logger.debug("selecting from nodes: #{server_infos.map(&:name).join ', '}")
+      # collect memory statistic from all nodes
+      memhash = Hash.new(0)
+      OpenShift::MCollectiveApplicationContainerProxy.rpc_get_fact('memoryfree') {|name,mem| memhash[name] = to_bytes(mem)}
+      Rails.logger.debug("node memory hash: #{memhash.inspect}")
+      # choose the one from our list with the largest value
+      return server_infos.max_by {|server| memhash[server.name]}
+    end
+
+    def self.to_bytes(mem)
+      mem.to_f * case mem
+        when /TB/; 1024 ** 4
+        when /GB/; 1024 ** 3
+        when /MB/; 1024 ** 2
+        when /KB/; 1024
+        else     ; 1
       end
-      node_profiles = nodes.sort_by {|k, v| v}
-      server_info = server_infos.select {|v| v.name.eql? node_profiles.last.first}
-      return server_info.first
     end
   end
 end

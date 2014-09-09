@@ -1,1 +1,1 @@
-GEAR_PLACEMENT_PHP_HOST='node.example.com'
+PHP_HOSTS='node1.example.com,node2.example.com'

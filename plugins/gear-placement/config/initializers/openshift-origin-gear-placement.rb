@@ -13,8 +13,8 @@ Broker::Application.configure do
   conf = OpenShift::Config.new(conf_file)
 
   config.gear_placement = {
-    :confkey1 => conf.get("GEAR_PLACEMENT_CONFKEY1", "value1"),
-    :confkey2 => conf.get("GEAR_PLACEMENT_CONFKEY2", "value2"),
-    :confkey3 => conf.get("GEAR_PLACEMENT_CONFKEY3", "value3")
+    :confkey1 => conf.get("CONFKEY1", "value1"),
+    :confkey2 => conf.get("CONFKEY2", "value2"),
+    :confkey3 => conf.get("CONFKEY3", "value3")
   }
 end

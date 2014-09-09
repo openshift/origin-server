@@ -20,8 +20,9 @@ module OpenShift
     # * NodeProperties: the server information for a single node where the gear will reside
     #
     def self.select_best_fit_node_impl(server_infos, app_props, current_gears, comp_list, user_props, request_time)
-      server_infos.sort_by {|x| x.node_consumed_capacity}
-      return server_infos.first
+      Rails.logger.debug("Using round robin gear placement plugin to choose node.")
+      Rails.logger.debug("selecting from nodes: #{server_infos.map(&:name).join ', '}")
+      return server_infos.sort_by {|x| x.node_consumed_capacity}.first
     end
   end
 end
