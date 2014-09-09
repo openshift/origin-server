@@ -3,7 +3,7 @@
 %global import_path github.com/openshift
 
 Name:          openshift-origin-logshifter
-Version: 1.7.2
+Version: 1.7.3
 Release:       1%{?dist}
 Summary:       Log transport for OpenShift gear processes.
 License:       ASL 2.0
@@ -41,6 +41,12 @@ cp -p man/*.1 %{buildroot}%{_mandir}/man1/
 %{_mandir}/man1/*
 
 %changelog
+* Tue Sep 09 2014 Adam Miller <admiller@redhat.com> 1.7.3-1
+- Merge pull request #5789 from sdodson/logshifter-manpage
+  (dmcphers+openshiftbot@redhat.com)
+- Add manpage to rpm (sdodson@redhat.com)
+- Update README.md and create a man page from that (sdodson@redhat.com)
+
 * Fri Sep 05 2014 Adam Miller <admiller@redhat.com> 1.7.2-1
 - Removing the named parameters from Write method. (etsauer@gmail.com)
 - Renamed bytes to bufferSize and removed verbose from createSyslogWriter
