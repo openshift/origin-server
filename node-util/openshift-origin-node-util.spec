@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.29.2
+Version: 1.29.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -201,6 +201,11 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Tue Sep 09 2014 Adam Miller <admiller@redhat.com> 1.29.3-1
+- Bug 1024531 - Add custom openshift policy (jhonce@redhat.com)
+- Bug 1024531 - /proc/net provides too much information (jhonce@redhat.com)
+- Bug 1101167 - Update man page (jhonce@redhat.com)
+
 * Fri Sep 05 2014 Adam Miller <admiller@redhat.com> 1.29.2-1
 - Bug 1135617 - AVC denied messages when creating new gears
   (bleanhar@redhat.com)
