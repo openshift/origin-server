@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.30.4
+Version: 1.30.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Sep 09 2014 Adam Miller <admiller@redhat.com> 1.30.5-1
+- Bug 1024531 - /proc/net provides too much information (jhonce@redhat.com)
+
 * Mon Sep 08 2014 Adam Miller <admiller@redhat.com> 1.30.4-1
 - Merge pull request #5787 from bparees/unique_domain_env_vars
   (dmcphers+openshiftbot@redhat.com)
