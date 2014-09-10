@@ -225,19 +225,19 @@ module OpenShift
         end
       end
 
-      # destroy(skip_hooks = false) -> [buffer, '', 0]
+      # destroy(skip_hooks = false, is_group_creation = false) -> [buffer, '', 0]
       #
       # Remove all cartridges from a gear and delete the gear.  Accepts
       # and discards any parameters to comply with the signature of V1
       # require, which accepted a single argument.
       #
       # destroy() => ['', '', 0]
-      def destroy(skip_hooks = false)
+      def destroy(skip_hooks = false, is_group_creation = false)
         logger.info('V2 destroy')
 
         buffer = ''
         begin
-          archive_gear
+          archive_gear if is_group_creation
           unless skip_hooks
             each_cartridge do |cartridge|
               unlock_gear(cartridge, false) do |c|

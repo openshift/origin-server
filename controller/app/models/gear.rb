@@ -116,8 +116,8 @@ class Gear
     result_io
   end
 
-  def destroy_gear(keep_uid=false)
-    result_io = get_proxy.destroy(self, keep_uid)
+  def destroy_gear(keep_uid=false, is_group_creation=false)
+    result_io = get_proxy.destroy(self, keep_uid, is_group_creation)
     application.process_commands(result_io, nil, self)
     result_io
   end

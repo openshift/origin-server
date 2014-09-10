@@ -2,6 +2,7 @@ class CreateGearOp < PendingAppOp
 
   field :gear_id, type: String
   field :sshkey_required, type: Boolean, default: false
+  field :is_group_creation, type: Boolean, default: false
 
   def execute
     result_io = ResultIO.new
@@ -15,7 +16,7 @@ class CreateGearOp < PendingAppOp
   def rollback
     result_io = ResultIO.new
     gear = get_gear()
-    result_io = gear.destroy_gear(true) unless gear.removed
+    result_io = gear.destroy_gear(true, is_group_creation) unless gear.removed
     pending_app_op_group.inc(:num_gears_rolled_back, 1) if state == :completed
     result_io
   end

@@ -233,7 +233,7 @@ module OpenShift
       # - model/unix_user.rb
       # context: root
       # @param skip_hooks should destroy call the gear's hooks before destroying the gear
-      def destroy(skip_hooks=false)
+      def destroy(skip_hooks=false, is_group_creation = false)
         notify_observers(:before_container_destroy)
 
         if @uid.nil? or (@container_plugin.nil? or !File.directory?(@container_dir.to_s))
@@ -259,7 +259,7 @@ module OpenShift
               end
             end
             # possible mismatch across cart model versions
-            out, errout, retcode = @cartridge_model.destroy(skip_hooks)
+            out, errout, retcode = @cartridge_model.destroy(skip_hooks, is_group_creation)
             output << out unless out.nil?
           rescue => e
             logger.warn %Q(Failure while deleting gear #@uuid: #{e.message})
