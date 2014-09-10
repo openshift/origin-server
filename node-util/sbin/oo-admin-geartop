@@ -1,0 +1,187 @@
+#!/usr/bin/env oo-ruby
+#
+#   Copyright 2014 Red Hat Inc.
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+#   Author:  Andy Grimm    <agrimm@redhat.com>
+#   Author:  Kenny Woodson <kwoodson@redhat.com>
+#
+#
+require 'facter'
+require 'optparse'
+require 'timeout'
+require 'openshift-origin-node/utils/cgroups/libcgroup'
+require 'openshift-origin-common'
+
+CGMT = ::OpenShift::Runtime::Utils::Cgroups::Libcgroup.cgroup_mounts
+CONF = OpenShift::Config.new OpenShift::Config::NODE_CONF_FILE
+
+GearStruct = Struct.new(:uuid, :mem, :memsw, :cpu, :cpu_quota_pct, :throttled, :cpu_pct)
+
+def cgread(user, controller, attribute)
+  return IO.read("#{CGMT[controller]}/openshift/#{user}/#{controller}.#{attribute}").strip rescue nil
+end
+
+def refresh_gear_data(uuids, previous, interval)
+  results = {}
+  uuids.each do |g|
+    mem = cgread(g, 'memory', 'usage_in_bytes').to_i
+    memsw = cgread(g, 'memory.memsw', 'usage_in_bytes').to_i
+    cpu = cgread(g, 'cpuacct', 'usage').to_i
+    cpuquota = cgread(g, 'cpu', 'cfs_quota_us').to_i
+    cpuperiod = cgread(g, 'cpu', 'cfs_period_us').to_i
+    cpu_quota_pct = 100 * cpuquota.to_f / cpuperiod.to_f
+    cg_results  =  cgread(g, 'cpu', 'stat')
+    next if cg_results.nil?
+    throttled_time = cg_results.lines.grep(/throttled_time/)[0].split()[1].to_f / 1_000_000_000
+    cpu_pct = 0
+    if previous.has_key?(g)
+      cpu_pct = (cpu - previous[g].cpu).to_f / (interval * 10_000_000)
+    end
+
+    results[g] = GearStruct.new(g,mem/1024/1024.to_f,memsw/1024/1024.to_f,cpu,
+                        cpu_quota_pct.round(2),throttled_time.round(2),cpu_pct.round(2))
+  end
+
+    return results
+end
+
+# obtain a openshift of uids that have processes currently running
+def get_uids()
+    gecos = CONF.get("GEAR_GECOS")
+    uids = []
+    Etc.passwd do |pwent|
+      uids << pwent.uid if pwent.gecos == gecos
+    end
+    uids_with_pids = %x[ps h -eo uid --sort uid].split.uniq.map { |s| s.to_i }
+    return uids & uids_with_pids
+end
+
+def get_usernames(uids)
+    return uids.collect { |uid| Etc.getpwuid(uid.to_i).name }
+end
+
+def print(strings, fmt_str, limit=nil)
+    limit = strings.size if limit.nil?
+    strings[0..limit].each do |gear|
+      values = gear.to_a
+      values[3] = (values[3].to_f/1_000_000_000)
+      puts fmt_str % values
+    end
+end
+
+if __FILE__ == $0
+    options = {
+      :interval => 3,
+      :iterations => Float::INFINITY,
+      :sort_order => 'c',
+    }
+    OptionParser.new do |opts|
+      opts.banner = "Usage: #{$0} [options]"
+      opts.on("-d N",Integer,"Seconds between iterations") do |d|
+        unless d <= 0
+	  options[:interval] = d
+	end
+      end
+      opts.on('-n N',Integer,"Number of iterations to run") do |n|
+        options[:iterations] = n
+      end
+      opts.on('-s ORDER',[:m, :s, :t, :q, :c],"Sort order: m = mem, s = memsw, t = cpu, q = cpu_quota_pct, c = cpu_pct") do |s|
+        options[:sort_order] = s
+      end
+      opts.on_tail("-h", "--help", "Show this message") do
+        puts opts
+        exit
+      end
+    end.parse!
+
+    previous = {}
+    limit = nil
+    sort = { "m" => :mem,
+             "s" => :memsw,
+             "t" => :cpu,
+             "q" => :cpu_quota_pct,
+             "c" => :cpu_pct
+    }
+    sort_value = sort[options[:sort_order].to_s]
+    interval = options[:interval]
+    iterations = options[:iterations]
+
+    begin
+      0.upto(iterations) do |cnt|
+        loop_start = Time.now
+        uids = get_uids()
+        uuids = get_usernames(uids)
+
+        data = refresh_gear_data(uuids, previous, interval)
+        limit = [ uuids.size, %x[ tput lines ].to_i - 4 ].min
+
+        sort_value = sort['c'] if sort_value.nil?
+        strings = []
+        if cnt > 0
+          strings += data.sort_by do |k,v|
+              v[sort_value.to_sym]
+          end.reverse.first(limit).collect { |gear| gear[1] }
+        else
+          strings += data.values.collect { |gear| gear }
+          next
+        end
+
+        system("clear")
+
+        #bunch output as to decrease choppiness
+        title = "GEARTOP -- Update: #{interval}s  Sort: #{sort_value} " +
+             " #{Time.now.strftime("%m/%d/%y %H:%M:%S")}"
+        puts title.center(80)
+        #header
+        fmt_str = " %20s %19s %9s %10s %8s %9s %4s\n"
+        headers = ["uuid", "mem_MB", "swap_MB", "cpu_total", "cpu_quota%", "throttled", "cpu%"]
+        puts fmt_str % headers
+        #body
+        fmt_str = " %32s %8.02f %8.02f %10.02f %8s %10.02f %5.02f\n"
+        print(strings, fmt_str, limit)
+        size = strings.size
+        size = limit if size > 0
+        puts "-- displaying #{size} gears. Press CTRL-c twice to quit."
+
+        #HANDLE COLUMN SORTING
+        begin
+          Timeout.timeout(interval) do
+            value = gets.chomp
+            if value =~ /\d/
+              interval = value.to_i
+            else
+              sort_value = sort[value]
+              puts "Sort by: #{sort_value}"
+            end
+          end
+        rescue Exception => e
+          #puts e.message
+          #puts e.backtrace
+        end
+        loop_stop = Time.now
+        #if data collection is slow, only sleep the remaining time.
+        #if data collection longer than interval, then be nice and sleep 1
+        #
+        #this only happens when the user has provided input faster than interval
+        #we should probably adjust which code blocks we're executing in Timeout
+        unless loop_stop-loop_start > interval
+          sleep interval - (loop_stop-loop_start)
+        end
+        previous = data
+    end
+  #Double control-c to exit
+  rescue SystemExit, Interrupt
+  end
+end

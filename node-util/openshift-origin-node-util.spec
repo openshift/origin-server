@@ -154,6 +154,7 @@ rm -rf %{buildroot}
 %attr(0750,-,-) %{_sbindir}/oo-admin-repair-node
 %attr(0750,-,-) %{_sbindir}/oo-admin-regenerate-gear-metadata
 %attr(0750,-,-) %{_sbindir}/oo-watchman
+%attr(0750,-,-) %{_sbindir}/oo-admin-geartop
 %attr(0750,-,-) %{_initddir}/openshift-watchman
 %attr(0755,-,-) %{_bindir}/rhc-list-ports
 %attr(0755,-,-) %{_bindir}/oo-snapshot
@@ -172,6 +173,7 @@ rm -rf %{buildroot}
 
 %{_mandir}/man8/oo-accept-node.8.gz
 %{_mandir}/man8/oo-admin-gear.8.gz
+%{_mandir}/man8/oo-admin-geartop.8.gz
 %{_mandir}/man8/oo-gear-firewall.8.gz
 %{_mandir}/man8/oo-admin-ctl-gears.8.gz
 %{_mandir}/man8/oo-auto-idler.8.gz
