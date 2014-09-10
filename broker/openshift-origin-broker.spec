@@ -3,6 +3,7 @@
 %if 0%{?fedora}%{?rhel} <= 6
     %global scl ruby193
     %global scl_prefix ruby193-
+    %global v8_prefix v8314-
 %endif
 %{!?scl:%global pkg_name %{name}}
 
@@ -36,6 +37,8 @@ Requires:      openshift-origin-util
 Requires:      policycoreutils-python
 Requires:      rubygem-openshift-origin-controller
 Requires:      %{?scl:%scl_prefix}mod_passenger
+# Install v8 from its own collection
+Requires:      %{?v8_prefix:%v8_prefix}v8
 Requires:      %{?scl:%scl_prefix}rubygem-bson_ext
 Requires:      %{?scl:%scl_prefix}rubygem-json
 Requires:      %{?scl:%scl_prefix}rubygem-json_pure
