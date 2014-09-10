@@ -31,8 +31,8 @@ BuildRequires: systemd-units
 BuildArch:     noarch
 
 # Needed for custom openshift policy. Bug 1024531
-BuildRequires: selinux-policy >= 3.7.19-176
-Requires:      selinux-policy-targeted >= 3.7.19-176
+BuildRequires: selinux-policy >= 3.7.19-231
+Requires:      selinux-policy-targeted >= 3.7.19-231
 Requires:      policycoreutils-python
 Requires:      policycoreutils
 
