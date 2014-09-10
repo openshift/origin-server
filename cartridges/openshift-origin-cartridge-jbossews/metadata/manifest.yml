@@ -2,9 +2,10 @@
 Name: jbossews
 Cartridge-Short-Name: JBOSSEWS
 Cartridge-Vendor: redhat
-Cartridge-Version: 0.0.22
+Cartridge-Version: 0.0.23
 Compatible-Versions:
 - 0.0.21
+- 0.0.22
 Display-Name: Tomcat 7 (JBoss EWS 2.0)
 Description: JBoss Enterprise Web Server is the enterprise-class Java web container
   for large-scale lightweight web applications based on Tomcat 7. Build and deploy
