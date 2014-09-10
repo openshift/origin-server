@@ -74,8 +74,8 @@ module OpenShift
                     "-m",
                     "-k #{@container.skel_dir}"]
             # DISABLE_PASSWORD_AGING should be true, by default.
-            disable_password_aging = true unless @config.get('DISABLE_PASSWORD_AGING') == "false"
-            if disable_password_aging
+            disable_password_aging = (@config.get('DISABLE_PASSWORD_AGING') || "true")
+            if disable_password_aging == "true"
               useradd_opts.concat(["-K PASS_MAX_DAYS=-1",
                                 "-K PASS_MIN_DAYS=-1",
                                 "-K PASS_WARN_AGE=-1"])
