@@ -39,6 +39,7 @@ opts = GetoptLong.new(
     ["--node_profile",     "-p", GetoptLong::REQUIRED_ARGUMENT],
     ["--timeout",          "-t", GetoptLong::REQUIRED_ARGUMENT],
     ["--change_district",  GetoptLong::NO_ARGUMENT],
+    ["--change_region",    GetoptLong::NO_ARGUMENT],
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
 )
 
@@ -54,6 +55,7 @@ target_server_identity = args['--target_server_identity']
 destination_district_uuid = args['--destination_district_uuid']
 node_profile = args['--node_profile']
 change_district = args['--change_district'] ? true : false
+change_region = args['--change_region'] ? true : false
 timeout  = args['--timeout']
 
 if args["--help"]
@@ -109,7 +111,7 @@ destination_container = OpenShift::ApplicationContainerProxy.instance(target_ser
 
 reply = nil
 begin
-  reply = gear.get_proxy.move_gear_secure(gear, destination_container, destination_district_uuid, change_district, node_profile)
+  reply = gear.get_proxy.move_gear_secure(gear, destination_container, destination_district_uuid, change_district, change_region, node_profile)
 rescue OpenShift::NodeException => ne
   puts ne.message
   exit 1

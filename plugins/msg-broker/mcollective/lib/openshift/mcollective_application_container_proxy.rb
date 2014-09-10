@@ -1910,6 +1910,7 @@ module OpenShift
     # * destination_container: An ApplicationContainerProxy?
     # * destination_district_uuid: String
     # * change_district: Boolean
+    # * change_region: Boolean
     # * node_profile: String
     #
     # RETURNS:
@@ -1926,16 +1927,16 @@ module OpenShift
     # * uses rsync_destination_container
     # * uses move_gear_destroy_old
     #
-    def move_gear_secure(gear, destination_container, destination_district_uuid, change_district, node_profile)
+    def move_gear_secure(gear, destination_container, destination_district_uuid, change_district, change_region, node_profile)
       app = gear.application
       Lock.run_in_app_lock(app) do
         # run_in_app_lock() will reload the app object and any references to its fields need to be recomputed
         current_gear = app.gears.select {|g| g.uuid == gear.uuid }.first
-        move_gear(current_gear, destination_container, destination_district_uuid, change_district, node_profile)
+        move_gear(current_gear, destination_container, destination_district_uuid, change_district, change_region, node_profile)
       end
     end
 
-    def move_gear(gear, destination_container, destination_district_uuid, change_district, node_profile)
+    def move_gear(gear, destination_container, destination_district_uuid, change_district, change_region, node_profile)
       app = gear.application
       reply = ResultIO.new
       state_map = {}
@@ -1947,8 +1948,15 @@ module OpenShift
         raise OpenShift::OOException.new("Could not set gear uid to #{gear.uid}") if res.nil? or !res["updatedExisting"]
       end
 
+      # We don't have access to the whole app in the method where we check
+      # whether we are _actually_ changing regions, so block the operation early.
+      if change_region && app.scalable
+        log_debug "Cannot change region for *scalable* application gear - this operation is not supported."
+        raise OpenShift::UserException.new("Error moving gear. Cannot change region for *scalable* app.", 1)
+      end
+
       # resolve destination_container according to district
-      destination_container, destination_district_uuid, district_changed = resolve_destination(gear, destination_container, destination_district_uuid, change_district, node_profile)
+      destination_container, destination_district_uuid, district_changed = resolve_destination(gear, destination_container, destination_district_uuid, change_district, change_region, node_profile)
 
       source_platform = gear.group_instance.platform
       destination_platform = destination_container.get_platform
@@ -2151,7 +2159,7 @@ module OpenShift
     # NOTES:
     # * uses ApplicationContainerProxy.find_available
     #
-    def resolve_destination(gear, destination_container, destination_district_uuid, change_district, node_profile)
+    def resolve_destination(gear, destination_container, destination_district_uuid, change_district, change_region, node_profile)
       gear_exists_in_district = false
       required_uid = gear.uid
       source_container = gear.get_proxy
@@ -2207,7 +2215,7 @@ module OpenShift
 
       source_server = District.find_server(source_container.id)
       dest_server = District.find_server(destination_container.id)
-      if source_server && dest_server && (source_server.region_id != dest_server.region_id)
+      if source_server && dest_server && (source_server.region_id != dest_server.region_id) && !change_region
         raise OpenShift::UserException.new("Error moving gear. Old and new servers must belong to the same region, source region: #{source_server.region_name} destination region: #{dest_server.region_name}")
       end
 
@@ -2432,8 +2440,8 @@ module OpenShift
         rpc_client.disconnect
       end
 
-      # checking for nil explicitly instead of "unless result" 
-      # this is to prevent raising exception in case of a boolean false return value 
+      # checking for nil explicitly instead of "unless result"
+      # this is to prevent raising exception in case of a boolean false return value
       raise OpenShift::NodeException.new("Node execution failure (error getting result from node).", 143) if result.nil?
 
       result
