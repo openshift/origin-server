@@ -89,7 +89,13 @@ module OpenShift
         gear_shell = config.get('GEAR_SHELL')
         do_fail('GEAR_SHELL isn\'t set in config') if gear_shell.nil?
 
-        cmd = "/usr/sbin/useradd --uid #{@uid} --gid #{@uid} --comment '#{gear_gecos}' --no-create-home --home #{@path} --shell #{gear_shell} #{@uuid} --key PASS_MAX_DAYS=-1 --key PASS_MIN_DAYS=-1 --key PASS_WARN_AGE=-1"
+        # DISABLE_PASSWORD_AGING should be true, by default.
+        disable_password_aging = true unless @config.get('DISABLE_PASSWORD_AGING') == "false" 
+        if disable_password_aging 
+          cmd = "/usr/sbin/useradd --uid #{@uid} --gid #{@uid} --comment '#{gear_gecos}' --no-create-home --home #{@path} --shell #{gear_shell} #{@uuid} --key PASS_MAX_DAYS=-1 --key PASS_MIN_DAYS=-1 --key PASS_WARN_AGE=-1"
+        else
+          cmd = "/usr/sbin/useradd --uid #{@uid} --gid #{@uid} --comment '#{gear_gecos}' --no-create-home --home #{@path} --shell #{gear_shell} #{@uuid}"
+        end
 
         out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
         raise %Q[ERROR: unable to create user user account(#{rc}): #{cmd.squeeze(" ")} ] + \
