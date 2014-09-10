@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.30.4
+Version: 1.30.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,11 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Sep 10 2014 Adam Miller <admiller@redhat.com> 1.30.5-1
+- Bug 1084090: False positives reported for stale ssh keys  - In cases where
+  the user had multiple domains, false positives could be reported for stale
+  domain ssh keys (abhgupta@redhat.com)
+
 * Mon Sep 08 2014 Adam Miller <admiller@redhat.com> 1.30.4-1
 - Merge pull request #5787 from bparees/unique_domain_env_vars
   (dmcphers+openshiftbot@redhat.com)
