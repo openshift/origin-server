@@ -393,11 +393,11 @@ module MCollective
 
       def oo_app_destroy(args)
         skip_hooks = args['--skip-hooks'] ? args['--skip-hooks'] : false
-        is_group_creation = args['--is-gear-creation'] ? args['--is-gear-creation'] : false
+        is_group_rollback = args['--is-group-rollback'] ? args['--is-group-rollback'] : false
         output     = ""
         begin
           container    = get_app_container_from_args(args)
-          out, err, rc = container.destroy(skip_hooks, is_group_creation)
+          out, err, rc = container.destroy(skip_hooks, is_group_rollback)
 
           output << out
           output << err
