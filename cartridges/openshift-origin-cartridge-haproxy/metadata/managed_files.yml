@@ -9,5 +9,6 @@ locked_files:
 - bin/*
 - hooks/
 - hooks/*
+- conf/haproxy.cfg.erb.hidden
 processed_templates:
 - '**/*.erb'
