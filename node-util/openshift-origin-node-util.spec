@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.29.4
+Version: 1.29.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -201,6 +201,11 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Wed Sep 10 2014 Adam Miller <admiller@redhat.com> 1.29.5-1
+- Merge pull request #5802 from ironcladlou/bz/1140144
+  (dmcphers+openshiftbot@redhat.com)
+- Increase watchman OOM plugin timeout (ironcladlou@gmail.com)
+
 * Wed Sep 10 2014 Adam Miller <admiller@redhat.com> 1.29.4-1
 - Bug 1024531 - Update requires for selinux-policy version (jhonce@redhat.com)
 
