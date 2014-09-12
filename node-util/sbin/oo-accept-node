@@ -541,9 +541,9 @@ def check_quotas
     verbose("checking filesystem quotas")
     oo_device=%x[/bin/df -P #{$GEAR_BASE_DIR} | /usr/bin/tail -1].split[0]
     oo_mount=%x[/bin/df -P #{$GEAR_BASE_DIR} | /usr/bin/tail -1 | /usr/bin/tr -s ' '].split[5]
-    fs_type=%x[df -TP #{oo_mount} | tail -1 2>&1].split[1]
+    fs_type=%x[/bin/df -TP #{oo_mount} | tail -1 2>&1].split[1]
     if fs_type=="xfs"
-      unless %x[/usr/sbin/repquota -v #{oo_mount} | grep "Accounting.*Enforcement"].strip == "Accounting: ON; Enforcement: ON"
+      unless %x[/usr/sbin/repquota -v #{oo_mount} | /bin/grep "Accounting.*Enforcement"].strip == "Accounting: ON; Enforcement: ON"
           do_fail "quotas are not enabled on #{oo_mount} (#{oo_device})"
       end
     else
@@ -568,16 +568,16 @@ def check_users
   verbose("checking #{$USERS.length} user accounts")
   conf_dir_templ = "#{$LIMITS_CONF_DIR}/84-%s.conf"
 
-  missing_shadow_entries = %x[pwck -q -r].split("\n").select {|line| line =~ /add user/}.map {|line| line.match(/.+'(.*)'.+/)[1]}
+  missing_shadow_entries = %x[/usr/sbin/pwck -q -r].split("\n").select {|line| line =~ /add user/}.map {|line| line.match(/.+'(.*)'.+/)[1]}
   unless missing_shadow_entries.empty?
     openshift_usernames = $USERS.map {|u| u.name}
 
     (missing_shadow_entries & openshift_usernames).each do |u|
-      user_fail(u, "OpenShift user #{u} is configurated for shadow passwords but has no corresponding /etc/shadow entry.  Verify and run pwconv to resolve.")
+      user_fail(u, "OpenShift user #{u} is configured to use a shadow password but has no corresponding /etc/shadow entry.  Verify and run pwconv to resolve.")
     end
 
     (missing_shadow_entries - openshift_usernames).each do |u|
-      user_fail(u, "Warning: Non-OpenShift user #{u} is configured for shadow passwords but has no corresponding /etc/shadow entry.  Verify and run pwconv to resolve.")
+      user_fail(u, "Warning: Non-OpenShift user #{u} is configured to use a shadow password but has no corresponding /etc/shadow entry.  Verify and run pwconv to resolve.")
     end
   end
 
