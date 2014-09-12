@@ -1050,6 +1050,37 @@ class OODiag
     end
   end
 
+  def test_sshd_permit_root_login
+    skip_test unless @is_node
+
+    # If PermitRootLogin is not specified in /etc/ssh/sshd_config, its default
+    # value is 'yes'.
+    permit_root_login = 'yes'
+
+    File.open('/etc/ssh/sshd_config') do |f|
+      f.lines.grep(/^\s*permitrootlogin\s+(\S+)/i) do
+        permit_root_login = $1
+
+        # sshd respects the first value set and ignores subsequent
+        # occurrences of the same setting (per emperical evidence).
+        break
+      end
+    end
+
+    unless ['yes', 'without-password'].include?(permit_root_login)
+      do_warn <<-PERMITROOTLOGIN
+        /etc/ssh/sshd_config sets PermitRootLogin to "#{permit_root_login}".
+
+        PermitRootLogin should be set to "yes" or "without-password" because
+        the broker requires root access to nodes in order to move gears between
+        nodes.
+
+        If the broker does not have root access to nodes, oo-admin-move commands
+        may fail.
+      PERMITROOTLOGIN
+    end
+  end
+
   def test_mcollective_context
     skip_test unless @is_node
     # Check if the context for running mcollective process is correct -
