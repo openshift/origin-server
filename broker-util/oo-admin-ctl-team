@@ -467,7 +467,7 @@ Commands:
   delete          - Delete team
                   Requires --name
 
-  show            - Show team and it's members
+  show            - Show team and its members
                   Requires --name OR --maps-to
 
   sync            - Syncs with LDAP groups
