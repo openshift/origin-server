@@ -12,8 +12,11 @@ Broker::Application.configure do
   end
   conf = OpenShift::Config.new(conf_file)
 
+  slow_hosts = conf.get("SLOW_HOSTS") ||
+    raise("The gear-placemement plugin expects a configuration setting for SLOW_HOSTS and it's missing")
   config.gear_placement = {
-    :SLOW_HOST => conf.get("GEAR_PLACEMENT_SLOW_HOST", "node.example.com"),
-    :PINNED_USER => conf.get("GEAR_PLACEMENT_PINNED_USER", "gshipley")
+    :slow_hosts => slow_hosts.split(/,\s*/),
+    :pinned_user => conf.get("PINNED_USER") ||
+        raise("The gear-placement plugin expects a configuration setting for PINNED_USER and it's missing")
   }
 end

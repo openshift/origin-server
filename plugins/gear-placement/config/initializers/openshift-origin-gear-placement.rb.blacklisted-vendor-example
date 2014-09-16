@@ -13,6 +13,6 @@ Broker::Application.configure do
   conf = OpenShift::Config.new(conf_file)
 
   config.gear_placement = {
-    :BLACKLISTED_VENDOR => conf.get("GEAR_PLACEMENT_BLACKLISTED_VENDOR", "acme")
+    :blacklisted_vendor => conf.get("BLACKLISTED_VENDOR", "acme")
   }
 end

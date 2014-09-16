@@ -20,22 +20,19 @@ module OpenShift
     # * NodeProperties: the server information for a single node where the gear will reside
     #
     def self.select_best_fit_node_impl(server_infos, app_props, current_gears, comp_list, user_props, request_time)
-      config = Broker::Application.config.gear_placement
-      php_host = config[:PHP_HOST]
-      if php_host.nil?
-        raise "The gear-placemement plugin expects a configuration setting for :PHP_HOST and it's missing"
+      Rails.logger.debug("Using pin-php gear placement plugin to choose node.")
+      Rails.logger.debug("selecting from nodes: #{server_infos.map(&:name).join ', '}")
+      unless %w[php-5.3 php-5.4].include? app_props.web_cartridge
+        Rails.logger.debug("'#{app_props.web_cartridge}' is not a PHP app; selecting a node normally.")
+        return OpenShift::MCollectiveApplicationContainerProxy.select_best_fit_node_impl(server_infos)
       end
-      check_server_infos = server_infos
-      check_server_infos.select {|x| x.name.eql? php_host}
-      if check_server_infos.empty?
-        raise "The gear-placement configuration has a :PHP_HOST setting that doesn't match any of the NodeProfile names"
-      end
-      server_infos.each do |server_info|
-        if (server_info.name.eql? php_host) && ("php".eql? app_props.web_cartridge)
-          return server_info
-        end
-      end
-      return server_infos.first
+      php_hosts = Broker::Application.config.gear_placement[:php_hosts]
+      Rails.logger.debug("selecting a php node from: #{php_hosts.join ', '}")
+      # figure out which of the nodes given is allowed for php carts
+      matched_server_infos = server_infos.select {|x| php_hosts.include?(x.name) }
+      matched_server_infos.empty? and
+        raise "The gear-placement PHP_HOSTS setting doesn't match any of the NodeProfile names"
+      return matched_server_infos.sample #chooses randomly from the matched hosts
     end
   end
 end
