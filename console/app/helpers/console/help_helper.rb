@@ -4,10 +4,14 @@ module Console::HelpHelper
   def user_guide_topic_url(topic)
     # locale = 'en-US'
     # "http://access.redhat.com/knowledge/docs/#{locale}/OpenShift/2.0/html/User_Guide/#{topic}"
-    
+
     # Use the community redirect to get to the user guide
     # No deep-linking of help topics is allowed
     community_base_url 'user-guide'
+  end
+
+  def community_developer_portal_url(path='')
+    "https://developers.openshift.com/#{path}"
   end
 
   def user_guide_url
@@ -147,7 +151,7 @@ module Console::HelpHelper
   end
 
   def faq_url
-   community_base_url 'faq'
+    community_base_url 'faq'
   end
 
   def signup_faq_url
