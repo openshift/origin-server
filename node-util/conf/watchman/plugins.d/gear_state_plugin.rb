@@ -168,12 +168,17 @@ class GearStatePlugin < OpenShift::Runtime::WatchmanPlugin
   def load_ps_table
     @ps_table = Hash.new { |h, k| h[k] = Array.new }
 
-    results, error, rc = Utils.oo_spawn(%Q(ps ax --format 'uid,pid=,ppid='), timeout: 300, quiet: true)
+    results, error, rc = Utils.oo_spawn(%Q(ps ax --format 'uid,pid=,ppid=,args='), timeout: 300, quiet: true)
     results.each_line do |entry|
-      uid, pid, ppid = entry.split(' ')
+      uid, pid, ppid, *command = entry.split(' ')
+      command = command.join(' ')
 
       # skip everything owned by root (for speed) and not a "daemon" (we can be fooled here)
       next unless uid != '0' && ppid == '1'
+
+      # bz1133629
+      # skip haproxy and logshifter related processes
+      next if command =~ /haproxy/ or command =~ /logshifter/
 
       begin
         name = Etc.getpwuid(uid.to_i).name
