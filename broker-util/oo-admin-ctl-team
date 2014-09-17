@@ -162,7 +162,11 @@ class Command
           end
         elsif command == "REMOVE"
           begin
-            team = Team.find_by(name: params[0], owner_id: nil)
+            team = Team.where(name: params[0], owner_id: nil).first
+            if team.nil?
+              puts "ERROR: Could not find team: \"#{params[0]}\" for deletion"
+              next
+            end
             team.destroy_team
           rescue Exception => ex
             puts "ERROR: Could not delete team: #{ex.message}"
@@ -179,7 +183,7 @@ class Command
       when "MEMBER"
         team = Team.where(name: params[0], owner_id: nil).first
         if team.nil?
-          puts "ERROR: Could not find team: \"#{params[0]}\"" if team.nil?
+          puts "ERROR: Could not find team: \"#{params[0]}\""
           next
         end
         user_names = params[1] ? params[1].split(",") : nil

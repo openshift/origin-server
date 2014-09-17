@@ -90,6 +90,9 @@ class ApplicationsController < BaseController
                             216, "initial_git_url")
       end
       init_git_url = [repo_spec, commit].compact.join('#')
+    elsif params[:initial_git_branch].presence
+      return render_error(:unprocessable_entity, "Initial git branch cannot be specified without specifying initial git URL",
+                            nil, "initial_git_branch")
     end
 
     specs = []

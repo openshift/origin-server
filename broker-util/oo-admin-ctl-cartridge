@@ -504,7 +504,7 @@ Commands:
                    Requires id or name, or input from STDIN. Pass categories
                    to set with '+<category>' or remove with '=<category>'
 
-  clean          - Delete all cartridges in the broker
+  clean          - Delete all unused cartridges in the broker
 
   delete         - Remove one or more named cartridges
 
