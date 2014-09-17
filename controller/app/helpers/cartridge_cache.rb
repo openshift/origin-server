@@ -14,9 +14,12 @@ class CartridgeCache
   #
   # Returns an Array of web framework cartridge names.
   #
-  def self.web_framework_names
+  def self.web_framework_names(include_obsolete=true)
     Rails.cache.fetch("web_framework_cartridge_names", :expires_in => DURATION) do
-      CartridgeType.active.in(categories: 'web_framework').only(:name).limit(25).map(&:name).uniq.sort
+      carts = CartridgeType.active.in(categories: 'web_framework')
+      carts = carts.not_in(obsolete: true) unless include_obsolete
+
+      carts.only(:name).limit(25).map(&:name).uniq.sort
     end
   end
 

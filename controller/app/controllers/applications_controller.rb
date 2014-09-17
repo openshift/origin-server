@@ -176,7 +176,8 @@ class ApplicationsController < BaseController
 
     frameworks = cartridges.select(&:is_web_framework?)
     if frameworks.empty? && !params[:advanced]
-      framework_carts = CartridgeCache.web_framework_names.presence or
+      include_obsolete = builder_id or Rails.configuration.openshift[:allow_obsolete_cartridges]
+      framework_carts = CartridgeCache.web_framework_names(include_obsolete).presence or
         raise OpenShift::UserException.new("Unable to determine list of available cartridges. Please try again and contact support if the issue persists.", 109, "cartridges")
       raise OpenShift::UserException.new("An application must contain one web cartridge. None of the specified cartridges is a web cartridge. " \
                                          "Please include one of the following cartridges: #{framework_carts.to_sentence} or supply a valid url to a custom " \

@@ -692,7 +692,7 @@ class Application
       component_instances.each do |ci|
         ci_cart = ci.get_cartridge
         if ci_cart.original_name == cart.original_name
-          if ci_cart.version == cart.version
+          if ci_cart.name == cart.name
             raise OpenShift::UserException.new("#{cart.name} already exists in your application", 136, "cartridge")
           else
             raise OpenShift::UserException.new("#{cart.name} cannot co-exist with cartridge #{ci.cartridge_name} in your application", 136, "cartridge")

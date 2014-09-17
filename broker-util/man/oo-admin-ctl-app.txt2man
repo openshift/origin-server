@@ -3,7 +3,8 @@ NAME
   
 SYNOPSIS
   oo-admin-ctl-app [-h|--help] [-l|--login login_name] [-a|--app app_name] 
-  [-c|--command cmd] [--gear_uuid uuid] [--cartridge cart] [-b|--bypass]
+  [-c|--command cmd] [--gear_uuid uuid] [--cartridge cart] [--alias alias] 
+  [-b|--bypass]
 
 DESCRIPTION
   oo-admin-ctl-app may be used to control and check the status of the OpenShift Origin hosted applications

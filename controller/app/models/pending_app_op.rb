@@ -130,6 +130,14 @@ class PendingAppOp
     end
   end
 
+  def is_app_delete_op_group?
+    if pending_app_op_group.nil?
+      return false
+    else
+      return (pending_app_op_group.kind_of?(RemoveFeaturesOpGroup) and pending_app_op_group.remove_all_features)
+    end
+  end
+
   def if_not_found(e)
     raise e unless Mongoid::Errors::DocumentNotFound === e
   end

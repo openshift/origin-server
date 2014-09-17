@@ -32,6 +32,8 @@ Options:
     User's SSH key name
 -e|--env_name <env var name>
 -v|--env_value <env var value>
+   --allowed_gear_sizes <allowed gear sizes>
+    A comma separated list of gear sizes allowed on the domain
 -h|--help:
     Show Usage info
 USAGE
