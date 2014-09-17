@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.29.5
+Version: 1.29.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -201,6 +201,9 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Wed Sep 17 2014 Adam Miller <admiller@redhat.com> 1.29.6-1
+- Bug 1141304 - use full path for pwck (jhonce@redhat.com)
+
 * Wed Sep 10 2014 Adam Miller <admiller@redhat.com> 1.29.5-1
 - Merge pull request #5802 from ironcladlou/bz/1140144
   (dmcphers+openshiftbot@redhat.com)
