@@ -192,12 +192,11 @@ class ApplicationsController < ConsoleController
   end
 
   def show
-    @capabilities = user_capabilities
-
     if params[:test]
-      @capabilities.send(:max_gears=, params[:test_gears].to_i) if params[:test_gears]
       @application = Fixtures::Applications.send(params[:test])
       @domain = Domain.new({:name => @application.domain_id}, true)
+      @capabilities = Domain::Capabilities.new({:max_gears => 3})
+      @capabilities.send(:max_gears=, params[:test_gears].to_i) if params[:test_gears]
       @gear_groups = @application.cartridge_gear_groups
       @gear_groups_with_state = @application.gear_groups
       @gear_groups.each{ |g| g.merge_gears(@gear_groups_with_state) }
@@ -211,6 +210,8 @@ class ApplicationsController < ConsoleController
     async{ sshkey_uploaded? }
 
     join!(30)
+
+    @capabilities = @application.domain.capabilities
 
     @gear_groups = @application.cartridge_gear_groups
     @gear_groups.each{ |g| g.merge_gears(@gear_groups_with_state) }
