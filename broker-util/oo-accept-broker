@@ -233,27 +233,28 @@ function load_application_values() {
   done
 
   # run those statements after initializing the Rails env
-  local OLD_IFS=$IFS; IFS=$'\n' # read into array one line per element
-        local tempfile=`mktemp`  # for recording errors
+  local tempfile=`mktemp`  # for recording errors
   local new_app_values # separate so we keep rc from command
-  readarray -t new_app_values < <(run_ruby_rails_command "$ruby_program" 2> $tempfile; echo $?)
-  RETVAL=${new_app_values[${#new_app_values[@]}-1]}
-  unset new_app_values[${#new_app_values[@]}-1]
-        [ -s $tempfile ] && notice "stderr output loading broker settings:" `cat $tempfile | head -n 5`
-        rm -f $tempfile
-  IFS=$OLD_IFS # back to normal
-  if [ $RETVAL -ne 0 ]
+  rails_out=$(run_ruby_rails_command "$ruby_program" 2> $tempfile)
+  if [ $? -ne 0 ]
   then
     fail "Error while loading broker settings.
 #####
 $ruby_program
 #####
-${new_app_values[@]}
+$rails_out
 #####"
                 return 1
-  elif (( ${#new_app_values[@]} != ${#keys[@]} ))
-  then
-    fail "wrong number of values loaded from broker settings.
+
+  else
+    local OLD_IFS=$IFS; IFS=$'\n' # read into array one line per element
+    readarray -t new_app_values <<< "$rails_out"
+    IFS=$OLD_IFS # back to normal
+    [ -s $tempfile ] && notice "stderr output loading broker settings:" `cat $tempfile | head -n 5`
+    rm -f $tempfile
+    if (( ${#new_app_values[@]} != ${#keys[@]} ))
+    then
+      fail "wrong number of values loaded from broker settings.
 This is a bug in oo-accept-broker. Debug output follows:
 keys: ${#keys[@]}; values: ${#new_app_values[@]}
 #####
@@ -262,6 +263,7 @@ $ruby_program
 ${new_app_values[@]}
 #####"
                 return 1
+    fi
   fi
 
   # now read the array of output ruby values into the values hash
