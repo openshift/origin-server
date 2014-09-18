@@ -3166,12 +3166,21 @@ module OpenShift
             min_zones_per_gear_group = Rails.configuration.msg_broker[:regions][:min_zones_per_gear_group]
             if available_zones_count < min_zones_per_gear_group
               active_zones = []
+              gi_zones = []
+              reloaded_gi = reloaded_app.group_instances.find_by(_id: gear.group_instance._id)
+              gi_server_names = reloaded_gi.gears.map {|gi_gear| gi_gear.server_identity}.uniq.compact
               districts.each do |district|
                 district.servers.where(region_id: server.region_id).each { |s| active_zones << s.zone_id }
+                district.servers.where(:name.in => gi_server_names).each { |s| gi_zones << s.zone_id }
               end
+
               active_zones = active_zones.uniq.compact
+              gi_zones = gi_zones.uniq.compact
               required_min_zones = [active_zones.length, min_zones_per_gear_group].min
-              if available_zones_count < required_min_zones
+
+              # include the zones that the existing app gears belong to
+              revised_available_zone_count = (zones_consumed_capacity.keys | gi_zones).uniq.compact.length
+              if revised_available_zone_count < required_min_zones
                 raise OpenShift::OOException.new("Unable to find minimum zones required for application gear group. " \
                                                    "Available zones:#{available_zones_count}, Needed min zones:#{required_min_zones}")
               end
