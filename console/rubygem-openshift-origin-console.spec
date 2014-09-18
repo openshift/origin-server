@@ -10,7 +10,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.30.1
+Version: 1.30.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -41,6 +41,7 @@ Requires:      %{?scl:%scl_prefix}rubygem(syslog-logger)
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
+BuildRequires:  v8314
 %endif
 
 BuildRequires: %{?scl:%scl_prefix}rubygem(coffee-rails)
@@ -167,6 +168,18 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Sep 08 2014 Adam Miller <admiller@redhat.com> 1.30.3-1
+- add build dep for RHEL6 to pull in RHSCL 1.1 v8314 (admiller@redhat.com)
+
+* Fri Sep 05 2014 Adam Miller <admiller@redhat.com> 1.30.2-1
+- Merge pull request #5779 from liggitt/logout_link_example
+  (dmcphers+openshiftbot@redhat.com)
+- LOGOUT_LINK example (jliggitt@redhat.com)
+- Add logout logic (jliggitt@redhat.com)
+- Merge pull request #5715 from detiber/sclbuildfixes
+  (dmcphers+openshiftbot@redhat.com)
+- scl build fixes (jdetiber@redhat.com)
+
 * Thu Aug 21 2014 Adam Miller <admiller@redhat.com> 1.30.1-1
 - bump_minor_versions for sprint 50 (admiller@redhat.com)
 - Bug 1131967 - fixes validation of gear sizes on quickstarts page

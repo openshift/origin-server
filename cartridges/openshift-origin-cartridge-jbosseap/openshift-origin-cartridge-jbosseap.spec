@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.20.1
+Version: 2.20.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -25,7 +25,6 @@ Requires:      jbossas-product-eap
 Requires:      jbossas-standalone
 Requires:      jbossas-welcome-content-eap
 Requires:      jboss-eap6-modules
-Requires:      jboss-eap6-index
 Requires:      bc
 Requires:      jboss-openshift-metrics-module
 %if 0%{?rhel}
@@ -97,6 +96,15 @@ ln -fs /usr/share/openshift/jboss/modules/com/openshift/metrics /etc/alternative
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Sep 10 2014 Adam Miller <admiller@redhat.com> 2.20.4-1
+- Bump cartridge versions (agoldste@redhat.com)
+
+* Tue Sep 09 2014 Adam Miller <admiller@redhat.com> 2.20.3-1
+- Bug 1125430 - jboss-eap6-index is no longer needed (bleanhar@redhat.com)
+
+* Fri Sep 05 2014 Adam Miller <admiller@redhat.com> 2.20.2-1
+- Corrected jboss issues WRT lsof (mmcgrath@redhat.com)
+
 * Fri Aug 08 2014 Adam Miller <admiller@redhat.com> 2.20.1-1
 - bump_minor_versions for sprint 49 (admiller@redhat.com)
 

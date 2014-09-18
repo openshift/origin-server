@@ -2,7 +2,7 @@ NAME
   oo-admin-ctl-cartridge
 
 SYNOPSIS
-  oo-admin-ctl-cartridge -c (activate|categorize|clean|deactivate|delete|diff|import|import-node|list|migrate) [ --help ]
+  oo-admin-ctl-cartridge -c (activate|categorize|clean|deactivate|delete|diff|import|import-node|import-profile|list|migrate) [ --help ]
 
 DESCRIPTION
 
@@ -12,33 +12,38 @@ OPTIONS
 
   -c|--command COMMAND
 
-    activate    - Make a specific cartridge active.
-                  Requires id or name, or input from STDIN.
+    activate       - Make a specific cartridge active.
+                     Requires id or name, or input from STDIN.
 
-    deactivate  - Disable a cartridge from being visible to users
-                  Requires id or name, or input from STDIN.
+    deactivate     - Disable a cartridge from being visible to users
+                     Requires id or name, or input from STDIN.
 
-    categorize  - Add/remove categories on a cartridge.
-                  Requires id or name, or input from STDIN. Pass categories
-                  to set with '+<category>' or remove with '=<category>'
+    categorize     - Add/remove categories on a cartridge.
+                     Requires id or name, or input from STDIN. Pass categories
+                     to set with '+<category>' or remove with '=<category>'
 
-    clean       - Delete all cartridges in the broker
+    clean          - Delete all unused cartridges in the broker
 
-    delete      - Remove one or more named cartridges
+    delete         - Remove one or more named cartridges
 
-    diff        - Compare two cartridges
-                  Requires two ids or names
+    diff           - Compare two cartridges
+                     Requires two ids or names
 
-    import      - Import a manifest as one or more cartridges
-                  Requires --url
+    import         - Import a manifest as one or more cartridges
+                     Requires --url
 
-    import-node - Import the latest cartridges from a randomly selected node.
+    import-node    - Import the latest cartridges from a randomly selected node.
+                     Or specify a node with --node.
 
-    list        - List all cartridges
+    import-profile - Import the latest cartridges from one or more profiles.
+                     A randomly selected node in each profile is imported.
+                     Without --profile, imports cartridges from all profiles.
 
-    migrate     - Run a migration of old cartridge versions to the latest
-                  active version.  Does not migrate cartridges without an
-                  active version.
+    list           - List all cartridges
+
+    migrate        - Run a migration of old cartridge versions to the latest
+                     active version.  Does not migrate cartridges without an
+                     active version.
 
   -h|--help
     Display a simple usage page.
@@ -63,7 +68,10 @@ OPTIONS
     ID for a cartridge version to activate or deactivate (comma-delimited).
 
   --node NODE
-    Identifier for a node (server-identity) to import from.
+    With import-node, server-identity for a node to import from.
+
+  --profile PROFILES
+    With import-profile, profile to import from (may be comma-separated list).
 
   -u|--url URL
     URL of a cartrige manifest to import.

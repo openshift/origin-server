@@ -1,0 +1,132 @@
+.TH logshifter 1 "September 2014" Openshift "User Manuals"
+.SH NAME
+.PP
+logshifter \- Log transport for OpenShift gear processes.
+.SH SYNOPSIS
+.PP
+\fB\fClogshifter\fR \fB\-tag\fP \fItagname\fP
+.PP
+\fB\fClogshifter\fR [ \fB\-config\fP \fI/etc/openshift/logshifter.conf\fP ] [ \fB\-statsfilename\fP \fI/tmp/logshifter.stats\fP ] [ \fB\-statsinterval\fP \fI2s\fP] [ \fB\-verbose\fP ] \fB\-tag\fP \fItagname\fP
+.SH DESCRIPTION
+.PP
+A simple log pipe designed to maintain consistently high input consumption rates, preferring to
+drop old messages rather than block the input producer.
+.PP
+The primary design goals are:
+.RS
+.IP \(bu 2
+Minimal blocking of the input producer
+.IP \(bu 2
+Asynchronous dispatch of log events to an output
+.IP \(bu 2
+Sacrifice delivery rate for input processing consistency
+.IP \(bu 2
+Fixed maximum memory use as a factor of configurable buffer sizes
+.IP \(bu 2
+Pluggable and configurable outputs
+.RE
+.PP
+logshifter is useful for capturing and redirecting output of heterogenous applications which
+emit logs to stdout rather than to a downstream aggregator (e.g. syslog) directly.
+.SH OPTIONS
+.TP
+\fB\fC\-config\fR \fIconfig\-file\fP
+Specify configuration file path, default /etc/openshift/logshifter.conf
+.TP
+\fB\fC\-statsfilename\fR \fIstats\-file\fP
+Filename for periodic stats output
+.TP
+\fB\fC\-statsinterval\fR \fI2s\fP
+Interval at which to write stats
+.TP
+\fB\fC\-verbose\fR
+Enable verbose output
+.SH EXAMPLE
+.PP
+Here are some small examples to verify logshifter is writing events, using the default configuration
+(which writes to syslog):
+.PP
+.RS
+.nf
+# single shot
+echo hello world | logshifter \-tag myapp
+# 10 messages @ 1 message/second
+for i in {1..10}; do echo logshifter message ${i}; sleep 1; done | /tmp/logshifter \-tag myapp
+# 30 messages @ 1 message/second with stats reporting every 2 seconds
+for i in {1..30}; do echo logshifter message ${i}; sleep 1; done | /tmp/logshifter \-tag myapp \-statsfilename /tmp/logshifter.stats \-statsinterval 2s
+.fi
+.RE
+.SH CONFIGURATION
+.PP
+An optional configuration file can be supplied to logshifter with the \fB\fC\-config\fR flag. The file
+is a list of key value pairs in the format \fB\fCk = v\fR, one per line. Keys are case insensitive.
+.PP
+Configuration keys and their default values
+.PP
+   queueSize = 1000             # int    // size of the internal log message queue
+   inputBufferSize = 2048       # int    // input up to \[rs]n or this number of bytes is considered a line
+   outputType = syslog          # string // one of syslog, file, multi (syslog + file)
+   syslogBufferSize = 2048      # int    // lines bound for syslog lines are split at this size
+   fileBufferSize = 2048        # int    // lines bound for a file are split at this size
+   outputTypeFromEnviron = true # bool   // allows outputtype to be overridden via LOGSHIFTER_OUTPUT_TYPE
+.PP
+If no \fB\fC\-config\fR flag is specified, logshifter will attempt to load a global config file from
+\fB\fC/etc/openshift/logshifter.conf\fR\&. If no \fB\fC\-config\fR is specified, and the global config file doesn't
+exist, a default syslog\-based configuration will be used.
+.SH NOTES
+.SH Rolling Files
+.PP
+When using the \fB\fCfile\fR writer, a simple file rolling behavior is enabled by default. The rolling
+mechanism will roll files if the file size exceeds a threshold, and will retain a configurable
+number of rolled files before removing the oldest prior to the next roll.
+.PP
+Rolling is configured by the \fB\fCLOGSHIFTER_$TAG_MAX_FILESIZE\fR and \fB\fCLOGSHIFTER_$TAG_MAX_FILES\fR
+environment variables, where \fB\fC$TAG\fR is replaced by an uppercase string equal to the value of
+the \fB\fC\-tag\fR argument.
+.PP
+The \fB\fCLOGSHIFTER_$TAG_MAX_FILESIZE\fR variable expects a case\-insensitive string representing the
+maximum size of the file which triggers a roll event. Example values:
+.PP
+.RS
+.nf
+LOGSHIFTER_$TAG_MAX_FILESIZE=500K   # kilobytes
+LOGSHIFTER_$TAG_MAX_FILESIZE=10M    # megabytes
+LOGSHIFTER_$TAG_MAX_FILESIZE=2G     # gigabytes
+LOGSHIFTER_$TAG_MAX_FILESIZE=1T     # terabytes
+.fi
+.RE
+.PP
+The default value is \fB\fC10M\fR\&. If a zero size is specified (regardless of the unit), rolling will be
+effectively disabled.
+.PP
+The \fB\fCLOGSHIFTER_$TAG_MAX_FILES\fR variable is an integer representing the maximum number of log
+files to retain. The default is 10.
+.SH Statistics
+.PP
+Periodic stats can be emitted to a file using the \fB\fC\-statsfilename\fR argument.  The stats are written
+in JSON format on an interval specified by \fB\fC\-statsinterval\fR (which is a string in a format expected
+by the golang time.ParseDuration
+\[la]http://golang.org/pkg/time/#ParseDuration\[ra] function).
+.PP
+Note that enabling statistics will introduce extra processing overhead.
+.SH Building
+.PP
+Since logshifter lives inside the origin\-server repository, use the \fB\fCgo\fR tools with a relative
+directory. Change your working directory to \fB\fCorigin\-server/logshifter\fR\&. To test:
+.PP
+.RS
+.nf
+go test \-v .
+.fi
+.RE
+.PP
+And to build:
+.PP
+.RS
+.nf
+go build \-o /tmp/logshifter .
+.fi
+.RE
+.SH SEE ALSO
+.TP
+\[la]http://golang.org/pkg/time/#ParseDuration\[ra]

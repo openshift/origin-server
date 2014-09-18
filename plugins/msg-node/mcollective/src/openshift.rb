@@ -26,7 +26,10 @@ module MCollective
       LOGGER_CONTEXT_ENTRIES = {
           request_id:     '--with-request-id',
           container_uuid: '--with-container-uuid',
-          app_uuid:       '--with-app-uuid'
+          app_uuid:       '--with-app-uuid',
+          app_name:       '--with-app-name',
+          app_namespace:  '--with-app-namespace',
+          cart_name:      '--cart-name',
       }
 
       activate_when do
@@ -83,7 +86,18 @@ module MCollective
 
         # Set up the NodeLogger context for the duration of this request
         args = request.data[:args] ||= {}
-        LOGGER_CONTEXT_ENTRIES.each { |k, v| OpenShift::Runtime::NodeLogger.context[k] = args[v].to_s if args[v] }
+        ctx = OpenShift::Runtime::NodeLogger.context
+        LOGGER_CONTEXT_ENTRIES.each do |key, value|
+          begin
+            ctx[key] = args[value].to_s if args[value]
+            (request[config.identity] || []).each do |job|
+              args = job[:job][:args] || {} # execute_parallel actions put the args here
+              ctx[key] ||= args[value].to_s if args[value]
+            end
+          rescue NoMethodError # ignore things missing from hashes
+          end
+        end
+        ctx.delete(:cart_name) if ctx[:cart_name] == "openshift-origin-node" # dummy cart
 
         OpenShift::Runtime::NodeLogger.logger.info("openshift-agent: request start: action=#{request.action} requestid=#{request.uniqid}, "\
                                                    "senderid=#{request.sender}, data=#{request.data}")

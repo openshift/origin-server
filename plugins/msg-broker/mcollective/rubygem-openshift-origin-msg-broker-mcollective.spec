@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.28.1
+Version: 1.29.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,17 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Wed Sep 10 2014 Adam Miller <admiller@redhat.com> 1.29.2-1
+- Add a hidden, unsupported change_region option to oo-admin-move for non-
+  scaled apps (agrimm@redhat.com)
+
+* Fri Sep 05 2014 Adam Miller <admiller@redhat.com> 1.29.1-1
+- bump spec for tag fix (admiller@redhat.com)
+- Fixing has_app_cartridge method (abhgupta@redhat.com)
+
+* Fri Sep 05 2014 Adam Miller <admiller@redhat.com>
+- Fixing has_app_cartridge method (abhgupta@redhat.com)
+
 * Fri Aug 08 2014 Adam Miller <admiller@redhat.com> 1.28.1-1
 - bump_minor_versions for sprint 49 (admiller@redhat.com)
 

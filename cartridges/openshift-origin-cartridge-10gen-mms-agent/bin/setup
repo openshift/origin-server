@@ -1,8 +1,7 @@
 #!/bin/bash -e
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
-
-OPENSHIFT_MMS_BASE_DIR=${OPENSHIFT_DATA_DIR}mms-agent
+source "${OPENSHIFT_10GENMMSAGENT_DIR}lib/util"
 
 rm -rf $OPENSHIFT_10GENMMSAGENT_DIR/mms-agent
 mkdir -p $OPENSHIFT_10GENMMSAGENT_DIR/{logs,run,mms-agent}
@@ -12,27 +11,7 @@ mkdir -p ${OPENSHIFT_MMS_BASE_DIR}
 
 if [ ! -f "${OPENSHIFT_REPO_DIR}/.openshift/mms/settings.py" ]
 then
-  if [ ! -f ${OPENSHIFT_REPO_DIR}/.openshift/mms/mongodb-mms-monitoring-agent*.tar.gz ]
-  then
-    client_error ""
-    client_error "Missing mongodb-mms-monitoring-agent.tar.gz, which needs to be git pushed in the .openshift/mms/ directory in your repository."
-    client_error "The tarball is available after registration at https://mms.mongodb.com, in the Settings -> Monitoring Agent section."
-    exit 137
-  else
-    pushd $OPENSHIFT_MMS_BASE_DIR >/dev/null
-    tar --strip-components=1 -xzvf ${OPENSHIFT_REPO_DIR}/.openshift/mms/mongodb-mms-monitoring-agent*.tar.gz -C ${OPENSHIFT_MMS_BASE_DIR}
-    if [ $? -gt 0 ]
-    then
-      client_error "Error during extracting the mongodb mms agent archive."
-      exit 137
-    elif [ ! -f "${OPENSHIFT_MMS_BASE_DIR}/monitoring-agent.config" ]
-    then
-      client_error "Extracted archive doesn't contain monitoring-agent.config file."
-      client_error "Please download the tarball at the https://mms.mongodb.com, in the Settings -> Monitoring Agent section."
-      exit 137
-    fi
-    popd >/dev/null
-  fi
+  install_agent_sources
 else
   if ! grep -q "secret_key" "${OPENSHIFT_REPO_DIR}/.openshift/mms/settings.py"
   then

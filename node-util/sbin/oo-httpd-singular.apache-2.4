@@ -31,7 +31,7 @@ require 'open4'
 require 'thread'
 require 'tempfile'
 require 'json'
-require 'systemu'
+require 'openshift-origin-node/utils/shell_exec'
 
 HTTPD_SYSTEM="/usr/sbin/service httpd"
 HTTPD_CMDS={"graceful" => "reload", "configtest" => "configtest"}
@@ -106,15 +106,15 @@ single_instance do
     rc=0
     [HTTPD_PRE_CMDS, ARGV[0]].flatten.each do |cmd|
       service_cmd = HTTPD_CMDS[cmd]
-      status, out, err =  systemu "#{HTTPD_SYSTEM} #{service_cmd}"
-      if status.exitstatus != 0
-        rc = status.exitstatus
+      out, err, status =  OpenShift::Runtime::Utils.oo_spawn("#{HTTPD_SYSTEM} #{service_cmd}")
+      if status != 0
+        rc = status
         break
       end
     end
 
     # Wait up to 1 minute for Apache to finish reloading.
-    systemu "/usr/bin/curl -m 60 -k https://127.0.0.1/"
+    OpenShift::Runtime::Utils.oo_spawn("/usr/bin/curl -m 60 -k https://127.0.0.1/")
 
     reqset.each do |fpath|
       File.open(fpath,'w') { |f|

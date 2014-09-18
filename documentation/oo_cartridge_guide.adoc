@@ -1011,6 +1011,11 @@ changing the default values for these variables:
 |max_connections sets exactly that: the maximum number of client connections allowed.
 |===
 
+Users can change the authentication and restrict the list of remote connection
+IPs by modifying the pg_hba.conf file, but doing so might be dangerous and
+possibly lead to broken application. Make sure you snapshot the application
+before doing such changes.
+
 For more details, please refer to PostgreSQL
 https://wiki.postgresql.org/wiki/Tuning_Your_PostgreSQL_Server[wiki page].
 

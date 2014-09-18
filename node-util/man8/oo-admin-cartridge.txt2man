@@ -32,7 +32,7 @@ COMMANDS
     The source directory provided contains cartridge source directories, rather than pointing to one cartridge
 
   --mco
-    Use the mcollective mco agent to update the cartridge repository.
+    Use the mcollective mco agent to update the cartridge repository.  (only supported in testing environments)
 
   --cartridge_vendor VENDOR --name NAME --version VERSION --cartridge_version VERSION
     When erasing a cartridge from the cartridge repository you must provide the exact version to remove. 'redhat' is the

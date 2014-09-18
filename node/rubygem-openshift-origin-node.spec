@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.30.2
+Version: 1.30.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,38 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Sep 09 2014 Adam Miller <admiller@redhat.com> 1.30.5-1
+- Bug 1024531 - /proc/net provides too much information (jhonce@redhat.com)
+
+* Mon Sep 08 2014 Adam Miller <admiller@redhat.com> 1.30.4-1
+- Merge pull request #5787 from bparees/unique_domain_env_vars
+  (dmcphers+openshiftbot@redhat.com)
+- check for domain environment variable uniqueness on app create
+  (bparees@redhat.com)
+
+* Fri Sep 05 2014 Adam Miller <admiller@redhat.com> 1.30.3-1
+- Merge pull request #3516 from Filirom1/patch-1
+  (dmcphers+openshiftbot@redhat.com)
+- node.conf: comments for external port range (lmeyer@redhat.com)
+- Merge pull request #5772 from jwhonce/wip/node_essentials
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5753 from sosiouxme/bz1133936
+  (dmcphers+openshiftbot@redhat.com)
+- node conf: supply resource_limit.conf examples (lmeyer@redhat.com)
+- WIP Node Platform - Restore cartridge_repository_web_func_test.rb
+  (jhonce@redhat.com)
+- WIP Node Platform - Stabilize cartridge_repository_web_func_test.rb
+  (jhonce@redhat.com)
+- Merge pull request #5742 from bparees/resource_limits
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5741 from brenton/BZ1124094
+  (dmcphers+openshiftbot@redhat.com)
+- add new resource limits template for xpaas cartridges (bparees@redhat.com)
+- Bug 1124094 - oo-admin-upgrade does not work for unsupported cartridges
+  (bleanhar@redhat.com)
+- fix http://stackoverflow.com/questions/4826639/repack-of-git-repository-fails
+  (filirom1@gmail.com)
+
 * Fri Aug 22 2014 Adam Miller <admiller@redhat.com> 1.30.2-1
 - Merge pull request #5738 from bparees/sni_port_message
   (dmcphers+openshiftbot@redhat.com)

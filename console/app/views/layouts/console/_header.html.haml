@@ -12,7 +12,7 @@
               %b.caret
             %ul.dropdown-menu
               %li= link_to "My Account", account_path
-              - unless logout_path.nil?
+              - if can_logout?
                 %li.divider
                 %li= link_to "Sign Out", logout_path, :class => "sign_out"
       %a.btn.btn-navbar{'data-target' => '.nav-collapse', 'data-toggle' => 'collapse'}
@@ -32,5 +32,5 @@
               My Account (
               %span.username #{current_user_id}
               )
-            - unless logout_path.nil?
+            - if can_logout?
               %li.visible-phone= link_to "Sign Out", logout_path, :class => "sign_out"

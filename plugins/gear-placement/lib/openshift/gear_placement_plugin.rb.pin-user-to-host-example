@@ -20,26 +20,21 @@ module OpenShift
     # * NodeProperties: the server information for a single node where the gear will reside
     #
     def self.select_best_fit_node_impl(server_infos, app_props, current_gears, comp_list, user_props, request_time)
+      Rails.logger.debug("Using pin-user gear placement plugin to choose node.")
+      Rails.logger.debug("selecting from nodes: #{server_infos.map(&:name).join ', '}")
       config = Broker::Application.config.gear_placement
-      slow_host = config[:SLOW_HOST]
-      pinned_user = config[:PINNED_USER]
-      if slow_host.nil?
-        raise "The gear-placemement plugin expects a configuration setting for :SLOW_HOST and it's missing"
+      pinned_user = config[:pinned_user]
+      if pinned_user == user_props.login
+        slow_hosts = config[:slow_hosts]
+        Rails.logger.debug("user '#{pinned_user}' needs a gear; restrict to '#{slow_hosts.join ', '}'")
+        matched_server_infos = server_infos.select {|x| slow_hosts.include?(x.name)}
+        matched_server_infos.empty? and
+          raise "The gear-placement SLOW_HOSTS setting does not match any available NodeProfile names"
+        return matched_server_infos.first
+      else
+        Rails.logger.debug("user '#{user_props.login}' is not pinned; choose a node normally")
+        return OpenShift::MCollectiveApplicationContainerProxy.select_best_fit_node_impl(server_infos)
       end
-      if pinned_user.nil?
-        raise "The gear-placement lugin expects a configuration setting for :PINNED_USER and it's missing"
-      end
-      check_server_infos = server_infos
-      check_server_infos.select {|x| x.name.eql? slow_host}
-      if check_server_infos.empty?
-        raise "The gear-placement configuration has a :SLOW_HOST setting that doesn't match any of the NodeProfile names"
-      end
-      server_infos.each do |server_info|
-        if (server_info.name.eql? slow_host) && (pinned_user.eql? user_props.login)
-          return server_info
-        end
-      end
-      return server_infos.first
     end
   end
 end

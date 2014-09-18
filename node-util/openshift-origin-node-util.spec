@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.29.1
+Version: 1.29.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -30,6 +30,13 @@ BuildRequires: systemd-units
 %endif
 BuildArch:     noarch
 
+# Needed for custom openshift policy. Bug 1024531
+BuildRequires: selinux-policy >= 3.7.19-231
+Requires:      selinux-policy-targeted >= 3.7.19-231
+Requires:      policycoreutils-python
+Requires:      policycoreutils
+
+
 %description
 This package contains a set of utility scripts for a OpenShift node.
 They must be run on a OpenShift node instance.
@@ -38,10 +45,24 @@ They must be run on a OpenShift node instance.
 %setup -q
 
 %build
+# Needed for custom openshift policy  Bug 1024531
+pushd selinux >/dev/null
+make -f /usr/share/selinux/devel/Makefile
+bzip2 -9 openshift.pp
+popd >/dev/null
+
 
 %install
+rm -rf %{buildroot}
 mkdir -p %{buildroot}%{_sbindir}
 mkdir -p %{buildroot}%{_bindir}
+
+# Needed for custom openshift policy. Bug 1024531
+mkdir -p %{buildroot}%{_datadir}/selinux/packages
+mkdir -p %{buildroot}%{_datadir}/selinux/include/services
+
+install -m 644 selinux/openshift.pp.bz2 %{buildroot}%{_datadir}/selinux/packages/openshift.pp.bz2
+install -m 644 selinux/openshift.if     %{buildroot}%{_datadir}/selinux/include/services/openshift.if
 
 cp -p sbin/* %{buildroot}%{_sbindir}/
 cp -p bin/*  %{buildroot}%{_bindir}/
@@ -84,8 +105,15 @@ mv services/openshift-watchman.service %{buildroot}/etc/systemd/system/openshift
 cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
+%clean
+rm -rf %{buildroot}
+
 %post
+# Needed for custom openshift policy. Bug 1024531
+/usr/sbin/semodule -i %{_datadir}/selinux/packages/openshift.pp.bz2 || :
+
 /sbin/restorecon /usr/sbin/oo-restorer* || :
+/sbin/restorecon /usr/bin/oo-lists-ports || :
 
 %if %{with_systemd}
 %systemd_post openshift-gears.service
@@ -133,8 +161,13 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %attr(0755,-,-) %{_bindir}/unidle_gear.sh
 %attr(0755,-,-) %{_bindir}/oo-config-eval
 %attr(0755,-,-) %{_bindir}/oo-gear-registry
+%attr(0755,-,-) %{_bindir}/oo-lists-ports
 %attr(0755,-,-) %{_sysconfdir}/openshift/watchman/plugins.d/
 %attr(0744,-,-) %{_sysconfdir}/openshift/watchman/plugins.d/*
+
+# Needed for custom openshift policy. Bug 1024531
+%attr(0644,-,-) %{_datadir}/selinux/packages/openshift.pp.bz2
+%{_datadir}/selinux/include/services/openshift.if
 
 %{_mandir}/man8/oo-accept-node.8.gz
 %{_mandir}/man8/oo-admin-gear.8.gz
@@ -168,6 +201,33 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Wed Sep 10 2014 Adam Miller <admiller@redhat.com> 1.29.5-1
+- Merge pull request #5802 from ironcladlou/bz/1140144
+  (dmcphers+openshiftbot@redhat.com)
+- Increase watchman OOM plugin timeout (ironcladlou@gmail.com)
+
+* Wed Sep 10 2014 Adam Miller <admiller@redhat.com> 1.29.4-1
+- Bug 1024531 - Update requires for selinux-policy version (jhonce@redhat.com)
+
+* Tue Sep 09 2014 Adam Miller <admiller@redhat.com> 1.29.3-1
+- Bug 1024531 - Add custom openshift policy (jhonce@redhat.com)
+- Bug 1024531 - /proc/net provides too much information (jhonce@redhat.com)
+- Bug 1101167 - Update man page (jhonce@redhat.com)
+
+* Fri Sep 05 2014 Adam Miller <admiller@redhat.com> 1.29.2-1
+- Bug 1135617 - AVC denied messages when creating new gears
+  (bleanhar@redhat.com)
+- oo-accept-node: remove check for unused settings (lmeyer@redhat.com)
+- Merge pull request #5771 from ironcladlou/bz/1134106
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5761 from brenton/BZ1131031
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5570 from nak3/fix01 (dmcphers+openshiftbot@redhat.com)
+- Use portable output format df commands (ironcladlou@gmail.com)
+- Bug 1131031 - improving /etc/group, /etc/shadow recovery
+  (bleanhar@redhat.com)
+- Fix unclear variable name (nakayamakenjiro@gmail.com)
+
 * Thu Aug 21 2014 Adam Miller <admiller@redhat.com> 1.29.1-1
 - re-arrange oo-accept-node to test mod_rewrite stuff only when the plugin is
   present (rchopra@redhat.com)

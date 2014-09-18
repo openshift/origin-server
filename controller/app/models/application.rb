@@ -692,7 +692,7 @@ class Application
       component_instances.each do |ci|
         ci_cart = ci.get_cartridge
         if ci_cart.original_name == cart.original_name
-          if ci_cart.version == cart.version
+          if ci_cart.name == cart.name
             raise OpenShift::UserException.new("#{cart.name} already exists in your application", 136, "cartridge")
           else
             raise OpenShift::UserException.new("#{cart.name} cannot co-exist with cartridge #{ci.cartridge_name} in your application", 136, "cartridge")
@@ -1662,7 +1662,9 @@ class Application
       when "APP_ENV_VAR_REMOVE"
         remove_env_vars.push({"key" => command_item[:args][0]})
       when "ENV_VAR_ADD"
-        domain_env_vars_to_add.push({"key" => command_item[:args][0], "value" => command_item[:args][1], "component_id" => component_id})
+        domain_env_vars_to_add.push({"key" => command_item[:args][0], "value" => command_item[:args][1], "component_id" => component_id, "unique" => false})
+      when "ENV_VAR_ADD_UNIQUE"
+        domain_env_vars_to_add.push({"key" => command_item[:args][0], "value" => command_item[:args][1], "component_id" => component_id, "unique" => true})
       when "BROKER_KEY_ADD"
         op_group = AddBrokerAuthKeyOpGroup.new(user_agent: self.user_agent)
         op_group.set_created_at

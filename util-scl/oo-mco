@@ -1,3 +1,9 @@
 #!/bin/bash
 
-exec oo-exec-ruby /opt/rh/ruby193/root/usr/sbin/mco "$@"
+if [ -e /opt/rh/ruby193/root/usr/sbin/mco ]; then
+  exec oo-exec-ruby /opt/rh/ruby193/root/usr/sbin/mco "$@"
+else
+  echo "/opt/rh/ruby193/root/usr/sbin/mco does not exist."
+  echo "mco client is likely not installed from scl."
+  exit 1
+fi

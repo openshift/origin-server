@@ -1,8 +1,7 @@
 #!/bin/bash -e
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
-
-export OPENSHIFT_MMS_BASE_DIR=${OPENSHIFT_DATA_DIR}mms-agent
+source "${OPENSHIFT_10GENMMSAGENT_DIR}lib/util"
 
 cartridge_type="10gen-mms-agent"
 
@@ -26,6 +25,7 @@ function get_process() {
 }
 
 function start() {
+    ! is_agent_installed && install_agent_sources
     echo "Starting $cartridge_type cartridge"
     running_process=$(get_process)
     if ps -ef | grep ${running_process} | grep -qv grep > /dev/null 2>&1
