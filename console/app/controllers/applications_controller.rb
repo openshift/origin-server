@@ -82,7 +82,7 @@ class ApplicationsController < ConsoleController
     else
       async{ @applications = Application.find :all, :as => current_user, :params => {:include => :cartridges} }
       async{ @domains = user_domains }
-      join!(10)
+      join!(Console.config.background_request_timeout || 10)
     end
 
     render :first_steps and return if @applications.blank?
@@ -209,7 +209,7 @@ class ApplicationsController < ConsoleController
     async{ @gear_groups_with_state = GearGroup.all(:as => current_user, :params => {:application_id => app_id, :timeout => 3}) }
     async{ sshkey_uploaded? }
 
-    join!(30)
+    join!(Console.config.background_request_timeout || 30)
 
     @capabilities = @application.domain.capabilities
 

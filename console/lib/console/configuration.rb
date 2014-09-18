@@ -40,6 +40,8 @@ module Console
     config_accessor :prohibited_email_domains
     config_accessor :syslog_enabled
 
+    config accessor :background_request_timeout
+
     #
     # A class that represents the capabilities object
     #
@@ -149,6 +151,12 @@ module Console
         self.community_url = config[:COMMUNITY_URL]
         if self.community_url && !self.community_url.end_with?('/')
           raise InvalidConfiguration, "COMMUNITY_URL must end in '/'"
+        end
+
+        if self.background_request_timeout = config[:BACKGROUND_REQUEST_TIMEOUT]
+          unless config[:BACKGROUND_REQUEST_TIMEOUT].match(/\d+/)
+            raise InvalidConfiguration, "BACKGROUND_REQUEST_TIMEOUT must be a number"
+          end
         end
 
         self.prohibited_email_domains = config[:PROHIBITED_EMAIL_DOMAINS].split(',').map { |email| email.strip } rescue []
