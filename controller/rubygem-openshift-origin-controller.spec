@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.31.0
+Version: 1.31.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,24 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Sep 18 2014 Adam Miller <admiller@redhat.com> 1.31.1-1
+- bump_minor_versions for sprint 51 (admiller@redhat.com)
+- Multiple bug fixes: Bug 1086061 - Should update the description of clean
+  command for oo-admin-ctl-cartridge tool Bug 1109647 - Loss of alias on
+  SYNOPSIS part for oo-admin-ctl-app Bug 1065853 - Should prompt warning when
+  leaving source code url blank but add branch/tag during app creation Bug
+  1143024 - A setting of ZONES_MIN_PER_GEAR_GROUP=2 with two available zones
+  will always error as though only one zone is available Bug 1099796 - Should
+  refine the error message when removing a nonexistent global team from file
+  (abhgupta@redhat.com)
+- Multiple bug fixes  - Bug 1108556: incorrect layout in oo-admin-ctl-domain
+  man page  - Bug 1117643: Missing '--allowed_gear_sizes' option in help of oo-
+  admin-ctl-domain  - Bug 1112455: Should give proper info when the same addon
+  cartridges added to one application  - Bug 1112636: zend-5.6 should be
+  removed from warning message when try to create an app using invalid download
+  cartridge  - Bug 1109647: Loss of alias on SYNOPSIS part for oo-admin-ctl-app
+  (abhgupta@redhat.com)
+
 * Wed Sep 10 2014 Adam Miller <admiller@redhat.com> 1.30.5-1
 - Bug 1084090: False positives reported for stale ssh keys  - In cases where
   the user had multiple domains, false positives could be reported for stale
