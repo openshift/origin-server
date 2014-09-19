@@ -5,7 +5,7 @@
 
 Summary:       User dependencies for OpenShift Cartridges
 Name:          openshift-origin-cartridge-dependencies
-Version: 1.27.0
+Version: 1.27.1
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -520,6 +520,9 @@ an OpenShift cartrige.
 %files optional-ruby
 
 %changelog
+* Thu Sep 18 2014 Adam Miller <admiller@redhat.com> 1.27.1-1
+- bump_minor_versions for sprint 51 (admiller@redhat.com)
+
 * Fri Sep 05 2014 Adam Miller <admiller@redhat.com> 1.26.2-1
 - Bug 1123988 - Added scipy for python-2.7 and python-3.3 cartridges
   (maszulik@redhat.com)
