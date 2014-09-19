@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.30.0
+Version: 1.30.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,17 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Thu Sep 18 2014 Adam Miller <admiller@redhat.com> 1.30.1-1
+- bump_minor_versions for sprint 51 (admiller@redhat.com)
+- Multiple bug fixes: Bug 1086061 - Should update the description of clean
+  command for oo-admin-ctl-cartridge tool Bug 1109647 - Loss of alias on
+  SYNOPSIS part for oo-admin-ctl-app Bug 1065853 - Should prompt warning when
+  leaving source code url blank but add branch/tag during app creation Bug
+  1143024 - A setting of ZONES_MIN_PER_GEAR_GROUP=2 with two available zones
+  will always error as though only one zone is available Bug 1099796 - Should
+  refine the error message when removing a nonexistent global team from file
+  (abhgupta@redhat.com)
+
 * Wed Sep 10 2014 Adam Miller <admiller@redhat.com> 1.29.2-1
 - Add a hidden, unsupported change_region option to oo-admin-move for non-
   scaled apps (agrimm@redhat.com)
