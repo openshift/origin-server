@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.30.0
+Version: 1.30.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -201,6 +201,13 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Thu Sep 18 2014 Adam Miller <admiller@redhat.com> 1.30.1-1
+- bump_minor_versions for sprint 51 (admiller@redhat.com)
+- Watchman filters out haproxy/logshifter (agoldste@redhat.com)
+- Bug 1141304 - use full path for pwck (jhonce@redhat.com)
+- Fully qualify repquota path usages to avoid PATH lookups
+  (ironcladlou@gmail.com)
+
 * Wed Sep 10 2014 Adam Miller <admiller@redhat.com> 1.29.5-1
 - Merge pull request #5802 from ironcladlou/bz/1140144
   (dmcphers+openshiftbot@redhat.com)
