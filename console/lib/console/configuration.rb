@@ -154,8 +154,11 @@ module Console
         end
 
         if self.background_request_timeout = config[:BACKGROUND_REQUEST_TIMEOUT]
-          unless config[:BACKGROUND_REQUEST_TIMEOUT].match(/\d+/)
+          unless config[:BACKGROUND_REQUEST_TIMEOUT].match(/\^d+$/)
             raise InvalidConfiguration, "BACKGROUND_REQUEST_TIMEOUT must be a number"
+          end
+          unless config[:BACKGROUND_REQUEST_TIMEOUT] > 0
+            raise InvalidConfiguration, "BACKGROUND_REQUEST_TIMEOUT must be greater than 0"
           end
         end
 
