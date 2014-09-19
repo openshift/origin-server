@@ -1121,6 +1121,41 @@ class OODiag
     end
   end
 
+  def test_mcollective_direct_addressing
+    skip_test unless @is_node || @is_broker
+
+    scl_root = @scl_prefix.empty? ? "" : "/opt/rh/ruby193/root"
+    cfgfiles = [
+      ("#{scl_root}/etc/mcollective/client.cfg" if @is_broker),
+      ("#{scl_root}/etc/mcollective/server.cfg" if @is_node)
+    ].compact
+
+    cfgfiles.each do |cfgfile|
+      # <https://docs.puppetlabs.com/mcollective/configure/client.html> and
+      # <https://docs.puppetlabs.com/mcollective/configure/server.html> state
+      # that the default value is 0.  However, oo-mco inventory fails with
+      # ruby193-mcollective-client-2.4.1-5.el6op if direct_addressing is not
+      # explicitly disabled.
+      setting = nil
+
+      File.open(cfgfile).each_line do |line|
+        setting = $1 if line =~ /^\s*direct_addressing\s*=\s*(\S*)/
+        # MCollective respects the last declaration, so continue reading lines.
+      end
+
+      unless setting =~ /^(0|no|false|n|f)$/i
+        do_fail <<-DIRECT_ADDRESSING
+          MCollective is not configured with direct addressing disabled.
+          Direct addressing may prevent your broker and node hosts from
+          communicating.
+
+          Please set direct_addressing = 0 in
+          #{cfgfile}.
+        DIRECT_ADDRESSING
+      end
+    end
+  end
+
   def test_auth_conf_files
     skip_test unless @is_broker
     #Boolean for aborting match check
