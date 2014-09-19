@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.31.0
+Version: 1.31.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,13 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Sep 18 2014 Adam Miller <admiller@redhat.com> 1.31.1-1
+- bump_minor_versions for sprint 51 (admiller@redhat.com)
+- Merge pull request #5794 from sosiouxme/improve-platform-logging-bz1139359
+  (dmcphers+openshiftbot@redhat.com)
+- NodeLogger: add attrs to log, parse execute_parallel actions
+  (lmeyer@redhat.com)
+
 * Tue Sep 09 2014 Adam Miller <admiller@redhat.com> 1.30.5-1
 - Bug 1024531 - /proc/net provides too much information (jhonce@redhat.com)
 
