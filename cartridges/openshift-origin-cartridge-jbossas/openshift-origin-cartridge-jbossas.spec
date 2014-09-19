@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.27.3
+Version: 1.28.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
