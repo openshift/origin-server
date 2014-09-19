@@ -154,10 +154,14 @@ module Console
         end
 
         if self.background_request_timeout = config[:BACKGROUND_REQUEST_TIMEOUT]
-          unless config[:BACKGROUND_REQUEST_TIMEOUT].match(/^\d+$/)
-            raise InvalidConfiguration, "BACKGROUND_REQUEST_TIMEOUT must be a number"
+          unless self.background_request_timeout.is_a? Integer
+            if self.background_request_timeout == self.background_request_timeout.to_i.to_s
+              self.background_request_timeout = self.background_request_timeout.to_i
+            else
+              raise InvalidConfiguration, "BACKGROUND_REQUEST_TIMEOUT must be a number"
+            end
           end
-          unless config[:BACKGROUND_REQUEST_TIMEOUT] > 0
+          unless self.background_request_timeout > 0
             raise InvalidConfiguration, "BACKGROUND_REQUEST_TIMEOUT must be greater than 0"
           end
         end
