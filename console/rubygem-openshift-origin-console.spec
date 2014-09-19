@@ -10,7 +10,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.31.0
+Version: 1.31.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -168,6 +168,11 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Sep 18 2014 Adam Miller <admiller@redhat.com> 1.31.1-1
+- bump_minor_versions for sprint 51 (admiller@redhat.com)
+- Use domain max_gears when displaying app scaling limits (jliggitt@redhat.com)
+- Changes first_steps links to developer portal (spurtell@redhat.com)
+
 * Mon Sep 08 2014 Adam Miller <admiller@redhat.com> 1.30.3-1
 - add build dep for RHEL6 to pull in RHSCL 1.1 v8314 (admiller@redhat.com)
 
