@@ -167,7 +167,7 @@ include AdminHelper
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
 
-login = CloudUser.normalize_login(args["--login"])
+login = CloudUser.normalize_login(args["--login"]).presence
 app = args["--app"]
 gear = args["--gear"]
 plan_id = args["--plan"]

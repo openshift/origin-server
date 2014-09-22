@@ -138,6 +138,12 @@ class PendingAppOp
     end
   end
 
+  # any child op that does not require connections to be re-executed
+  # should override this method and return false
+  def reexecute_connections?
+    return true
+  end
+
   def if_not_found(e)
     raise e unless Mongoid::Errors::DocumentNotFound === e
   end

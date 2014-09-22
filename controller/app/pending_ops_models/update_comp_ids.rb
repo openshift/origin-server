@@ -25,4 +25,9 @@ class UpdateCompIds < PendingAppOp
   rescue
     if_not_found($!)
   end
+
+  def reexecute_connections?
+    return false
+  end
+
 end

@@ -12,4 +12,8 @@ class SetGroupOverridesOp < PendingAppOp
     application.set :group_overrides, saved_group_overrides.mongoize
   end
 
+  def reexecute_connections?
+    return false
+  end
+
 end
