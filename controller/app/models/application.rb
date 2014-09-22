@@ -2414,7 +2414,7 @@ class Application
       (component_ops[config_order[idx]][:adds] || []).each { |op| op.prereq += prereq_ids }
     end
 
-    if pending_ops.present? and !(pending_ops.length == 1 and SetGroupOverridesOp === pending_ops.first)
+    if pending_ops.present? and pending_ops.any?{|op| op.reexecute_connections?}.present?
       # set all ops as the pre-requisite for execute connections except post_configure ops
       # FIXME: this could be arbitrarily large
       all_ops_ids = pending_ops.map{ |op| op._id.to_s }.compact
