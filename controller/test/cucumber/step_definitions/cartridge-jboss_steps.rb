@@ -210,17 +210,27 @@ When /^the jboss repository config file is restored( without restart)$/ do |nore
   end
 end
 
-When /^a property with key (.*?) and value (.*?) is added to the jboss repository config$/ do |key,value|
+When /^a property with key (.*?) and value (.*?) is added to the (.*?) repository config$/ do |key,value, jboss|
   Dir.chdir(@app.repo) do
     # Make a change to the standalone.xml
-    run("sed -i 's/<system-properties>/<system-properties>\\n<property name=\"#{key}\" value=\"#{value}\"\\/>/' .openshift/config/standalone.xml")        
+    if jboss == "jboss"
+      run("sed -i 's/<system-properties>/<system-properties>\\n<property name=\"#{key}\" value=\"#{value}\"\\/>/' .openshift/config/standalone.xml")
+    end
+    if jboss == "wildfly"
+      run("sed -i 's/<\\/extensions>/<\\/extensions>\\n<system-properties>\\n<property name=\"#{key}\" value=\"#{value}\"\\/><\\/system-properties>\\n/' .openshift/config/standalone.xml")
+    end
     run("git commit -a -m 'Test change'")
     run("git push >> " + @app.get_log("git_push") + " 2>&1")
   end
 end
 
 When /^a property with key (.*?) and value (.*?) is added directly to the (.*?) config$/ do |key,value,jboss|
-  a=@app.ssh_command("sed -i \\'s/\\<system-properties\\>/\\<system-properties\\>\\\\n\\<property name=\\\"#{key}\\\" value=\\\"#{value}\\\"\\\\/\\>/\\' \\$OPENSHIFT_#{jboss}_DIR/standalone/configuration/standalone.xml")
+  if jboss == "JBOSS"
+    @app.ssh_command("sed -i \\'s/\\<system-properties\\>/\\<system-properties\\>\\\\n\\<property name=\\\"#{key}\\\" value=\\\"#{value}\\\"\\\\/\\>/\\' \\$OPENSHIFT_#{jboss}_DIR/standalone/configuration/standalone.xml")
+  end
+  if jboss == "WILDFLY"
+    @app.ssh_command("sed -i \\'s/\\<\\/extensions>/\\<\\/extensions\\>\\\\n\\<system-properties\\>\\\\n\\<property name=\\\"#{key}\\\" value=\\\"#{value}\\\"\\\\/\\>\\<\\\\/system-properties\\>\\\\n/ \\$OPENSHIFT_#{jboss}_DIR/standalone/configuration/standalone.xml")
+  end
 end
 
 Then /^the (.*?) config will( not)? contain a property with the value (.*?)$/ do |jboss,negate,value| 

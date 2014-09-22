@@ -147,11 +147,11 @@ When /^(\d+)( scalable)? (.+) applications are created$/ do |app_count, scalable
     register_user(app.login, app.password) if $registration_required
     if rhc_create_domain(app)
       opts = scalable ? "-s" : ""
-      rhc_create_app(app, true, opts)
+      result = rhc_create_app(app, true, opts)
       app.update_jenkins_info if type.start_with?("jenkins")
     end
     raise "Could not create domain: #{app.create_domain_code}"  unless app.create_domain_code == 0
-    raise "Could not create application #{app.create_app_code}" unless app.create_app_code == 0
+    raise "Could not create application #{app.create_app_code}: #{result}" unless app.create_app_code == 0
     app
   end
 end
