@@ -84,4 +84,19 @@ class Alias < RestApi::Base
     return self.name <=> a.name
   end
 
+  def errors
+    e = super
+    {
+      :certificate_file => :ssl_certificate,
+      :certificate_chain_file => :ssl_certificate_chain,
+      :certificate_private_key_file => :private_key,
+      :certificate_pass_phrase => :pass_phrase
+    }.each do |field, api_field|
+      Array(e[api_field]).each do |err|
+        e.add(field, err) 
+      end
+    end
+    e
+  end
+
 end
