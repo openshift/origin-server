@@ -69,12 +69,35 @@ function _start_haproxy_ctld() {
 function _launch_haproxy_bg() {
     [ -n "$1" ]  &&  zopts="-sf $1"
     ping_server_gears
+    _load_user_configs
     LOGPIPE=${OPENSHIFT_HOMEDIR}/app-root/runtime/logshifter-haproxy
     rm -f $LOGPIPE && mkfifo $LOGPIPE
 
     /usr/bin/logshifter -tag haproxy < $LOGPIPE &
     nohup /usr/sbin/haproxy -f $OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg ${zopts} &> $LOGPIPE &
     echo $! > $HAPROXY_PID
+}
+
+function _load_user_configs() {
+    haproxy_cfg=$OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg
+    if [ ! -z "${OPENSHIFT_HAPROXY_HTTPCHK_URI}" ]; then
+        (
+        flock 200
+        cp -f "$haproxy_cfg" /tmp/haproxy.cfg.$$
+        sed -i "s/option httpchk GET.*/option httpchk GET $( echo ${OPENSHIFT_HAPROXY_HTTPCHK_URI} | sed -e 's/[\/&]/\\&/g')/g" /tmp/haproxy.cfg.$$
+        cat /tmp/haproxy.cfg.$$ > "$haproxy_cfg"
+        rm -f /tmp/haproxy.cfg.$$
+        ) 200>${haproxy_cfg}.lock
+    fi
+    if [ ! -z "${OPENSHIFT_HAPROXY_HTTPCHK_EXPECT_RSTATUS}" ]; then
+        (
+        flock 200
+        cp -f "$haproxy_cfg" /tmp/haproxy.cfg.$$
+        sed -i "s/http-check expect rstatus.*/http-check expect rstatus $( echo ${OPENSHIFT_HAPROXY_HTTPCHK_EXPECT_RSTATUS} | sed -e 's/[\/&]/\\&/g')/g" /tmp/haproxy.cfg.$$
+        cat /tmp/haproxy.cfg.$$ > "$haproxy_cfg"
+        rm -f /tmp/haproxy.cfg.$$
+        ) 200>${haproxy_cfg}.lock
+    fi
 }
 
 function _start_haproxy_service() {
