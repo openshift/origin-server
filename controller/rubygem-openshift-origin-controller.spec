@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.31.1
+Version: 1.31.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Sep 23 2014 Adam Miller <admiller@redhat.com> 1.31.2-1
+- Multiple bug fixes Bug 1109647 - Loss of alias on SYNOPSIS part for oo-admin-
+  ctl-app Bug 1144610 - oo-admin-usage is broken Bug 1130435 - Setting a same
+  scale info on a cartridge makes connection hooks being run
+  (abhgupta@redhat.com)
+
 * Thu Sep 18 2014 Adam Miller <admiller@redhat.com> 1.31.1-1
 - bump_minor_versions for sprint 51 (admiller@redhat.com)
 - Multiple bug fixes: Bug 1086061 - Should update the description of clean
