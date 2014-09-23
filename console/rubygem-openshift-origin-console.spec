@@ -10,7 +10,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.31.1
+Version: 1.31.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -168,6 +168,11 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Sep 23 2014 Adam Miller <admiller@redhat.com> 1.31.2-1
+- Merge pull request #5830 from jwforres/bug_1144950_alias_cert_errors
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1144950 - Show server-side errors for bad certs (jforrest@redhat.com)
+
 * Thu Sep 18 2014 Adam Miller <admiller@redhat.com> 1.31.1-1
 - bump_minor_versions for sprint 51 (admiller@redhat.com)
 - Use domain max_gears when displaying app scaling limits (jliggitt@redhat.com)
