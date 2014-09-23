@@ -483,8 +483,8 @@ You should see the following cartridges available to install:
 ====
 *What about JBoss?*
 
-JBoss cartridges are distributed with OpenShift, however they will not work without a JRE to run against.
-The JBoss and WildFly JREs are not currently available as RPMs, so unfortunately we cannot include them
+JBoss cartridges are distributed with OpenShift, however they will not work without a Java application server to run against.
+The JBoss and WildFly application servers are not currently available as RPMs, so unfortunately we cannot include them
 in our dependencies repo. For a community-driven solution to this problem, refer to the
 http://lists.openshift.redhat.com/openshift-archives/dev/2014-July/msg00175.html[dev list discussion]
 on this topic.
