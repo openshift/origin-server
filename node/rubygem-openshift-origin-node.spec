@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.31.1
+Version: 1.31.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Sep 23 2014 Adam Miller <admiller@redhat.com> 1.31.2-1
+- Expose haproxy-sni-proxy mapped ports as environmental variables
+  (bparees@redhat.com)
+
 * Thu Sep 18 2014 Adam Miller <admiller@redhat.com> 1.31.1-1
 - bump_minor_versions for sprint 51 (admiller@redhat.com)
 - Merge pull request #5794 from sosiouxme/improve-platform-logging-bz1139359
