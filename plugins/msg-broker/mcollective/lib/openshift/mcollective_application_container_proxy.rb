@@ -3131,10 +3131,20 @@ module OpenShift
         end
       end
       if server_infos.empty?
-        if require_district && require_zone
-          raise OpenShift::NodeUnavailableException.new("No districted zone nodes available", 140)
-        elsif require_district
-          raise OpenShift::NodeUnavailableException.new("No district nodes available", 140)
+        if require_district
+          if require_zone
+            if region_id
+              raise OpenShift::NodeUnavailableException.new("No nodes available for the specified gear size/region/zone combination", 140)
+            else
+              raise OpenShift::NodeUnavailableException.new("No nodes available for the specified gear size/zone combination", 140)
+            end
+          else
+            if region_id
+              raise OpenShift::NodeUnavailableException.new("No nodes available for the specified gear size/region combination", 140)
+            else
+              raise OpenShift::NodeUnavailableException.new("No nodes available for the specified gear size", 140)
+            end
+          end
         end
       end
       # Remove the restricted servers from the list
