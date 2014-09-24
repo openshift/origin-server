@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.31.2
+Version: 1.31.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Sep 24 2014 Adam Miller <admiller@redhat.com> 1.31.3-1
+- Merge pull request #5829 from mfojtik/wildfly_test
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_devexp_328 - Initial Wildfly 8 cucumber tests
+  (mfojtik@redhat.com)
+
 * Tue Sep 23 2014 Adam Miller <admiller@redhat.com> 1.31.2-1
 - Multiple bug fixes Bug 1109647 - Loss of alias on SYNOPSIS part for oo-admin-
   ctl-app Bug 1144610 - oo-admin-usage is broken Bug 1130435 - Setting a same
