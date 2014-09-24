@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.30.1
+Version: 1.30.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Wed Sep 24 2014 Adam Miller <admiller@redhat.com> 1.30.2-1
+- Better error messages around no nodes available (dmcphers@redhat.com)
+
 * Thu Sep 18 2014 Adam Miller <admiller@redhat.com> 1.30.1-1
 - bump_minor_versions for sprint 51 (admiller@redhat.com)
 - Multiple bug fixes: Bug 1086061 - Should update the description of clean
