@@ -10,7 +10,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.31.2
+Version: 1.31.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -168,6 +168,10 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Sep 24 2014 Adam Miller <admiller@redhat.com> 1.31.3-1
+- Bug 1146108 - display unique name on cartridge if there is another cart with
+  the same display name (jforrest@redhat.com)
+
 * Tue Sep 23 2014 Adam Miller <admiller@redhat.com> 1.31.2-1
 - Merge pull request #5830 from jwforres/bug_1144950_alias_cert_errors
   (dmcphers+openshiftbot@redhat.com)
