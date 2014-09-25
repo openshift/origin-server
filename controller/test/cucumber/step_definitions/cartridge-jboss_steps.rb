@@ -86,7 +86,7 @@ Then /^the application should display default content for deployed artifacts on 
   result.should == 0
 
   artifacts=output[0].split(':')[2].split(' ')
-  
+
   # Verify content for each artifact (ROOT.war should be / others should be /<artifact name>
   artifacts.each do |artifact|
     # strip out pathnames, file extension and trailing junk
@@ -102,7 +102,7 @@ Then /^the application should display default content for deployed artifacts on 
   end
 end
 
-Then /^deployment verification should be skipped with (scanner disabled|management unavailable) message$/ do |reason| 
+Then /^deployment verification should be skipped with (scanner disabled|management unavailable) message$/ do |reason|
   case reason
   when "scanner disabled"
     logfile = @app.get_log("git_push_scanner_config_disabled")
@@ -140,7 +140,7 @@ Then /^(only exploded|only archive|no|all|default) artifacts should be deployed$
   unknownresult.should_not == 0
 
   skippedoutput = []
-  skippedresult = run("grep 'Artifacts skipped because of deployment-scanner configuration:' " + logfile, 
+  skippedresult = run("grep 'Artifacts skipped because of deployment-scanner configuration:' " + logfile,
                       skippedoutput)
 
   deployedoutput = []
@@ -204,7 +204,7 @@ end
 When /^the jboss repository config file is restored( without restart)$/ do |norestart|
   Dir.chdir(@app.repo) do
     # rename the standalone.xml so it will be found
-    run("git mv .openshift/config/standalone.bak .openshift/config/standalone.xml")    
+    run("git mv .openshift/config/standalone.bak .openshift/config/standalone.xml")
     run("git commit -a -m 'Test change'")
     run("git push >> " + @app.get_log("git_push") + " 2>&1") unless norestart
   end
@@ -225,7 +225,7 @@ When /^a property with key (.*?) and value (.*?) is added to the (.*?) repositor
 end
 
 When /^a property with key (.*?) and value (.*?) is added directly to the (.*?) config$/ do |key,value,jboss|
-  if jboss == "JBOSS"
+  if jboss =~ /JBOSS/
     @app.ssh_command("sed -i \\'s/\\<system-properties\\>/\\<system-properties\\>\\\\n\\<property name=\\\"#{key}\\\" value=\\\"#{value}\\\"\\\\/\\>/\\' \\$OPENSHIFT_#{jboss}_DIR/standalone/configuration/standalone.xml")
   end
   if jboss == "WILDFLY"
@@ -233,7 +233,7 @@ When /^a property with key (.*?) and value (.*?) is added directly to the (.*?) 
   end
 end
 
-Then /^the (.*?) config will( not)? contain a property with the value (.*?)$/ do |jboss,negate,value| 
+Then /^the (.*?) config will( not)? contain a property with the value (.*?)$/ do |jboss,negate,value|
   @app.ssh_command("'grep #{value} $OPENSHIFT_#{jboss}_DIR/standalone/configuration/standalone.xml'")
   exit_status = $?.exitstatus
   if negate
