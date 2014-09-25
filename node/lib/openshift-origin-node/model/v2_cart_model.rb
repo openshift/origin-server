@@ -1380,6 +1380,11 @@ module OpenShift
                     "CLIENT_ERROR: Failed to execute action hook '#{action}' for #{@container.uuid} application #{@container.application_name}",
                     rc, out, err
                 ) if rc != 0
+        else
+          hook = action_hook.split("/")[-3..-1].join("/")
+          out = "NOTE: The #{hook} hook is not executable, to make it executable:\n"
+          out += "      On Windows run:   git update-index --chmod=+x #{hook}\n"
+          out += "      On Linux/OSX run: chmod +x #{hook}\n"
         end
 
         buffer << out if out.is_a?(String)
