@@ -32,6 +32,7 @@ The following issues can be fixed with this script:
   - mismatch in available UIDs for a district and actual UIDs used by the gears on the nodes within the district
   - mismatch in user resource consumption in mongo
   - apps due to server node down/decommissioned
+  - domains containing invalid gear sizes in their allowed gear sizes list
 
 == Usage
 
@@ -50,6 +51,8 @@ Options:
     Fix mismatch in available UIDs for a district in mongo
 --removed-nodes
     Fix or cleanup apps due to server node down/decommissioned
+--gear-sizes
+    Fix allowed_gear_sizes in domains to remove invalid gear sizes
 --usage
     Fix resource usage mismatches in mongo
 -h|--help
@@ -67,6 +70,7 @@ begin
     ["--district-uids",          GetoptLong::NO_ARGUMENT],
     ["--consumed-gears",         GetoptLong::NO_ARGUMENT],
     ["--removed-nodes",          GetoptLong::NO_ARGUMENT],
+    ["--gear-sizes",             GetoptLong::NO_ARGUMENT],
     ["--confirm",                GetoptLong::REQUIRED_ARGUMENT], # Only used for test automation
     ["--usage",                  GetoptLong::NO_ARGUMENT],
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
@@ -84,9 +88,10 @@ fix_district_uids = args["--district-uids"]
 fix_consumed_gears = args["--consumed-gears"]
 fix_removed_nodes = args["--removed-nodes"]
 fix_usage = args["--usage"]
+fix_domain_gear_sizes = args["--gear-sizes"]
 
 if fix_ssh_keys.nil? and fix_district_uids.nil? and fix_consumed_gears.nil? and
-   fix_removed_nodes.nil? and fix_usage.nil?
+   fix_removed_nodes.nil? and fix_usage.nil? and fix_domain_gear_sizes.nil?
   puts "You must specify at least one item to fix."
   usage
 end
@@ -817,6 +822,15 @@ def repair_removed_nodes(available_servers, unresponsive_servers, auto_confirm)
   end
 end
 
+def repair_domain_allowed_gear_sizes(invalid_gear_sizes)
+  if invalid_gear_sizes.present?
+    print "Removing invalid gear sizes (#{invalid_gear_sizes.join(',')}) from all domains...\t"
+    Domain.update_all({ "$pullAll" => { allowed_gear_sizes: invalid_gear_sizes }})
+    puts "Done."
+  end
+end
+
+
 current_time = Time.now.utc
 puts "Started at: #{current_time}"
 start_time = (current_time.to_f * 1000).to_i
@@ -841,6 +855,9 @@ stale_keys_vars_domain_ids = run :find_stale_sshkeys_and_envvars if fix_ssh_keys
 unreserved_district_uid_map = {}
 unused_district_uid_map = {}
 unreserved_district_uid_map, unused_district_uid_map = run :find_district_inconsistencies if fix_district_uids
+
+invalid_gear_sizes = []
+invalid_gear_sizes = run :find_domain_gear_sizes_inconsistencies if fix_domain_gear_sizes
 
 usage_gear_app_gear_ids = []
 usage_gear_urec_gear_ids = []
@@ -879,6 +896,7 @@ unless report_only
                     usage_storage_mismatch_gear_ids, usage_cart_app_gear_ids,
                     usage_cart_urec_gear_ids, usage_gear_ids, usage_urec_gear_ids
   run :repair_removed_nodes, available_servers, unresponsive_servers, auto_confirm
+  run :repair_domain_allowed_gear_sizes, invalid_gear_sizes
 end
 
 end_time = Time.now.utc

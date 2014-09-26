@@ -9,6 +9,7 @@ module AdminHelper
   $user_hash = {}
   $domain_hash = {}
   $app_gear_hash = {}
+  $domain_gear_sizes = []
 
   $usage_gear_hash = {}
   $usage_storage_hash = {}
@@ -148,6 +149,7 @@ module AdminHelper
       domain["system_ssh_keys"].each { |k| system_ssh_keys << ["domain-#{k['name']}", Digest::MD5.hexdigest(k["content"]), k["component_id"].to_s] if k["content"] } if domain["system_ssh_keys"].present?
       $domain_hash[domain["_id"].to_s] = {"owner_id" => owner_id, "canonical_namespace" => domain["canonical_namespace"], "env_vars" => env_vars, "ssh_keys" => system_ssh_keys, "ref_ids" => []}
       get_user_hash(owner_id, true)
+      $domain_gear_sizes |= domain["allowed_gear_sizes"]
 
       print_message "Domain '#{domain['_id']}' has no members in mongo." unless domain['members'].present?
 
@@ -854,4 +856,14 @@ module AdminHelper
       print_message errors.join("\n") if errors.present?
     end
   end 
+
+  # Find allowed gear sizes inconsistencies in domains in mongo 
+  # vs the valid gear sizes defined in the broker configuration
+  def find_domain_gear_sizes_inconsistencies
+    invalid_gear_sizes = $domain_gear_sizes - Rails.configuration.openshift[:gear_sizes]
+    if invalid_gear_sizes.present?
+      print_message "Some domains have invalid gear sizes allowed: #{invalid_gear_sizes.join(',')}"
+    end
+    invalid_gear_sizes
+  end
 end
