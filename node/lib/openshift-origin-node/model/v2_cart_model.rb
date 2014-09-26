@@ -1380,11 +1380,15 @@ module OpenShift
                     "CLIENT_ERROR: Failed to execute action hook '#{action}' for #{@container.uuid} application #{@container.application_name}",
                     rc, out, err
                 ) if rc != 0
-        else
+        elsif File.exists?(action_hook)
           hook = action_hook.split("/")[-3..-1].join("/")
-          out = "NOTE: The #{hook} hook is not executable, to make it executable:\n"
-          out += "      On Windows run:   git update-index --chmod=+x #{hook}\n"
-          out += "      On Linux/OSX run: chmod +x #{hook}\n"
+          notice = "NOTE: The #{hook} hook is not executable, to make it executable:\n"
+          notice += "      On Windows run:   git update-index --chmod=+x #{hook}\n"
+          notice += "      On Linux/OSX run: chmod +x #{hook}\n"
+          # FIXME: This works for all action_hooks. Putting the notice into
+          #        'buffer' works only for prepare/build but it is silenced for
+          #        pre/post_* hooks
+          $stdout.puts notice
         end
 
         buffer << out if out.is_a?(String)
