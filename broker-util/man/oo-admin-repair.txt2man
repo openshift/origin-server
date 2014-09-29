@@ -3,6 +3,7 @@
 SYNOPSIS
   oo-admin-repair [-h|--help] [-v|--verbose] [-r|--report-only] 
   [--consumed-gears] [--ssh-keys] [--district-uids] [--removed-nodes]
+  [--gear-sizes]
 
 DESCRIPTION
   This utility checks and fixes various inconsistencies in mongo data
@@ -15,10 +16,12 @@ DESCRIPTION
     - mismatch in available UIDs for a district and actual 
       UIDs used by the gears on the nodes within the district
     - apps due to server node down/decommissioned
+    - domains containing invalid gear sizes in their allowed 
+      gear sizes list
 
 OPTIONS
   -r|--report-only
-    Only report the mismatches, don't fix them 
+    Only report the mismatches, don't fix them
   --consumed-gears
     Fix  mismatch in user's consumed gears vs actual gears 
     in mongo
@@ -29,6 +32,8 @@ OPTIONS
     Fix mismatch in available UIDs for a district in mongo
   --removed-nodes
     Fix or cleanup apps due to server node down/decommissioned
+  --gear-sizes
+    Fix allowed_gear_sizes in domains to remove invalid gear sizes
   -h|--help
     Display a simple help dialog.
   -v|--verbose

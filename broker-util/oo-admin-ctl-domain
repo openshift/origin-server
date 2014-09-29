@@ -214,7 +214,7 @@ when "update"
     exit 1
   else
     begin
-      d = user.domains.find_by(canonical_namespace: namespace)
+      d = user.domains.find_by(canonical_namespace: namespace.downcase)
       if new_namespace
         d.namespace = new_namespace
       end
