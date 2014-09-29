@@ -6,9 +6,9 @@
 Feature: Cartridge Lifecycle Wildfly Verification Tests
   Scenario: Application Creation
     Given the libra client tools
-    When 1 wildfly-wildfly-8 applications are created
+    When 1 jboss-wildfly-8 applications are created
     Then the applications should display default content on first attempt
-    Given an existing wildfly-wildfly-8 application
+    Given an existing jboss-wildfly-8 application
     When the application is restarted
     Then the application should be accessible
 
