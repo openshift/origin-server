@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.31.3
+Version: 1.31.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,18 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Sep 30 2014 Adam Miller <admiller@redhat.com> 1.31.4-1
+- Merge pull request #5845 from mfojtik/wildfly_test_fix
+  (dmcphers+openshiftbot@redhat.com)
+- Adding checks and repair logic for invalid gear sizes in domains
+  (abhgupta@redhat.com)
+- Fixed wildfly cartridge name in cucumber tests (mfojtik@redhat.com)
+- Bug 1146681 - oo-admin-ctl-domain cannot change allowed gear sizes for a
+  mixed-case domain (abhgupta@redhat.com)
+- Merge pull request #5839 from bparees/fix_jboss_test
+  (dmcphers+openshiftbot@redhat.com)
+- use regex handling for jboss string (bparees@redhat.com)
+
 * Wed Sep 24 2014 Adam Miller <admiller@redhat.com> 1.31.3-1
 - Merge pull request #5829 from mfojtik/wildfly_test
   (dmcphers+openshiftbot@redhat.com)
