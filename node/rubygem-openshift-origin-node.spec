@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.31.2
+Version: 1.31.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,12 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Sep 30 2014 Adam Miller <admiller@redhat.com> 1.31.3-1
+- Bug 1146767 - Check if hook file exists before showing notice
+  (mfojtik@redhat.com)
+- Bug 1145696 - Print notice to users when pushing non-executable action hooks
+  (mfojtik@redhat.com)
+
 * Tue Sep 23 2014 Adam Miller <admiller@redhat.com> 1.31.2-1
 - Expose haproxy-sni-proxy mapped ports as environmental variables
   (bparees@redhat.com)
