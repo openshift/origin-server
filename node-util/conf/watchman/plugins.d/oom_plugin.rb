@@ -22,7 +22,7 @@ require 'openshift-origin-node/utils/cgroups'
 require 'openshift-origin-node/utils/cgroups/libcgroup'
 require 'openshift-origin-node/model/application_container'
 
-OP_TIMEOUT=240
+OP_TIMEOUT=360
 
 # Provide Watchman with monitoring of CGroups resource killing of gears
 class OomPlugin < OpenShift::Runtime::WatchmanPlugin
