@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.30.2
+Version: 1.30.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -201,6 +201,9 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Wed Oct 01 2014 Adam Miller <admiller@redhat.com> 1.30.3-1
+- Bug 1141922 (lnader@redhat.com)
+
 * Tue Sep 30 2014 Adam Miller <admiller@redhat.com> 1.30.2-1
 - bz1147054 - use common lockfile (rchopra@redhat.com)
 
