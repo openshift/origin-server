@@ -18,6 +18,7 @@ DESCRIPTION
     - apps due to server node down/decommissioned
     - domains containing invalid gear sizes in their allowed 
       gear sizes list
+    - users containing invalid gear sizes in their capabilities
 
 OPTIONS
   -r|--report-only
@@ -33,7 +34,7 @@ OPTIONS
   --removed-nodes
     Fix or cleanup apps due to server node down/decommissioned
   --gear-sizes
-    Fix allowed_gear_sizes in domains to remove invalid gear sizes
+    Fix gear sizes in domains users and to remove invalid gear sizes
   -h|--help
     Display a simple help dialog.
   -v|--verbose

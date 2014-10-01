@@ -206,6 +206,10 @@ if level >= 1
   puts "Checked domain allowed gear sizes inconsistencies in #{(Time.now - current_time).to_i} seconds\n\n"
 
   current_time = Time.now
+  run :find_user_gear_sizes_inconsistencies
+  puts "Checked user gear sizes inconsistencies in #{(Time.now - current_time).to_i} seconds\n\n"
+
+  current_time = Time.now
   run :find_app_gear_usage_record_inconsistencies
   puts "Checked gear usage inconsistencies in #{(Time.now - current_time).to_i} seconds\n\n"
 

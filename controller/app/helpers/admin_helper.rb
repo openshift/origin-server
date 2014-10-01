@@ -10,6 +10,7 @@ module AdminHelper
   $domain_hash = {}
   $app_gear_hash = {}
   $domain_gear_sizes = []
+  $user_gear_sizes = []
 
   $usage_gear_hash = {}
   $usage_storage_hash = {}
@@ -125,6 +126,7 @@ module AdminHelper
         print_message "User with Id #{user['_id']} has a null, empty, or missing login." unless skip_errors
       else
         $user_hash[user["_id"].to_s] = get_user_info(user)
+        $user_gear_sizes |= user["capabilities"]["gear_sizes"] if user["capabilities"].present? and user["capabilities"]["gear_sizes"].present?
       end
     end
   end
@@ -863,6 +865,16 @@ module AdminHelper
     invalid_gear_sizes = $domain_gear_sizes - Rails.configuration.openshift[:gear_sizes]
     if invalid_gear_sizes.present?
       print_message "Some domains have invalid gear sizes allowed: #{invalid_gear_sizes.join(',')}"
+    end
+    invalid_gear_sizes
+  end
+
+  # Find gear sizes inconsistencies for user capabilities in mongo 
+  # vs the valid gear sizes defined in the broker configuration
+  def find_user_gear_sizes_inconsistencies
+    invalid_gear_sizes = $user_gear_sizes - Rails.configuration.openshift[:gear_sizes]
+    if invalid_gear_sizes.present?
+      print_message "Some users have invalid gear sizes in their capabilities: #{invalid_gear_sizes.join(',')}"
     end
     invalid_gear_sizes
   end
