@@ -89,6 +89,8 @@ module Admin
       end
     end
 
+    class RegionEntry < HashWithReaders; end
+    class RegionSummary < HashWithReaders; end
     class DistrictSummary < HashWithReaders; end
     class ProfileSummary < HashWithReaders; end
     class DistrictEntry < HashWithReaders; end
