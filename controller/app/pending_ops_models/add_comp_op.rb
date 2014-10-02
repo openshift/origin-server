@@ -3,7 +3,6 @@ class AddCompOp < PendingAppOp
   field :gear_id, type: String
   field :comp_spec, type: ComponentSpec
   field :init_git_url, type: String
-  field :skip_rollback, type: Boolean
 
   def execute
     gear = get_gear

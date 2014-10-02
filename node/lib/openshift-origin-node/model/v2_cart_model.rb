@@ -199,18 +199,53 @@ module OpenShift
         Manifest.new(manifest_path, version, :file, @container.container_dir)
       end
 
-      # destroy(skip_hooks = false) -> [buffer, '', 0]
+      # Optionally back up the gear directory contents to a
+      # user-specified "dump site" if a gear is rolled back due to
+      # failure during app create
+      def archive_gear()
+        archive_dir = @config.get("ARCHIVE_DESTROYED_GEARS_DIR", nil)
+        if @config.get_bool("ARCHIVE_DESTROYED_GEARS", false)
+          if not archive_dir
+            logger.warn "Cannot archive destroyed gears; ARCHIVE_DESTROYED_GEARS_DIR is not set in node.conf"
+            return
+          elsif not File.directory? archive_dir
+            logger.warn "Cannot archive destroyed gears; #{archive_dir} is not a directory"
+            return
+          elsif not File.writable? archive_dir
+            logger.warn "Cannot archive destroyed gears; #{archive_dir} is not writable"
+            return
+          elsif File.world_readable? archive_dir or File.world_writable? archive_dir
+            logger.warn "Cannot archive destroyed gears; #{archive_dir} is world readable and/or writable"
+            return
+          end
+          archive_filespec = PathUtils.join(archive_dir, "#{@container.application_name}-#{@container.uuid}.tar.bz2")
+          if File.exists? archive_filespec
+            logger.warn "Cannot archive destroyed gears; #{archive_filespec} already exists"
+          else
+            command = "tar --selinux --acls --preserve --create --bzip2 --file=#{archive_filespec} #{@container.container_dir}"
+            tarout, tarerr, rc = Utils.oo_spawn(command)
+            unless rc == 0
+              logger.warn "Error occurred running \"#{command}\"; rc=#{rc}, stdout=#{tarout}, stderr=#{tarerr}"
+              FileUtils.rm_f archive_filespec
+            end
+          end
+        end
+      end
+
+      # destroy(skip_hooks = false, is_group_rollback = false) -> [buffer, '', 0]
       #
       # Remove all cartridges from a gear and delete the gear.  Accepts
       # and discards any parameters to comply with the signature of V1
       # require, which accepted a single argument.
       #
       # destroy() => ['', '', 0]
-      def destroy(skip_hooks = false)
+      def destroy(skip_hooks = false, is_group_rollback = false)
         logger.info('V2 destroy')
 
         buffer = ''
         begin
+          # only archive if app create failed
+          archive_gear if is_group_rollback
           unless skip_hooks
             each_cartridge do |cartridge|
               unlock_gear(cartridge, false) do |c|

@@ -2,7 +2,6 @@ class ResendSslCertsOp < PendingAppOp
 
   field :gear_id, type: String
   field :ssl_certs, type: Array
-  field :skip_rollback, type: Boolean
 
   def execute
     result_io = ResultIO.new

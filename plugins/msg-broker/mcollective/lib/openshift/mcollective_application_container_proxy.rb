@@ -401,6 +401,7 @@ module OpenShift
     # INPUTS:
     # * gear: a Gear object
     # * keep_uid: boolean
+    # * is_group_rollback: boolean - flag for optional archive on rollback
     # * uid: Integer: reserved UID
     # * skip_hooks: boolean
     #
@@ -410,9 +411,10 @@ module OpenShift
     # NOTES:
     # * uses execute_direct
     #
-    def destroy(gear, keep_uid=false, uid=nil, skip_hooks=false)
+    def destroy(gear, keep_uid=false, is_group_rollback=false, uid=nil, skip_hooks=false)
       args = build_base_gear_args(gear)
       args['--skip-hooks'] = true if skip_hooks
+      args['--is-group-rollback'] = true if is_group_rollback
       begin
         result = execute_direct(@@C_CONTROLLER, 'app-destroy', args)
         result_io = parse_result(result, gear)
