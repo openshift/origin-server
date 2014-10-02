@@ -40,7 +40,7 @@ module Console
     config_accessor :prohibited_email_domains
     config_accessor :syslog_enabled
 
-    config accessor :background_request_timeout
+    config_accessor :background_request_timeout
 
     #
     # A class that represents the capabilities object
