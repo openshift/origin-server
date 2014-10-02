@@ -8,7 +8,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.30.3
+Version: 1.30.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -109,6 +109,10 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Thu Oct 02 2014 Adam Miller <admiller@redhat.com> 1.30.4-1
+- Bug 1145132 - Domain validation fails when adding size due to previously
+  removed size (abhgupta@redhat.com)
+
 * Tue Sep 30 2014 Adam Miller <admiller@redhat.com> 1.30.3-1
 - Bug 1146681 - oo-admin-ctl-domain cannot change allowed gear sizes for a
   mixed-case domain (abhgupta@redhat.com)
