@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.31.4
+Version: 1.31.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Oct 02 2014 Adam Miller <admiller@redhat.com> 1.31.5-1
+- Bug 1145132 - Domain validation fails when adding size due to previously
+  removed size (abhgupta@redhat.com)
+
 * Tue Sep 30 2014 Adam Miller <admiller@redhat.com> 1.31.4-1
 - Merge pull request #5845 from mfojtik/wildfly_test_fix
   (dmcphers+openshiftbot@redhat.com)
