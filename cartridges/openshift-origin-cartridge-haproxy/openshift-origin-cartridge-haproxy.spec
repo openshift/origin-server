@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version: 1.27.1
+Version: 1.27.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -48,6 +48,12 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Oct 02 2014 Adam Miller <admiller@redhat.com> 1.27.2-1
+- Bug 1146112 - Added 401 to default expected status codes on health check.
+  This will allow for Basic Auth applications to work in scaled mode. Also
+  provided ability for admins and users to change this and the health check URI
+  values using environment variables. (esauer@redhat.com)
+
 * Fri Aug 08 2014 Adam Miller <admiller@redhat.com> 1.27.1-1
 - bump_minor_versions for sprint 49 (admiller@redhat.com)
 
