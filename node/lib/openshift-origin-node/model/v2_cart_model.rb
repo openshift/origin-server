@@ -226,6 +226,7 @@ module OpenShift
             tarout, tarerr, rc = Utils.oo_spawn(command)
             unless rc == 0
               logger.warn "Error occurred running \"#{command}\"; rc=#{rc}, stdout=#{tarout}, stderr=#{tarerr}"
+              FileUtils.rm_f archive_filespec
             end
           end
         end
