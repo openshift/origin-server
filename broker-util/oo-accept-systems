@@ -154,14 +154,14 @@ def check_nodes_cartridges
   verbose "Checking consistency of broker records with cartridges installed on node hosts."
 
   # get the current carts the broker has, so we can compare to nodes.
+  seen = {} # keep the "latest" (i.e. most recently activated) cart version, which is earliest in the list
   carts_for_broker = CartridgeType.latest.to_a.
-    inject([]) {|carts,c| carts << c unless carts.last && carts.last.name == c.name; carts } # only the latest of each
+    inject([]) {|carts,c| carts << (seen[c.name] = c) unless seen[c.name]; carts }
   disabled_carts, carts_for_broker = carts_for_broker.partition {|c| c.priority.nil?}
   downloaded_carts, carts_for_broker = carts_for_broker.partition {|c| c.manifest_url}
-  versioned_carts_for_broker = carts_for_broker.map {|c| "#{c.cartridge_vendor}-#{c.name}-#{c.cartridge_version}" }
-  carts_for_broker.map! {|c| c.name }
-  disabled_carts.map! {|c| c.name }
-  downloaded_carts.map! {|c| c.name }
+  obsolete_carts, carts_for_broker = carts_for_broker.partition {|c| c.is_obsolete?}
+  broker_version_of_cart = Hash[carts_for_broker.collect {|c| [c.name, "#{c.cartridge_vendor}-#{c.name}-#{c.cartridge_version}"] }]
+  [carts_for_broker, disabled_carts, downloaded_carts, obsolete_carts].each {|list| list.map! {|c| c.name }.sort! }
   verbose "Broker expects nodes to have these cartridges: #{carts_for_broker.join ', '}"
   verbose "Broker has disabled cartridges: #{disabled_carts.join ', '}" if !disabled_carts.empty?
   verbose "Broker has imported downloadable cartridges: #{downloaded_carts.join ', '}" if !downloaded_carts.empty?
@@ -176,7 +176,7 @@ def check_nodes_cartridges
   # get the list of cartridges from every node. we are interested in whether the nodes have
   # expected cartridges at all, and also in whether the versions match.
   #
-  obsolete_carts = []
+  node_obsolete_carts = []
   carts_for_profile = Hash.new {|h,k| h[k]= Array.new }
   carts_for_node = {}
   versioned_carts_for_node = {}
@@ -185,11 +185,11 @@ def check_nodes_cartridges
     carts = OpenShift::ApplicationContainerProxy.instance(node).get_available_cartridges.
       reject {|cart| disabled_carts.include? cart.name }.  # ignore broker-disabled carts
       reject {|cart| downloaded_carts.include? cart.name } # ignore downloaded carts
-    obs_carts, non_obs_carts = carts.partition {|cart| cart.is_obsolete?}
-    obsolete_carts |= obs_carts.map {|cart| cart.name }
-    carts_for_profile[profile] |= carts_for_node[node] = non_obs_carts.map {|cart| cart.name }.uniq.sort
+    obs_carts, carts = carts.partition {|cart| cart.is_obsolete?}
+    node_obsolete_carts |= obs_carts.map {|cart| cart.name } # note obsoletes, but do not expect at broker
+    carts_for_profile[profile] |= carts_for_node[node] = carts.map {|cart| cart.name }.uniq.sort
     versioned_carts_for_node[node] = # array of only the latest version of each cart
-      non_obs_carts.sort_by {|c| "#{c.name}-#{version_cmp(c.cartridge_version)}-#{c.cartridge_vendor}"}.
+      carts.sort_by {|c| "#{c.name}-#{version_cmp(c.cartridge_version)}-#{c.cartridge_vendor}"}.
         # ^^^ sorted so highest version of each cart name comes last; only that one is recorded (vvv)
       inject({}) {|hash,c| hash[c.name] = "#{c.cartridge_vendor}-#{c.name}-#{c.cartridge_version}"; hash }
   end
@@ -203,20 +203,23 @@ def check_nodes_cartridges
       verbose "Active cartridges for #{node}: #{carts.join ', '}"
     end
   end
-  verbose "Some nodes have obsolete cartridges installed: #{obsolete_carts.uniq.sort.join(', ')}" if obsolete_carts.present?
+  verbose "Some nodes have obsolete cartridges installed: #{node_obsolete_carts.uniq.sort.join(', ')}" if node_obsolete_carts.present?
 
   # if possible, check that profiles provide cartridges specified in broker conf.
   if restricted = Rails.configuration.openshift[:cartridge_gear_sizes]
     mismatch = []
-    restricted.each do |cart,profiles|
-      next if !carts_for_broker.include? cart  # ignore disabled/downloaded
+    restricted.each do |cart,profiles|  # restricted in specific profiles as specified
+      next if !carts_for_broker.include? cart  # ignore disabled/downloaded/obsolete
+      verbose "Broker requires the '#{cart}' cartridge in profile(s): #{profiles.join ', '}"
       profiles.each do |prof|
-        next if carts_for_profile.include?(cart)
+        next if carts_for_profile[prof].include?(cart)
         mismatch << "Profile '#{prof}' does not provide cartridge '#{cart}' specified by VALID_GEAR_SIZES_FOR_CARTRIDGE"
       end
     end
-    unrestricted = carts_for_broker - restricted.keys # expect in all profiles
+    unrestricted = carts_for_broker - restricted.keys # not explicitly listed, so expect in all profiles
+    verbose "Broker expects all profiles to have cartridge(s): #{unrestricted.join ', '}"
     carts_for_profile.each do |prof,profile_carts|
+      verbose "Nodes in profile '#{prof}' provide these cartridges: #{profile_carts.join ', '}"
       next if (missing = unrestricted - profile_carts).empty?
       mismatch << "Profile '#{prof}' does not provide cartridge(s) #{missing.join ', '} as expected by the broker"
     end
@@ -225,6 +228,7 @@ def check_nodes_cartridges
   else # if that conf option isn't there, inform instead of warn about variations between profile cartridge sets
     mismatch = []
     carts_for_profile.each do |prof,profile_carts|
+      verbose "Nodes in profile '#{prof}' provide these cartridges: #{profile_carts.join ', '}"
       next if (missing = carts_for_broker - profile_carts).empty?
       mismatch << "Profile #{prof} does not provide cartridge(s) #{missing.join ', '} that are active according to the broker."
     end
@@ -270,16 +274,17 @@ def check_nodes_cartridges
         mismatch << "node '#{node}' has extra cartridge(s) that the broker has not imported: #{extra.join ', '}"
         node_mismatch = true
       end
-      unless node_mismatch # worry about versions only once cart names match
-        missing = versioned_carts_for_broker - versioned_carts_for_node[node].values
-        extra = versioned_carts_for_node[node].values - versioned_carts_for_broker
-        if !(missing + extra).empty?
-          version_mismatch << <<-"MISMATCH"
-          For node '#{node}', the cartridge versions do not match what the broker has active:
-            Broker has: #{missing.join ', '}
-              Node has: #{extra.join ', '}
-          MISMATCH
-        end
+      # check whether cartridge versions match as best we can
+      v4c = versioned_carts_for_node[node] # "missing" means the node has it, but not at broker's version
+      missing = broker_version_of_cart.map {|cart,v| v4c[cart] && v4c[cart] != v ? v : nil}.compact
+      # "extra" means node has it, not at the broker's version, and not excluded (inactive/obsolete/downloaded)
+      extra = versioned_carts_for_node[node].values - broker_version_of_cart.values
+      if !(missing + extra).empty?
+        version_mismatch << <<-"MISMATCH"
+        For node '#{node}', the cartridge versions do not match what the broker has active:
+          Broker has: #{missing.join ', '}
+            Node has: #{extra.join ', '}
+        MISMATCH
       end
     end
   end
