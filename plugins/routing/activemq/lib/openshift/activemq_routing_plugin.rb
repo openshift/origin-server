@@ -111,10 +111,6 @@ module OpenShift
         :mappings => mappings
       }
       send_msg msg.to_yaml
-      # DEPRECATED, will be removed in OSE 2.2 / Origin 4
-      msg[:action] = :add_gear
-      msg[:deprecated] = "use add_public_endpoint"
-      send_msg msg.to_yaml
     end
 
     def notify_delete_public_endpoint(app, gear, public_ip, public_port)
@@ -126,10 +122,6 @@ module OpenShift
         :public_address => public_ip,
         :public_port => public_port.to_i
       }
-      send_msg msg.to_yaml
-      # DEPRECATED, will be removed in OSE 2.2 / Origin 4
-      msg[:action] = :delete_gear
-      msg[:deprecated] = "use remove_public_endpoint"
       send_msg msg.to_yaml
     end
   end
