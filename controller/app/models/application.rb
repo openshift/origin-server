@@ -1085,6 +1085,11 @@ class Application
     "#{gear_name || canonical_name}-#{domain_namespace}.#{Rails.configuration.openshift[:domain_suffix]}"
   end
 
+  def app_url
+    proto = Rails.application.config.openshift[:app_require_https] ? "https" : "http"
+    "#{proto}://#{fqdn()}/"
+  end
+
   ##
   # Returns the SSH URI for an application gear (unless specified, the primary)
   # @return [String]

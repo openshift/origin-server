@@ -104,6 +104,7 @@ Broker::Application.configure do
     :default_region_name => conf.get("DEFAULT_REGION_NAME", ""),
     :allow_region_selection => conf.get_bool("ALLOW_REGION_SELECTION", 'true'),
     :normalize_username_method => conf.get("NORMALIZE_USERNAME_METHOD", "noop"),
+    :app_require_https => conf.get_bool("APP_REQUIRE_HTTPS", "false"),
   }
 
   config.auth = {
