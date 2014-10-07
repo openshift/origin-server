@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.31.5
+Version: 1.31.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,15 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Oct 07 2014 Adam Miller <admiller@redhat.com> 1.31.6-1
+- Merge pull request #5743 from dobbymoodge/node_block_rollback
+  (dmcphers+openshiftbot@redhat.com)
+- node archive: improve doc, config logic (jolamb@redhat.com)
+- broker/node: Add parameter for gear destroy to signal part of gear creation
+  (jolamb@redhat.com)
+- Preventing rollback for PatchUserEnvVarsOp in case of gear creation
+  (abhgupta@redhat.com)
+
 * Thu Oct 02 2014 Adam Miller <admiller@redhat.com> 1.31.5-1
 - Bug 1145132 - Domain validation fails when adding size due to previously
   removed size (abhgupta@redhat.com)
