@@ -600,30 +600,32 @@ module OpenShift
       #
       def report_deployments(gear_env, options = {})
         broker_addr = @config.get('BROKER_HOST')
-        domain = gear_env['OPENSHIFT_NAMESPACE']
-        app_name = gear_env['OPENSHIFT_APP_NAME']
-        app_uuid = gear_env['OPENSHIFT_APP_UUID']
-        url = "https://#{broker_addr}/broker/rest/domain/#{domain}/application/#{app_name}/deployments"
+        domain      = gear_env['OPENSHIFT_NAMESPACE']
+        app_name    = gear_env['OPENSHIFT_APP_NAME']
+        app_uuid    = gear_env['OPENSHIFT_APP_UUID']
+        url         = "https://#{broker_addr}/broker/rest/domain/#{domain}/application/#{app_name}/deployments"
 
         params = broker_auth_params
         if params
           deployments = calculate_deployments
+          deployments.reject! { |d| d[:activations].empty? }
+
           params['deployments[]'] = deployments
           params[:application_id] = app_uuid
 
           begin
-            request = RestClient::Request.new(:method => :post,
-                                              :url => url,
-                                              :timeout => 30,
-                                              :headers => { :accept => 'application/json;version=1.6', :user_agent => 'OpenShift' },
-                                              :payload => params)
+            request = RestClient::Request.new(method: :post,
+                                              url: url,
+                                              timeout: 30,
+                                              headers: {accept: 'application/json;version=1.6', user_agent: 'OpenShift'},
+                                              payload: params)
 
             response = request.execute { |response, request, result| response }
           rescue => e
             options[:out].puts "Failed to report deployment to broker.  This will be corrected on the next git push. Message: #{e.message}" if options[:out]
           else
             if 300 <= response.code
-              options[:out].puts "Failed to report deployment to broker.  This will be corrected on the next git push." if options[:out]
+              options[:out].puts "Failed to report deployment to broker with status #{response.code}.  This will be corrected on the next git push." if options[:out]
             end
           end
         end
