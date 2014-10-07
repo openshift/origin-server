@@ -10,7 +10,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.31.3
+Version: 1.31.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -168,6 +168,20 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Oct 07 2014 Adam Miller <admiller@redhat.com> 1.31.4-1
+- Merge pull request #5823 from tiwillia/bz1144175
+  (dmcphers+openshiftbot@redhat.com)
+- Replaced missing underscore in config_accessor (tiwillia@redhat.com)
+- Refined validity check to properly check strings and integers
+  (tiwillia@redhat.com)
+- Fixed typo in regex (tiwillia@redhat.com)
+- Fixed digit regex check and added sanity check to ensure timeout is not 0
+  Updated call in console/app/controllers/settings_controller.rb to also use
+  the configured timeout (tiwillia@redhat.com)
+- Bug 1144175 Bugzilla link https://bugzilla.redhat.com/show_bug.cgi?id=1144175
+  Added a configuration option for a timeout where the console waits for
+  several background requests to the broker. (tiwillia@redhat.com)
+
 * Wed Sep 24 2014 Adam Miller <admiller@redhat.com> 1.31.3-1
 - Bug 1146108 - display unique name on cartridge if there is another cart with
   the same display name (jforrest@redhat.com)
