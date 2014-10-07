@@ -50,7 +50,7 @@ class Alias < RestApi::Base
       self.ssl_certificate = @certificate_file
       if !@certificate_chain_file.nil?
         self.ssl_certificate.strip!
-        self.ssl_certificate << "\n" << @certificate_chain_file.strip
+        self.ssl_certificate << "\n" << @certificate_chain_file.strip << "\n"
       end
     end
     normalize_ssl_certificate
