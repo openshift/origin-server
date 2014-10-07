@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.30.2
+Version: 1.30.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,11 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Tue Oct 07 2014 Adam Miller <admiller@redhat.com> 1.30.3-1
+- node archive: improve doc, config logic (jolamb@redhat.com)
+- broker/node: Add parameter for gear destroy to signal part of gear creation
+  (jolamb@redhat.com)
+
 * Wed Sep 24 2014 Adam Miller <admiller@redhat.com> 1.30.2-1
 - Better error messages around no nodes available (dmcphers@redhat.com)
 
