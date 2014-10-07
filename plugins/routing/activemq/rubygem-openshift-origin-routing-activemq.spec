@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for publishing routing information on ActiveMQ
 Name:          rubygem-%{gem_name}
-Version: 0.6.1
+Version: 0.6.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -72,6 +72,9 @@ cp conf/openshift-origin-routing-activemq.conf.example %{buildroot}/etc/openshif
 /etc/openshift/plugins.d/openshift-origin-routing-activemq.conf.example
 
 %changelog
+* Tue Oct 07 2014 Adam Miller <admiller@redhat.com> 0.6.2-1
+- SPI routing amq plugin: remove deprecated actions (lmeyer@redhat.com)
+
 * Thu Sep 18 2014 Adam Miller <admiller@redhat.com> 0.6.1-1
 - bump_minor_versions for sprint 51 (admiller@redhat.com)
 
