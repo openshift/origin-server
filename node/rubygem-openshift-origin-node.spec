@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.31.3
+Version: 1.31.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,14 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Oct 07 2014 Adam Miller <admiller@redhat.com> 1.31.4-1
+- node.conf: correct IP_ADDRESS_WRAPAROUND_OFFSET param (lmeyer@redhat.com)
+- delete partial/broken archive on "tar" command failure (jolamb@redhat.com)
+- node archive: improve doc, config logic (jolamb@redhat.com)
+- broker/node: Add parameter for gear destroy to signal part of gear creation
+  (jolamb@redhat.com)
+- v2_cart_model: allow archiving of destroyed gears (jolamb@redhat.com)
+
 * Tue Sep 30 2014 Adam Miller <admiller@redhat.com> 1.31.3-1
 - Bug 1146767 - Check if hook file exists before showing notice
   (mfojtik@redhat.com)
