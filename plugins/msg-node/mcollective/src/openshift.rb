@@ -458,9 +458,10 @@ module MCollective
         ssh_key  = args['--with-ssh-key']
         key_type = args['--with-ssh-key-type']
         comment  = args['--with-ssh-key-comment']
+        login    = args['--with-ssh-key-login']
 
         with_container_from_args(args) do |container|
-          container.add_ssh_keys([{:content => ssh_key, :type => key_type, :comment => comment}])
+          container.add_ssh_keys([{:content => ssh_key, :type => key_type, :comment => comment, :login => login}])
         end
       end
 
