@@ -1,0 +1,78 @@
+NAME
+  oo-gear-firewall
+  
+SYNOPSIS
+  oo-gear-firewall [OPTIONS]
+  
+DESCRIPTION
+  Create firewall rules and SELinux policy to contain gears to their
+  own internal IPs. Gears are identified as a range of user IDs on the
+  system. Static sets of rules and policy are created once to isolate
+  all possible gears in the range.
+
+  The UID range should be the same across all hosts in a gear profile. By
+  default the range is taken from district settings if known, or 1000-6999
+  if not. The tool may be re-run to apply rules and policy for a changed
+  UID range.
+
+  Firewall rules are implemented via iptables and prevent gears
+  from connecting to IPs that belong to other gears.
+
+  SELinux policies are implemented via semanage and prevent gears
+  from binding (listening) on IPs that belong to other gears.
+  
+OPTIONS
+  -i|--iptables MODE  
+    Mode in which to operate on iptables firewall rules. One of:
+
+      * output: only displays the rules that would be created.
+      * enable: saves, modifies, and reloads the live rules.
+      * dryrun: saves live rules, copies and modifies them in a separate file only.
+      * conf: edits existing rules in /etc/sysconfig/iptables without save or reload.
+      * disable: disables relevant rules.
+
+  -s|--selinux MODE  
+    Mode in which to operate on SELinux policy. One of:
+      * output: only displays the policy that would be created.
+      * enable: modifies SELinux policy.
+      * disable: disables relevant SELinux policy.
+
+  -b|--begin_uid UID  
+    First UID (defaults to district setting)
+
+  -e|--end_uid UID  
+    Last UID (defaults to district setting)
+
+  -h|--help  
+    Print usage notice.
+  
+CONFIGURATION
+  /var/lib/openshift/.settings/district.info  
+  Once districted, a node has the district UID range in this file.
+  
+EXAMPLE
+  $ oo-gear-firewall -i enable -s enable  
+    Enable rules and policy on a live node host
+  $ oo-gear-firewall -i conf -s enable -b 1000 -e 2999  
+    Enable during an install before iptables is started or node districted
+  $ oo-gear-firewall -i disable -s disable  
+    Disable rules and policy on a live node host
+  
+CAVEATS
+  Live changes of the iptables rules save the current rules, modify the
+  saved file, and reload the rules. The tool does not attempt to prevent
+  modifications during this process, so administrators should refrain from
+  modifying live or written rules in /etc/sysconfig/iptables concurrently
+  with this tool. DNAT rules managed by openshift-iptables-port-proxy
+  are reloaded after live changes are made, so they should not be lost.
+
+  The iptables firewall rules are implemented via a hardcoded filter
+  named rhc-app-contain; it is assumed that this tool is the sole manager
+  of this filter. They refer also to the rhc-app-comm filter which is
+  managed by the openshift-iptables-port-proxy service. Violations of
+  these assumptions are unsupported.
+
+  Before modifying /etc/sysconfig/iptables a timestamped copy is saved.
+  
+AUTHOR
+  Luke Meyer <lmeyer@redhat.com> - man page written for OpenShift Origin 
