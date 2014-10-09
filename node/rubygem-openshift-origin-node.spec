@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.31.4
+Version: 1.31.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Oct 09 2014 Adam Miller <admiller@redhat.com> 1.31.5-1
+- Bug 1148252 - Add status message (jhonce@redhat.com)
+- WIP Node Platform - Skip partial deployments (jhonce@redhat.com)
+
 * Tue Oct 07 2014 Adam Miller <admiller@redhat.com> 1.31.4-1
 - node.conf: correct IP_ADDRESS_WRAPAROUND_OFFSET param (lmeyer@redhat.com)
 - delete partial/broken archive on "tar" command failure (jolamb@redhat.com)
