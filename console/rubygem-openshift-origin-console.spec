@@ -10,7 +10,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.31.4
+Version: 1.31.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -168,6 +168,12 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Oct 09 2014 Adam Miller <admiller@redhat.com> 1.31.5-1
+- Merge pull request #5857 from fabianofranz/bugs/1149901
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1149901 - add missing line break to certificate files
+  (contact@fabianofranz.com)
+
 * Tue Oct 07 2014 Adam Miller <admiller@redhat.com> 1.31.4-1
 - Merge pull request #5823 from tiwillia/bz1144175
   (dmcphers+openshiftbot@redhat.com)
