@@ -277,6 +277,8 @@ module OpenShift
         raise ArgumentError.new("Illegal path to cartridge repository: '#{directory}'") unless File.directory?(directory)
 
         Dir.glob(PathUtils.join(directory, '*')).each do |path|
+          next unless File.directory?(path)
+
           entries = Dir.entries(path)
           entries.delete_if { |e| e =~ /\A\.\.?\Z/ }
           next unless entries && !entries.empty?
