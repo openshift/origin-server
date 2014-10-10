@@ -1,0 +1,286 @@
+#!/usr/bin/env oo-ruby
+
+#
+# Create iptables rules for application compartmentalization.
+#
+class OOContainNet
+
+  def initialize(options)
+    require 'rubygems'
+    require 'openshift-origin-node'
+    @options = options
+    # Parameters we assume under IPv4 and current architecture.
+    # Could conceivable change someday.
+    @table_name = "rhc-app-contain"
+    @iface = "lo"
+    @safe_net = "127.0.0.0/25" # OK to connect to these
+    @whole_net = "127.0.0.0/8" # must be filtered per app
+    @cidr = "/25" # subnets consist of last 7 bits
+    @netmask = "255.255.255.128" # subnets consist of last 7 bits
+    # read the UID range from districts if available
+    begin
+      conf = OpenShift::Config.new('/var/lib/openshift/.settings/district.info')
+      options[:first_uid] ||= conf.get('first_uid', 1000).to_i
+      options[:last_uid] ||= conf.get('max_uid', 6999).to_i
+    rescue Errno::ENOENT # if not districted yet, use defaults
+      options[:first_uid] ||= 1000
+      options[:last_uid] ||= 6999
+    end
+  end
+
+  def ip_for_uid(uid)
+    # We could create one container and reuse it with different UIDs, but that
+    # would run into an edge case at WRAPAROUND_UID. No need to save <1 sec.
+    ip = OpenShift::Runtime::ApplicationContainer.new('a', 'b', uid).get_ip_addr(1)
+    ip.sub(/129$/, '128').sub(/1$/, '0') # take off the last bit for good measure
+  end
+
+  def process_iptables_rules
+    # Cross-app connection restrictions
+    case @options[:ipmode]
+    when 'none'
+      return true
+    when 'output'
+      new_filter($stdout)
+      output_fw_rules($stdout)
+      return true
+    when *%w[enable dryrun disable]
+      puts "\nSaving current iptables rules for processing:\n"
+      system('/sbin/service iptables save') or raise "iptables failed to save"
+      # note: encodes DNAT rules from port proxy, but those are re-created at proxy start anyway
+    when 'conf' #nothing to do
+      puts "\nProcessing iptables rules file\n"
+    else
+      $stderr.puts "--iptables should be one of: enable,dryrun,conf,output,disable"
+      return false
+    end
+    to_file = Tempfile.new('iptables.', '/etc/sysconfig')
+    File.open('/etc/sysconfig/iptables', 'r') do |from_file|
+      seen_filter = seen_commit = false #flags while processing
+      from_file.each_line do |line|
+        next if line.include? @table_name #remove all existing mention
+        if @options[:ipmode] == 'disable'
+          to_file.puts(line); next
+        end
+        # we want to operate on the lines between *filter and COMMIT
+        seen_filter = true if line =~ /^\*filter/
+        if seen_commit || !seen_filter
+          to_file.puts(line); next
+        end
+        # insert the table definition and rules
+        if line =~ /^:OUTPUT ACCEPT/
+          to_file.puts line
+          new_filter(to_file)
+          next
+        end
+        if line =~ /^COMMIT/
+          seen_commit = true
+          output_fw_rules(to_file)
+        end
+        to_file.puts line
+      end
+    end
+    to_file.close
+    stamp = Time.new.strftime '%Y-%m-%d-%H%M%S'
+    case @options[:ipmode]
+    when 'enable', 'disable'
+      system("cp /etc/sysconfig/iptables{,.old.#{stamp}}") or raise "could not make copy of current iptables rules"
+      system("cp #{to_file.path} /etc/sysconfig/iptables") or raise "could not overwrite iptables rules"
+      system('/sbin/service iptables reload') or raise "iptables failed to reload"
+      # in case there were changes to the live config for exposed ports, reload it
+      system('/sbin/service openshift-iptables-port-proxy restart') or raise "port proxy failed to reload"
+      puts "iptables conf successfully changed and loaded."
+    when 'dryrun'
+      system("cp #{to_file.path} /etc/sysconfig/iptables.contained") or raise "failed to write rules file"
+      puts "Dry run iptables conf file is: /etc/sysconfig/iptables.contained"
+    when 'conf'
+      system("cp /etc/sysconfig/iptables{,.old.#{stamp}}") or raise "could not make copy of current iptables rules"
+      system("cp #{to_file.path} /etc/sysconfig/iptables") or raise "could not overwrite iptables rules"
+      puts "iptables conf successfully changed."
+    end
+    return true
+  end
+
+  def new_filter(io)
+    io.puts ":#{@table_name} - [0:0]"
+  end
+
+  def output_fw_rules(io)
+    # shunt UID range output through filter for 127.*
+    io.puts %Q{-I OUTPUT -o #{@iface} -d #{@whole_net} \
+      -m owner --uid-owner #{@options[:first_uid]}-#{@options[:last_uid]} \
+      -j #{@table_name} \
+      -m comment --comment "filter connections from gear UID range"}
+
+    # Established connections allowed, weird stuff dropped
+    io.puts "-A #{@table_name} -m state --state ESTABLISHED,RELATED -j ACCEPT"
+    io.puts "-A #{@table_name} -m state --state INVALID -j DROP"
+
+    # Allow connecting to system services
+    io.puts %Q{-A #{@table_name} -d #{@safe_net} -j ACCEPT \
+      -m comment --comment "allow access to system services"}
+
+    # Allow connections to exposed ports
+    io.puts %Q{-A #{@table_name} -j rhc-app-comm \
+      -m comment --comment "allow connecting via external ports"}
+
+    # Allow each gear to connect to its own IP range
+    (@options[:first_uid]..@options[:last_uid]).to_a.each do |uid|
+      io.puts "-A #{@table_name} -d #{ip_for_uid(uid) + @cidr} \
+        -m owner --uid-owner #{uid} -j ACCEPT"
+    end
+    # non-sanctioned connections on lo are denied
+    io.puts %Q{-A #{@table_name} -j REJECT --reject-with icmp-host-prohibited \
+      -m comment --comment "prevent gears connecting to local IPs they do not own"}
+  end
+
+  def process_selinux_rules
+    require 'openshift-origin-node/utils/selinux'
+    case @options[:semode]
+    when 'none'
+      return true
+    when 'output'
+      output_se_rules($stdout)
+      return true
+    when 'disable'
+      puts "\nRemoving SELinux policy\n"
+      system('semanage node -D -t node_t') or raise "An exception ocurred"
+      puts "\nSELinux policy removed \n"
+      return true
+    when 'enable'
+      puts "\nRemoving SELinux policy\n"
+      system('semanage node -D -t node_t') or raise "An exception ocurred"
+      puts "\nAdding SELinux rules\n"
+      # that's what the rest of this method does
+    else
+      $stderr.puts "--selinux should be one of: output,enable,disable"
+      return false
+    end
+    require 'openshift-origin-node/utils/shell_exec'
+    require 'openshift-origin-node/utils/node_logger'
+    puts "Beginning to modify SELinux policy (this will take a while)"
+    reader, writer = IO.pipe
+    if cpid = Process.fork # send rules to subprocess
+      reader.close
+      output_se_rules(writer)
+      writer.close
+      Process.waitpid(cpid, 0)
+      puts $?.success? ? "Done modifying SELinux policy" : "SELinux policy update failed!" 
+      return $?.success?
+    else # subprocess channels rules into semanage
+      writer.close
+      out = err = ""
+      rc = 255
+      begin
+        Process.setrlimit(Process::RLIMIT_NOFILE , 131070)
+        cmd = "semanage -S targeted -i -"
+        out, err, rc = OpenShift::Runtime::Utils::oo_spawn(cmd, {:chdir=> '/', :in => reader})
+      rescue => e
+        err << "An exception ocurred: #{e.inspect}"
+      end
+      $stdout.write(out)
+      $stderr.write(err)
+      $stdout.flush
+      $stderr.flush
+      exit(rc)
+    end
+  end
+
+  def output_se_rules(io)
+    OpenShift::Runtime::Utils::SELinux.mcs_labels.each do |uid, mcs_label|
+      break if uid > @options[:last_uid]
+      next  if uid < @options[:first_uid]
+      io.puts("node -a -t node_t -r #{mcs_label} -M #{@netmask} -p ipv4 #{ip_for_uid(uid)}")
+    end
+    io.puts("node -a -t node_t -r s0:c1023 -M  255.0.0.0 -p ipv4 127.0.0.0")
+    io.puts("node -a -t node_t -r s0:c1023 -M  255.0.0.0 -p ipv4 10.0.0.0")
+    io.puts("node -a -t node_t -r s0:c1023 -M  0.0.0.0 -p ipv4 0.0.0.0")
+  end
+end #class
+
+
+############ EXECUTION ##########
+#
+# If this script is running directly, gather options and execute.
+# In a different context (e.g. irb) just load the class and don't run anything.
+
+if __FILE__ == $0
+
+  #
+  # Options parsing...
+  #
+  require 'optparse'
+  options = {
+    :ipmode => 'none',
+    :semode => 'none',
+    :first_uid => nil,
+    :last_uid => nil,
+  }
+  optparse = OptionParser.new { |opts|
+    opts.banner = <<-"USAGE"
+      #{$0}:
+      Create firewall rules and SELinux policy to contain gears to their
+      own internal IPs. Gears are identified as a range of user IDs on
+      the system. This UID range should be the same across all hosts
+      in a gear profile. By default the range is taken from district
+      settings if known, or 1000-6999 if not.
+
+      Firewall rules are implemented via iptables and prevent gears
+      from connecting to IPs that belong to other gears.
+
+      SELinux policies are implemented via semanage and prevent gears
+      from binding (listening) on IPs that belong to other gears.
+
+      Usage: #{$0} [switches]
+
+      Examples:
+      # Enable rules and policy on a live node host
+      #{$0} -i enable -s enable
+      # Enable during an install before iptables is started or node districted
+      #{$0} -i conf -s enable -b 1000 -e 2999
+
+      Switches:
+    USAGE
+
+    opts.on('-i','--iptables MODE', String, <<MODE) { |m| options[:ipmode] = m }
+Mode in which to operate on iptables firewall rules.
+\toutput: only displays the rules that would be created.
+\tenable: saves, modifies, and reloads the live rules.
+\tdryrun: saves live rules, copies and modifies them in a separate file only.
+\tconf: edits existing rules in /etc/sysconfig/iptables without save or reload.
+\tdisable: disables relevant rules.
+MODE
+    opts.on('-s','--selinux MODE', String, <<MODE) { |m| options[:semode] = m }
+Mode in which to operate on SELinux policy.
+\toutput: only displays the policy that would be created.
+\tenable: modifies SELinux policy.
+\tdisable: disables relevant SELinux policy.
+MODE
+
+    opts.on('-b','--begin_uid UID', Integer, 'First UID (defaults to district setting)' ) { |x| options[:first_uid] = x.to_i }
+    opts.on('-e','--end_uid UID', Integer, 'Last UID (defaults to district setting)' ) { |x| options[:last_uid] = x.to_i }
+    opts.on('-h','--help', 'Print usage') { puts opts; exit 0 }
+  }
+
+  begin
+    optparse.parse!
+    if options[:ipmode] == 'none' && options[:semode] == 'none'
+      puts "\nPlease specify one or both of --iptables and --selinux options.\n\n"
+      puts optparse
+      exit 1
+    end
+  rescue OptionParser::InvalidArgument => e
+    puts "\n ##### #{e.message} #####"
+    puts optparse.to_s
+    puts "\n ##### #{e.message} #####"
+    puts
+    exit 1
+  end
+
+  #
+  # execution
+  #
+  o = OOContainNet.new(options)
+  exit o.process_iptables_rules && o.process_selinux_rules ? 0 : 1
+
+end
