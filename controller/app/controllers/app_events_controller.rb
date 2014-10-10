@@ -88,6 +88,12 @@ class AppEventsController < BaseController
       event_name = 'alias_remove'
       msg = "Application #{@application.name} has removed alias"
 
+    when "disable-ha"
+      authorize! :disable_ha, @application
+      r = @application.disable_ha
+      @analytics_tracker.identify(@cloud_user.reload)
+      msg = "Application #{@application.name} is now not ha"
+
     when "make-ha"
       authorize! :make_ha, @application
       r = @application.make_ha

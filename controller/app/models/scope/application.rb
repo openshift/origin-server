@@ -48,6 +48,7 @@ class Scope::Application < Scope::Parameterized
           :change_state,
           :change_cartridge_state,
           :make_ha,
+          :disable_ha,
           :scale_cartridge,
           :view_code_details,
           :change_gear_quota,

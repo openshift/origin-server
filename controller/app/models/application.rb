@@ -969,6 +969,24 @@ class Application
   end
 
   ##
+  # Update the application's group overrides such that a scalable application ceases to be HA
+  # This broadly means setting the 'min' of web_proxy sparse cart to 1
+  def disable_ha
+    raise OpenShift::UserException.new("HA is not active for this application.") if !self.ha
+    raise OpenShift::UserException.new("HA operations are allowed only on scalable applications") if not self.scalable
+
+    component_instance = self.component_instances.detect{ |i| i.cartridge.is_web_proxy? } or
+      raise OpenShift::UserException.new("Cannot disable HA because there is no web cartridge.")
+
+    Lock.run_in_app_lock(self) do
+      pending_op_groups << DisableAppHaOpGroup.new(user_agent: self.user_agent)
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
+  end
+
+  ##
   # Create and add group overrides to update scaling and filesystem limits for a the {GroupInstance} hosting a {ComponentInstance}
   # @param component_instance [ComponentInstance] The component instance to use when creating the override definition
   # @param scale_from [Integer] Minimum scale for the component
