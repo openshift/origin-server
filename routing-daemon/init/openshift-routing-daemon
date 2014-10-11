@@ -1,0 +1,80 @@
+#!/bin/sh
+#
+# openshift-routing-daemon:        Starts the routing-daemon.configuration
+# daemon for OpenShift.
+#
+# chkconfig: 345 85 15
+# description:  This is a daemon which listens for notifications of \
+#   application lifecycle events on ActiveMQ from the OpenShift \
+#   routing plug-in and configures an external routing \
+#   appropriately.
+#
+# processname: ruby
+# config: /etc/openshift/routing-daemon.conf
+# pidfile: /var/run/openshift-routing-daemon.pid
+#
+
+### BEGIN INIT INFO
+# Required-Start: $local_fs $network $named
+# Required-Stop: $local_fs $network
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Starts the routing daemon for OpenShift
+# Description: This is a daemon which listens for notifications of
+#               application lifecycle events on ActiveMQ from the
+#               OpenShift routing plug-in and configures an external
+#               routing appropriately.
+### END INIT INFO
+
+base='openshift-routing-daemon'
+
+[ -f /etc/openshift/routing-daemon.conf ] || exit 6
+[ -x /usr/sbin/openshift-routing-daemon ] || exit 6
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+start() {
+    echo -n $"Starting OpenShift Load Balancer Daemon: "
+    /usr/sbin/openshift-routing-daemon start
+    RETVAL=$?
+    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/openshift-routing-daemon && success $"$base startup" || failure $"$base startup"
+    echo
+}
+
+stop() {
+    echo -n $"Stopping OpenShift Load Balancer Daemon: "
+    /usr/sbin/openshift-routing-daemon stop
+    RETVAL=$?
+    [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/openshift-routing-daemon && success $"$base shutdown" || failure $"$base shutdown"
+    echo
+}
+
+# See how we were called.
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        /usr/sbin/openshift-routing-daemon status
+        RETVAL=$?
+        ;;
+    reload|restart|force-reload)
+        stop
+        start
+        ;;
+    condrestart|try-restart)
+        if [ -f /var/run/openshift-routing-daemon.pid ]
+        then
+            stop
+            start
+        fi
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|force-reload|condrestart|try-restart|reload}"
+        exit 2
+esac
+exit $RETVAL
