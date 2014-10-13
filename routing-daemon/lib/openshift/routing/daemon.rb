@@ -34,6 +34,7 @@ module OpenShift
       end
       @destination = cfg['ACTIVEMQ_DESTINATION'] || cfg['ACTIVEMQ_TOPIC'] || '/topic/routinginfo'
       @endpoint_types = (cfg['ENDPOINT_TYPES'] || 'load_balancer').split(',')
+      @cloud_domain = (cfg['CLOUD_DOMAIN'] || 'example.com')
       @pool_name_format = cfg['POOL_NAME'] || 'pool_ose_%a_%n_80'
       @route_name_format = cfg['ROUTE_NAME'] || 'route_ose_%a_%n'
       @monitor_name_format = cfg['MONITOR_NAME']
@@ -257,6 +258,10 @@ module OpenShift
       route = '/' + app_name
       @logger.info "Creating new routing rule #{route_name} for route #{route} to pool #{pool_name}"
       @lb_controller.create_route pool_name, route_name, route
+
+      alias_str = "ha-#{app_name}-#{namespace}.#{@cloud_domain}"
+      @logger.info "Adding new alias #{alias_str} to pool #{pool_name}"
+      @lb_controller.pools[pool_name].add_alias alias_str
     end
 
     def delete_application app_name, namespace
