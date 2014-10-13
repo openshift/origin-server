@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.31.6
+Version: 1.31.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Oct 13 2014 Adam Miller <admiller@redhat.com> 1.31.7-1
+- disable ha feature (rchopra@redhat.com)
+
 * Tue Oct 07 2014 Adam Miller <admiller@redhat.com> 1.31.6-1
 - Merge pull request #5743 from dobbymoodge/node_block_rollback
   (dmcphers+openshiftbot@redhat.com)
