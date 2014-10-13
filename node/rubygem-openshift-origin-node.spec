@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.31.5
+Version: 1.31.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Oct 13 2014 Adam Miller <admiller@redhat.com> 1.31.6-1
+- Bug 1151648 - Skip any files in .cartridge_repository directory
+  (jhonce@redhat.com)
+
 * Thu Oct 09 2014 Adam Miller <admiller@redhat.com> 1.31.5-1
 - Bug 1148252 - Add status message (jhonce@redhat.com)
 - WIP Node Platform - Skip partial deployments (jhonce@redhat.com)
