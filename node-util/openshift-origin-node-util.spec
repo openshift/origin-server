@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.30.3
+Version: 1.30.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -203,6 +203,9 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Mon Oct 13 2014 Adam Miller <admiller@redhat.com> 1.30.4-1
+- node: add oo-gear-firewall tool (lmeyer@redhat.com)
+
 * Wed Oct 01 2014 Adam Miller <admiller@redhat.com> 1.30.3-1
 - Bug 1141922 (lnader@redhat.com)
 
