@@ -150,7 +150,7 @@ argvs.each do |argv|
       lb.create_route *argv
 
     when 'delete-route'
-      raise ArgumentError.new "Requires a pool name." unless 2 == argv.length
+      raise ArgumentError.new "Requires a pool name and a route name." unless 2 == argv.length
       puts "Deleting route #{argv[1]} from pool #{argv[0]}."
       lb.delete_route *argv
 
@@ -198,9 +198,9 @@ argvs.each do |argv|
       pool_name = argv[0]
       aliases = lb.pools[pool_name].get_aliases
       if aliases.count > 0
-        puts "pool #{pool_name} has #{aliases.count} aliases:\n" + aliases.map {|m| "  "+m+"\n"}.join
+        puts "Pool #{pool_name} has #{aliases.count} aliases:\n" + aliases.map {|m| "  "+m+"\n"}.join
       else
-        puts "pool #{pool_name} has 0 aliases.\n"
+        puts "Pool #{pool_name} has 0 aliases.\n"
       end
 
     when 'add-alias'
@@ -214,7 +214,7 @@ argvs.each do |argv|
       lb.pools[argv[0]].delete_alias argv[1]
 
     else
-      raise ArgumentError.new "Usage: #{$0} {list-pools|add-pool <name> [<monitor-name>]|delete-pool <name>|list-routes|add-route <pool> <name> <path>|delete-route <pool> <route_name>|list-monitors|create-monitor <name> <path> <up-code>|delete-monitor <name>list-pool-members <pool>|add-pool-member <pool> <host>:<port>|delete-pool-member <pool> <host>:<port>}"
+      raise ArgumentError.new "Usage: #{$0} {list-pools|add-pool <name> [<monitor-name>]|delete-pool <name>|list-routes|add-alias <pool> <name>|delete-alias <pool> <name>|add-route <pool> <name> <path>|delete-route <pool> <route_name>|list-monitors|create-monitor <name> <path> <up-code>|delete-monitor <name>list-pool-members <pool>|add-pool-member <pool> <host>:<port>|delete-pool-member <pool> <host>:<port>}"
     end
 
   rescue => e

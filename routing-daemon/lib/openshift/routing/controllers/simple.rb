@@ -38,6 +38,10 @@ module OpenShift
         @lb_model.delete_pool_member @name, address, port
       end
 
+      def get_aliases
+        @aliases
+      end
+
       def add_alias alias_str
         @aliases.push alias_str
         @lb_model.add_pool_alias @name, alias_str

@@ -2,6 +2,7 @@ require 'openshift/routing/models/load_balancer'
 
 require 'erb'
 require 'parseconfig'
+require 'uri'
 
 module OpenShift
 
@@ -20,8 +21,6 @@ module OpenShift
 
       pool_name_format = cfg['POOL_NAME'] || 'pool_ose_%a_%n_80'
       @pool_fname_regex = Regexp.new("\\A(#{pool_name_format.gsub(/%./, '.*')})\\.conf\\Z")
-
-      @alias_fname_regex = Regexp.new("\\Aalias_(.*)\\.conf\\Z")
     end
 
     # We manage the backend configuration by having one file per pool.  This
@@ -225,21 +224,23 @@ module OpenShift
     end
 
     def get_pool_aliases pool_name
+      alias_fname_regex = Regexp.new("\\Aalias_#{pool_name}_(.*)\\.conf\\Z")
+
       aliases = []
       Dir.entries(@confdir).each do |entry|
-        aliases.push $1 if entry =~ @alias_fname_regex
+        aliases.push URI.unescape($1) if entry =~ alias_fname_regex
       end
       aliases
     end
 
     def add_pool_alias pool_name, alias_str
       frontend_alias_template = ERB.new(FRONTEND_ALIAS)
-      fname = "#{@confdir}/alias_#{alias_str}.conf"
+      fname = "#{@confdir}/alias_#{URI.escape(pool_name)}_#{URI.escape(alias_str)}.conf"
       File.write(fname, frontend_alias_template.result(binding))
     end
 
     def delete_pool_alias pool_name, alias_str
-      File.unlink("#{@confdir}/alias_#{alias_str}.conf")
+      File.unlink("#{@confdir}/alias_#{URI.escape(pool_name)}_#{URI.escape(alias_str)}.conf")
     end
 
     def update

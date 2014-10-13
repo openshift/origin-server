@@ -33,6 +33,8 @@ module OpenShift
         end
       end
       @destination = cfg['ACTIVEMQ_DESTINATION'] || cfg['ACTIVEMQ_TOPIC'] || '/topic/routinginfo'
+      @endpoint_types = (cfg['ENDPOINT_TYPES'] || 'load_balancer').split(',')
+      @cloud_domain = (cfg['CLOUD_DOMAIN'] || 'example.com')
       @pool_name_format = cfg['POOL_NAME'] || 'pool_ose_%a_%n_80'
       @route_name_format = cfg['ROUTE_NAME'] || 'route_ose_%a_%n'
       @monitor_name_format = cfg['MONITOR_NAME']
@@ -193,7 +195,7 @@ module OpenShift
         when :delete_application
           delete_application event[:app_name], event[:namespace]
         when :add_public_endpoint
-          add_endpoint event[:app_name], event[:namespace], event[:public_address], event[:public_port]
+          add_endpoint event[:app_name], event[:namespace], event[:public_address], event[:public_port], event[:types]
         when :remove_public_endpoint
           remove_endpoint event[:app_name], event[:namespace], event[:public_address], event[:public_port]
         when :add_alias
@@ -256,6 +258,10 @@ module OpenShift
       route = '/' + app_name
       @logger.info "Creating new routing rule #{route_name} for route #{route} to pool #{pool_name}"
       @lb_controller.create_route pool_name, route_name, route
+
+      alias_str = "ha-#{app_name}-#{namespace}.#{@cloud_domain}"
+      @logger.info "Adding new alias #{alias_str} to pool #{pool_name}"
+      @lb_controller.pools[pool_name].add_alias alias_str
     end
 
     def delete_application app_name, namespace
@@ -284,16 +290,31 @@ module OpenShift
       end
     end
 
-    def add_endpoint app_name, namespace, gear_host, gear_port
+    def add_endpoint app_name, namespace, gear_host, gear_port, types
       pool_name = generate_pool_name app_name, namespace
-      @logger.info "Adding new member #{gear_host}:#{gear_port} to pool #{pool_name}"
-      @lb_controller.pools[pool_name].add_member gear_host, gear_port.to_i
+      unless (types & @endpoint_types).empty?
+        @logger.info "Adding new member #{gear_host}:#{gear_port} to pool #{pool_name}"
+        @lb_controller.pools[pool_name].add_member gear_host, gear_port.to_i
+      else
+        @logger.info "Ignoring endpoint with types #{types.join(',')}"
+      end
     end
 
     def remove_endpoint app_name, namespace, gear_host, gear_port
       pool_name = generate_pool_name app_name, namespace
-      @logger.info "Deleting member #{gear_host}:#{gear_port} from pool #{pool_name}"
-      @lb_controller.pools[pool_name].delete_member gear_host, gear_port.to_i
+      member = gear_host + ':' + gear_port.to_s
+      # The remove_endpoint notification does not include a "types" field, so we
+      # cannot simply filter out endpoint types that we don't care about.
+      # Furthermore, the daemon by design does not store state itself, so we
+      # cannot check keep track of endpoints that we did not add to the load
+      # balancer.  All we can do is check whether the endpoint exists and delete
+      # it if it does.
+      if @lb_controller.pools[pool_name].members.include?(member)
+        @logger.info "Deleting member #{member} from pool #{pool_name}"
+        @lb_controller.pools[pool_name].delete_member gear_host, gear_port.to_i
+      else
+        @logger.info "No member #{member} exists in pool #{pool_name}; ignoring"
+      end
     end
 
     def add_alias app_name, namespace, alias_str

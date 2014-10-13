@@ -1,6 +1,7 @@
 require 'openshift/routing/models/load_balancer'
 require 'json'
 require 'parseconfig'
+require 'uri'
 require 'restclient'
 
 module OpenShift
@@ -60,9 +61,16 @@ module OpenShift
       rest_request({ method: :put }.merge(options))
     end
 
+    # Send a PATCH request to the given URL with the given payload and
+    # return the response.
+    # patch :: Hash -> Net::HTTPResponse
+    def patch options
+      rest_request({ method: :patch }.merge(options))
+    end
+
     # Send a DELETE request to the given URL and return the response.
-    # put :: Hash -> Net::HTTPResponse
-    def put options
+    # delete :: Hash -> Net::HTTPResponse
+    def delete options
       rest_request({ method: :delete }.merge(options))
     end
 
@@ -75,7 +83,7 @@ module OpenShift
       post(url: "https://#{@host}/mgmt/tm/ltm/pool",
            payload: {
              "loadBalancingMode" => "round-robin",
-             "monitor" => "/Common/#{monitor_name}",
+             "monitor" => ("/Common/#{monitor_name}" if monitor_name),
              "name" => "#{pool_name}",
            }.to_json)
     end
@@ -85,22 +93,21 @@ module OpenShift
     end
 
     def get_route_names
-      (JSON.parse(get(url: "https://#{@host}/mgmt/tm/ltm/policy")) || [])['items'].map {|item| item['name']}
+      (JSON.parse(get(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_application_routes/rules")) || [])['items'].map {|item| item['name']}
     end
 
-    def get_active_route_names
-      (JSON.parse(get(url: "https://#{@host}/mgmt/tm/ltm/virtual/~Common~ose-vlan/policies")) || [])['items'].map {|item| item['name']}
-    end
+    alias_method :get_active_route_names, :get_route_names
 
     def create_route pool_name, route_name, path
-      post(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_applications/rules/#{route_name}",
+      post(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_application_routes/rules",
            payload: {
-             "controls" => ["forwarding"],
-             "requires" => ["http"],
-             "strategy" => "/Common/first-match",
+             "kind" => "tm:ltm:policy:rules:rulesstate",
+             "name" => route_name,
            }.to_json)
-      post(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_applications/rules/#{route_name}/conditions/0",
+      post(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_application_routes/rules/#{route_name}/conditions",
            payload: {
+             "kind" => "tm:ltm:policy:rules:actions:conditionsstate",
+             "name" => "0",
              "caseInsensitive" => true,
              "external" => true,
              "httpUri" => true,
@@ -112,12 +119,14 @@ module OpenShift
              "startsWith" => true,
              "values" => [path]
            }.to_json)
-      post(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_applications/rules/#{route_name}/actions/0",
+      post(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_application_routes/rules/#{route_name}/actions",
            payload: {
+             "kind" => "tm:ltm:policy:rules:actions:actionsstate",
+             "name" => "0",
              "code" => 0,
              "forward" => true,
              "pool" => "/Common/#{pool_name}",
-             "port" => 80,
+             "port" => 0,
              "request" => true,
              "select" => true,
              "status" => 0,
@@ -134,7 +143,7 @@ module OpenShift
     end
 
     def delete_route pool_name, route_name
-      delete(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_applications/rules/#{route_name}")
+      delete(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_application_routes/rules/#{route_name}")
     end
 
     def get_monitor_names
@@ -167,11 +176,62 @@ module OpenShift
     alias_method :get_active_pool_members, :get_pool_members
 
     def add_pool_member pool_name, address, port
-      post(url: "https://#{@host}/mgmt/tm/ltm/pool/#{pool_name}/members/#{address + ':' + port.to_s}")
+      member = address + ':' + port.to_s
+      post(url: "https://#{@host}/mgmt/tm/ltm/pool/#{pool_name}/members",
+            payload: {
+                "kind" => "ltm:pool:members",
+                "name" => member,
+            }.to_json)
     end
 
     def delete_pool_member pool_name, address, port
       delete(url: "https://#{@host}/mgmt/tm/ltm/pool/#{pool_name}/members/#{address + ':' + port.to_s}")
+    end
+
+    def get_pool_aliases pool_name
+      alias_name_regex = Regexp.new("\\Aalias_#{pool_name}_(.*)\\Z")
+      (JSON.parse(get(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_application_aliases/rules")) || [])['items'].map {|item| item['name']}.grep(alias_name_regex) {$1}
+    end
+
+    def add_pool_alias pool_name, alias_str
+      alias_name = "alias_#{URI.escape(pool_name)}_#{URI.escape(alias_str)}"
+      post(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_application_aliases/rules",
+           payload: {
+             "kind" => "tm:ltm:policy:rules:rulesstate",
+             "name" => alias_name,
+           }.to_json)
+      post(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_application_aliases/rules/#{alias_name}/conditions",
+           payload: {
+             "kind" => "tm:ltm:policy:rules:actions:conditionsstate",
+             "name" => "0",
+             "caseInsensitive" => true,
+             "external" => true,
+             "httpHost" => true,
+             "index" => 0,
+             "equals" => true,
+             "present" => true,
+             "remote" => true,
+             "request" => true,
+             "values" => [alias_str]
+           }.to_json)
+      post(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_application_aliases/rules/#{alias_name}/actions",
+           payload: {
+             "kind" => "tm:ltm:policy:rules:actions:actionsstate",
+             "name" => "0",
+             "code" => 0,
+             "forward" => true,
+             "pool" => "/Common/#{pool_name}",
+             "port" => 0,
+             "request" => true,
+             "select" => true,
+             "status" => 0,
+             "vlanId" => 0,
+           }.to_json)
+    end
+
+    def delete_pool_alias pool_name, alias_str
+      alias_name = "alias_#{URI.escape(pool_name)}_#{URI.escape(alias_str)}"
+      delete(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_application_aliases/rules/#{alias_name}")
     end
 
     def initialize logger, cfgfile
@@ -181,15 +241,27 @@ module OpenShift
 
       read_config cfgfile
 
-      # TODO: Create the openshift_applications policy if it does not
-      # already exist.  The create_route and delete_route methods add
-      # the application-specific rules to this policy.
-      #post(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_applications",
-      #     payload: {
-      #       "controls" => ["forwarding"],
-      #       "requires" => ["http"],
-      #       "strategy" => "/Common/first-match",
-      #     }.to_json)
+      # Create the openshift_application_routes an openshift_application_aliases
+      # policies if they do not already exist.  The create_route and
+      # delete_route methods add and delete the application-specific rules to
+      # and from the former, and the add_pool_alias and delete_pool_alias
+      # methods add and delete the application-specific rules to and from the
+      # latter.
+      ["openshift_application_routes","openshift_application_aliases"].each do |policy|
+        begin
+          get(url: "https://#{@host}/mgmt/tm/ltm/policy/#{policy}")
+        rescue RestClient::ResourceNotFound
+          @logger.info "No #{policy} policy exists.  Creating..."
+          post(url: "https://#{@host}/mgmt/tm/ltm/policy",
+               payload: {
+                 "kind" => "tm:ltm:policy:policystate",
+                 "name" => policy,
+                 "controls" => ["forwarding"],
+                 "requires" => ["http"],
+                 "strategy" => "first-match",
+               }.to_json)
+        end
+      end
     end
 
   end
