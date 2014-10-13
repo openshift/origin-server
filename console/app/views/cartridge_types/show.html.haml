@@ -30,8 +30,15 @@
       .controls.cartridge_gear_size
         - if @gear_sizes.length > 1
           = f.select :gear_size, @gear_sizes.map{ |size| [size.to_s, size]}, {}
+        - elsif @gear_sizes.empty? && @cartridge_type.valid_gear_sizes?
+          .inline.error-text
+            -if @cartridge_type.valid_gear_sizes.empty? 
+              = "No gear sizes supported for this cartridge."
+            - else
+              = "Requires: #{@cartridge_type.valid_gear_sizes.map(&:to_s).join(', ')}."
         - else
           .inline= @gear_sizes.first.to_s
+          = f.hidden_field :gear_size, :value => @gear_sizes.first.to_s
 
   %p
     Do you want to add the
