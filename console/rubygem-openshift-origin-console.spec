@@ -10,7 +10,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.31.5
+Version: 1.31.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -168,6 +168,9 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Oct 13 2014 Adam Miller <admiller@redhat.com> 1.31.6-1
+- Fixes indendation issue in coffeescript (contact@fabianofranz.com)
+
 * Thu Oct 09 2014 Adam Miller <admiller@redhat.com> 1.31.5-1
 - Merge pull request #5857 from fabianofranz/bugs/1149901
   (dmcphers+openshiftbot@redhat.com)
