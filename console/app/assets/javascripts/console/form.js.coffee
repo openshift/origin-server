@@ -162,17 +162,17 @@ $ ->
                   $cart_sizes.push($(this).data('gear-sizes').split(','))
               )
 
-              if $cart_sizes.length > 0
-                $quickstart_sizes = 
-                  $cart_sizes.sort((a, b) ->
-                    return a.length - b.length
-                  ).shift().filter((v) ->
-                    return $cart_sizes.every((a) ->
-                      return a.indexOf(v) != -1
-                    )
-                  )  
-              else 
-                $quickstart_sizes = null
+          if $cart_sizes.length > 0
+            $quickstart_sizes = 
+              $cart_sizes.sort((a, b) ->
+                return a.length - b.length
+              ).shift().filter((v) ->
+                return $cart_sizes.every((a) ->
+                  return a.indexOf(v) != -1
+                )
+              )  
+          else 
+            $quickstart_sizes = null
 
           if $domain_sizes == ""
             $domain_sizes = []
