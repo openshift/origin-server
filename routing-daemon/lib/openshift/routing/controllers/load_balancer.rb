@@ -41,6 +41,9 @@ module OpenShift
       def delete_member address, port
       end
 
+      def get_aliases
+      end
+
       # Add an alias to the object's internal list of aliases.
       #
       # The argument should be a String representing the hostname of the alias.
@@ -48,7 +51,7 @@ module OpenShift
       # This method does not necessarily update the load balancer itself; use
       # the update method of the corresponding LoadBalancerController object to
       # force an immediate update.
-      def add_member alias_str
+      def add_alias alias_str
       end
 
       # Remove an alias from the object's internal list of aliases.
@@ -58,7 +61,7 @@ module OpenShift
       # This method does not necessarily update the load balancer itself; use
       # the update method of the corresponding LoadBalancerController object to
       # force an immediate update.
-      def delete_member alias_str
+      def delete_alias alias_str
       end
     end
 

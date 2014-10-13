@@ -47,6 +47,10 @@ module OpenShift
         @lb_controller.pending_delete_member_ops.push pending unless @lb_controller.pending_add_member_ops.delete pending
       end
 
+      def get_aliases
+        @aliases
+      end
+
       def add_alias alias_str
         raise LBControllerException.new "Adding alias #{alias_str} to pool #{@name}, which already has the alias" if @aliases.include? alias_str
         @aliases.push alias_str
