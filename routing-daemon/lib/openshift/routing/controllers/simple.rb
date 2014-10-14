@@ -24,6 +24,7 @@ module OpenShift
         @lb_controller, @lb_model, @name = lb_controller, lb_model, pool_name
         @members = @lb_model.get_pool_members pool_name
         @aliases = @lb_model.get_pool_aliases pool_name
+        @certs = @lb_model.get_pool_certificates pool_name
       end
 
       def add_member address, port
@@ -51,6 +52,20 @@ module OpenShift
         @aliases.delete alias_str
         @lb_model.delete_pool_alias @name, alias_str
       end
+
+      def get_certificates
+        @certs
+      end
+
+      def add_ssl alias_str, ssl_cert, private_key
+        @certs.push alias_str
+        @lb_model.add_ssl @name, alias_str, ssl_cert, private_key
+      end
+
+      def remove_ssl alias_str
+        @certs.delete alias_str
+        @lb_model.remove_ssl @name, alias_str
+      end
     end
 
     def read_config cfgfile
@@ -69,6 +84,10 @@ module OpenShift
 
     def delete_pool pool_name
       raise LBControllerException.new "Pool not found: #{pool_name}" unless pools.include? pool_name
+      # Making a copy because we are deleting elements
+      aliases = Array.new(pools[pool_name].get_aliases)
+      aliases.each {|a| pools[pool_name].delete_alias a}
+      pools[pool_name].get_certificates.each {|a| pools[pool_name].remove_ssl a}
 
       @lb_model.delete_pools [pool_name]
 

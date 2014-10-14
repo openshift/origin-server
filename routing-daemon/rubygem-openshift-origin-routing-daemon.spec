@@ -59,6 +59,8 @@ gem install -V \
 %{?scl:EOF}
 
 %install
+mkdir -p %{buildroot}/%{_var}/log/openshift
+
 mkdir -p %{buildroot}%{_root_sbindir}
 cp bin/oo-* bin/openshift-routing-daemon %{buildroot}%{_root_sbindir}/
 

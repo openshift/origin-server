@@ -105,6 +105,16 @@ module OpenShift
       [] # If using AsyncLoadBalancerController, return an array of jobids.
     end
 
+    def add_ssl pool_name, alias_str, ssl_cert, private_key
+      @logger.debug "add ssl config for alias #{alias_str} from pool #{pool_name}"
+      [] # If using AsyncLoadBalancerController, return an array of jobids.
+    end
+
+    def remove_ssl pool_name, alias_str
+      @logger.debug "remove ssl config for alias #{alias_str} from pool #{pool_name}"
+      [] # If using AsyncLoadBalancerController, return an array of jobids.
+    end
+
     def get_job_status id
       @logger.debug "return status of job #{id}"
       "some JSON"

@@ -202,7 +202,12 @@ module OpenShift
           add_alias event[:app_name], event[:namespace], event[:alias]
         when :remove_alias
           remove_alias event[:app_name], event[:namespace], event[:alias]
+        when :add_ssl
+          add_ssl event[:app_name], event[:namespace], event[:alias], event[:ssl], event[:private_key]
+        when :remove_ssl
+          remove_ssl event[:app_name], event[:namespace], event[:alias]
         end
+
       rescue => e
         @logger.warn "Got an exception: #{e.message}"
         @logger.debug "Backtrace:\n#{e.backtrace.join "\n"}"
@@ -329,6 +334,17 @@ module OpenShift
       @lb_controller.pools[pool_name].delete_alias alias_str
     end
 
+    def add_ssl app_name, namespace, alias_str, ssl_cert, private_key
+      pool_name = generate_pool_name app_name, namespace
+      @logger.info "Adding ssl configuration for #{alias_str} in pool #{pool_name}"
+      @lb_controller.pools[pool_name].add_ssl alias_str, ssl_cert, private_key
+    end
+
+    def remove_ssl app_name, namespace, alias_str
+      pool_name = generate_pool_name app_name, namespace
+      @logger.info "Deleting ssl configuration for #{alias_str} in pool #{pool_name}"
+      @lb_controller.pools[pool_name].remove_ssl alias_str
+    end
   end
 
 end

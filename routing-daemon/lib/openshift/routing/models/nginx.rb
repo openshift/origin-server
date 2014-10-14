@@ -18,6 +18,8 @@ module OpenShift
 
       @confdir = cfg['NGINX_CONFDIR']
       @nginx_service = cfg['NGINX_SERVICE']
+      @ssl_port = cfg['SSL_PORT']
+      @http_port = cfg['HTTP_PORT']
 
       pool_name_format = cfg['POOL_NAME'] || 'pool_ose_%a_%n_80'
       @pool_fname_regex = Regexp.new("\\A(#{pool_name_format.gsub(/%./, '.*')})\\.conf\\Z")
@@ -230,7 +232,7 @@ module OpenShift
       Dir.entries(@confdir).each do |entry|
         aliases.push URI.unescape($1) if entry =~ alias_fname_regex
       end
-      aliases
+      aliases.uniq
     end
 
     def add_pool_alias pool_name, alias_str
@@ -241,6 +243,33 @@ module OpenShift
 
     def delete_pool_alias pool_name, alias_str
       File.unlink("#{@confdir}/alias_#{URI.escape(pool_name)}_#{URI.escape(alias_str)}.conf")
+    end
+
+    def get_pool_certificates pool_name
+      cert_fname_regex = Regexp.new("\\Acert_#{pool_name}_(.*)\\.conf\\Z")
+
+      certs = []
+      Dir.entries(@confdir).each do |entry|
+        certs.push URI.unescape($1) if entry =~ cert_fname_regex
+      end
+      certs
+    end
+
+    def add_ssl pool_name, alias_str, ssl_cert, private_key
+      frontend_alias_cert_template = ERB.new(FRONTEND_ALIAS_SSL)
+      certfname = "#{@confdir}/#{URI.escape(alias_str)}.crt"
+      keyfname = "#{@confdir}/#{URI.escape(alias_str)}.key"
+      fname = "#{@confdir}/cert_#{URI.escape(pool_name)}_#{URI.escape(alias_str)}.conf"
+
+      File.write(certfname, ssl_cert)
+      File.write(keyfname, private_key)
+      File.write(fname, frontend_alias_cert_template.result(binding))
+    end
+
+    def remove_ssl pool_name, alias_str
+      File.unlink("#{@confdir}/cert_#{URI.escape(pool_name)}_#{URI.escape(alias_str)}.conf")
+      File.unlink("#{@confdir}/#{URI.escape(alias_str)}.crt")
+      File.unlink("#{@confdir}/#{URI.escape(alias_str)}.key")
     end
 
     def update
@@ -269,6 +298,7 @@ upstream <%= pool_name %> {
 
     FRONTEND_ALIAS = %q{
 server {
+  listen <%= @http_port %>;
   server_name <%= alias_str %>;
   location / {
     proxy_pass http://<%= pool_name %>;
@@ -278,6 +308,7 @@ server {
 
     FRONTEND_SERVER = %q{
 server {
+  listen <%= @http_port %>;
   <%= locations %>
 }
 }
@@ -287,6 +318,18 @@ server {
   location <%= path %> {
     proxy_pass http://<%= pool_name %>;
   }
+}
+
+    FRONTEND_ALIAS_SSL = %q{
+server {
+  listen <%= @ssl_port %> ssl;
+  server_name <%= alias_str %>;
+  ssl_certificate <%= certfname %>;
+  ssl_certificate_key <%= keyfname %>;
+  location / {
+    proxy_pass http://<%= pool_name %>;
+  }
+}
 }
 
   end

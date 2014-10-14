@@ -64,6 +64,12 @@ module OpenShift
       end
     end
 
+    def add_ssl alias_str, ssl_cert, private_key
+    end
+
+    def remove_ssl alias_str
+    end
+
     attr_reader :pending_add_member_ops, :pending_delete_member_ops
 
     def read_config cfgfile
