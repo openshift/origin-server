@@ -14,8 +14,7 @@
 # ensure gear can always read temporary directories
 if [ "$2" != "tmpfs" ]; then
   /bin/chmod 1700 "$2"
-  fi
-
+fi
 
 # Unless this is a new instance, get out now
 [ "$3" = 0 ] && exit 0
