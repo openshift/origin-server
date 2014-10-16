@@ -155,6 +155,14 @@ module OpenShift
     def delete_pool_alias pool_name, alias_str
     end
 
+    # add_ssl :: String, String, String, String 
+    def add_ssl pool_name, alias_str, ssl_cert, private_key
+    end
+
+    # remove_ssl pool_name, alias_str :: String, String
+    def remove_ssl pool_name, alias_str
+    end
+
     # get_job_status :: String -> Object
     # This is only needed if the model is being used with
     # AsyncLoadBalancerController.

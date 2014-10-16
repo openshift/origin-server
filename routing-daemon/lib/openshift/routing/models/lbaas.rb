@@ -254,6 +254,14 @@ module OpenShift
       end
     end
 
+    def add_ssl pool_name, alias_str, ssl_cert, private_key
+      # no-opp
+    end 
+
+    def remove_ssl pool_name, alias_str
+      # no-op
+    end
+
     # Returns Hash representing the JSON response from the load balancer.
     def get_job_status id
       response = get "http://#{@host}/loadbalancers/tenant/#{@tenant}/jobs/#{id}"

@@ -117,6 +117,14 @@ module OpenShift
       @bigip['LocalLB.Pool'].remove_member pool_names.map {|pool| "/Common/#{pool}"}, member_lists.map {|members| members.map {|address,port| { 'address' => address, 'port' => port }}}
     end
 
+    def add_ssl pool_name, alias_str, ssl_cert, private_key
+      # no-opp
+    end 
+
+    def remove_ssl pool_name, alias_str
+      # no-op
+    end
+
     def authenticate
       @logger.info "Authenticating with keystone at host #{@lbaas_keystone_host}..."
 

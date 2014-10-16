@@ -115,6 +115,12 @@ module OpenShift
       end
     end
 
+    def add_ssl alias_str, ssl_cert, private_key
+    end
+
+    def remove_ssl alias_str
+    end
+
     # AsyncLoadBalancerController is designed to be used with a load balancer
     # that provide an asynchronous interface.  Operations such as creating and
     # deleting pools, pool members, and routing rules are submitted to the load

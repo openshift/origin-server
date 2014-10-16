@@ -234,6 +234,14 @@ module OpenShift
       delete(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_application_aliases/rules/#{alias_name}")
     end
 
+    def add_ssl pool_name, alias_str, ssl_cert, private_key
+      # no-opp
+    end 
+
+    def remove_ssl pool_name, alias_str
+      # no-op
+    end
+
     def initialize logger, cfgfile
       @logger = logger
 

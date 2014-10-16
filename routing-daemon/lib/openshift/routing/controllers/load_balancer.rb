@@ -63,6 +63,29 @@ module OpenShift
       # force an immediate update.
       def delete_alias alias_str
       end
+
+      # Add the SSL configuration for a pool's alias
+      #
+      # The arguments should be a String representing the hostname of the alias,
+      # a String representing the x.509 SSL certificate, and a String representing
+      # the private key that matches the certificate wrapped public key. The private key
+      # must not have a passphrase
+      #
+      # This method does not necessarily update the load balancer itself; use
+      # the update method of the corresponding LoadBalancerController object to
+      # force an immediate update.
+      def add_ssl alias_str, ssl_cert, private_key
+      end
+
+      # Remove the SSL configuration for a pool's alias
+      #
+      # The argument should be a String representing the hostname of the alias
+      #
+      # This method does not necessarily update the load balancer itself; use
+      # the update method of the corresponding LoadBalancerController object to
+      # force an immediate update.
+      def remove_ssl alias_str
+      end
     end
 
     # @pools is a hash that maps String to LoadBalancerPool.
