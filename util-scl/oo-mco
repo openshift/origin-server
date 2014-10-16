@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -e /opt/rh/ruby193/root/usr/sbin/mco ]; then
-  scl enable ruby193 "/opt/rh/ruby193/root/usr/sbin/mco $@"
+  exec oo-exec-ruby /opt/rh/ruby193/root/usr/sbin/mco "$@"
 else
   echo "/opt/rh/ruby193/root/usr/sbin/mco does not exist."
   echo "mco client is likely not installed from scl."
