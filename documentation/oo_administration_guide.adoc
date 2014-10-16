@@ -470,6 +470,8 @@ You should see the following cartridges available to install:
 * openshift-origin-cartridge-cron.noarch : Embedded cron support for express
 * openshift-origin-cartridge-diy.noarch : Provides diy support
 * openshift-origin-cartridge-haproxy.noarch : Provides embedded haproxy-1.4 support
+* openshift-origin-cartridge-jbossas : Provides JBossAS functionality, but see the note on JBoss below
+* openshift-origin-cartridge-jbossews : Provides JBossEWS functionality, but see the note on JBoss below
 * openshift-origin-cartridge-jenkins.noarch : Provides jenkins-1 support
 * openshift-origin-cartridge-jenkins-client.noarch : Embedded jenkins client support for express
 * openshift-origin-cartridge-mysql.noarch : Provides embedded mysql support
@@ -485,9 +487,7 @@ You should see the following cartridges available to install:
 
 JBoss cartridges are distributed with OpenShift, however they will not work without a Java application server to run against.
 The JBoss and WildFly application servers are not currently available as RPMs, so unfortunately we cannot include them
-in our dependencies repo. For a community-driven solution to this problem, refer to the
-http://lists.openshift.redhat.com/openshift-archives/dev/2014-July/msg00175.html[dev list discussion]
-on this topic.
+in our dependencies repo. Refer to the link:oo_m4_release_notes.html[OpenShift Origin M4 Release Notes] for a workaround to enable JBoss cartridges.
 ====
 
 === Register the New Cartridges
