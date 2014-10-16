@@ -945,7 +945,7 @@ Options:
 * nodejs-websocket    - Web-socket proxy listening on ports 8000/8444
 * haproxy-sni-proxy   - TLS proxy using SNI routing on ports 2303 through 2308 requires /usr/sbin/haproxy15 (haproxy-1.5-dev19 or later).
 
-Default: ["apache-mod-rewrite","nodejs-websocket"]
+Default: ["apache-vhost","nodejs-websocket"]
 
 === node_unmanaged_users
 List of user names who have UIDs in the range of OpenShift gears but must be
