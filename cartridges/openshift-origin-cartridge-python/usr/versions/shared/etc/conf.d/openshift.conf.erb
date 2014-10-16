@@ -21,6 +21,7 @@ CustomLog "|tee" combined
   end
 %>
 
+WSGIApplicationGroup %{GLOBAL}
 WSGIScriptAlias / "<%= ENV['OPENSHIFT_PYTHON_WSGI_APPLICATION'] || "#{ENV['OPENSHIFT_REPO_DIR']}wsgi/application" %>"
 WSGISocketPrefix "/tmp/wsgi"
 WSGIPassAuthorization On
