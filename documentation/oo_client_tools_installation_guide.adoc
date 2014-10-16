@@ -154,6 +154,39 @@ $ rhc -v
 ----
 
 == Ubuntu
+These insructions are broken out by Ubuntu version.footnote:[Hat tip to http://www.w3bootstrap.com/install-openshift-client-tools-ubuntu-14-04/[this article] for the updated instructions for Ubuntu 14.04.]
+
+=== For Ubuntu 14.04
+First, ensure that the "Universe" repository is enabled by https://help.ubuntu.com/community/Repositories/Ubuntu[following these instructions].
+
+Next, issue the following command to install the necessary ruby and git packages:
+
+----
+$ sudo apt-get install ruby-full rubygems-integration git-core
+----
+
+You can verify the Ruby installation with:
+
+----
+$ ruby -e 'puts "Welcome to Ruby"'
+Welcome to Ruby
+----
+
+And the git installation with:
+
+----
+$ git –version
+----
+
+Now you can install the OpenShift client tools:
+
+----
+$ sudo gem install rhc
+----
+
+=== For Previous Versions of Ubuntu
+If the commands for Ubuntu 14.04 don't work for you, try these instructions which worked for previous versions.
+
 Use the apt-get command line package manager to install Ruby and Git before you install the OpenShift Origin command line tools. Run the following command:
 
 ----
