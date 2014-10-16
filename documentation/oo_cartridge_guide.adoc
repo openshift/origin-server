@@ -660,6 +660,16 @@ OPENSHIFT_MONGODB_DB_PASSWORD:: The MongoDB password
 OPENSHIFT_MONGODB_DB_URL:: The MongoDB connection URL (e.g. mongodb://<username>:<password>@<hostname>:<port>/
 OPENSHIFT_MONGODB_DB_LOG_DIR:: The path to the MongoDB log directory
 
+[NOTE]
+====
+When changing the MongoDB password manually using `db.addUser()` before you
+restart the MongoDB server to pickup the new password, you have to update the
+environment variable first:
+
+```
+$ rhc env set OPENSHIFT_MONGODB_DB_PASSWORD="newpassword"
+```
+====
 
 [[mysql]]
 == MySQL
