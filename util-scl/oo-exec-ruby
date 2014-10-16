@@ -6,7 +6,10 @@ orig_lang=$LANG
 export LANG=C
 
 ruby_ver=$(rpm -q ruby --qf "%{version}")
-if [[ $ruby_ver < "1.9" ]]; then
+
+# If ruby193 scl installed, us it by default, otherwise use system ruby if it's
+# a recent enough version. Otherwise throw an error.
+if scl -l | grep ruby193 &> /dev/null; then
     # Ensure that the ruby193 SCL's directories come first in the PATH,
     # LD_LIBRARY_PATH, PKG_CONFIG_PATH, and MANPATH variables.
 
@@ -25,7 +28,11 @@ if [[ $ruby_ver < "1.9" ]]; then
     # If it did we would use:  exec scl enable ruby193 "$@"
     #COMMAND="$(printf "%q " "$@")"
     #exec scl enable ruby193 "$COMMAND"
-else
+elif [[ $ruby_ver < "1.9" ]]; then
     export LANG=$orig_lang
     exec "$@"
+else
+    export LANG=$orig_lang
+    printf "ERROR: scl ruby193 not found and ruby version too old.\n" >&2
+    exit 1
 fi
