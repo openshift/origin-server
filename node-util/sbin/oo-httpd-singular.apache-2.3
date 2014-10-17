@@ -106,19 +106,19 @@ single_instance(LOCKFILE) do
     out=""
     err=""
     rc=0
-    [HTTPD_PRE_CMDS, ARGV[0]].flatten.each do |cmd|
-      status=1
-      single_instance(APACHE_LOCK_FILE) do
+    single_instance(APACHE_LOCK_FILE) do
+      [HTTPD_PRE_CMDS, ARGV[0]].flatten.each do |cmd|
+        status=1
         out, err, status =  OpenShift::Runtime::Utils.oo_spawn("#{HTTPD_SYSTEM} #{cmd}")
+        if status != 0
+          rc = status
+          break
+        end
       end
-      if status != 0
-        rc = status
-        break
-      end
-    end
 
-    # Wait up to 1 minute for Apache to finish reloading.
-    OpenShift::Runtime::Utils.oo_spawn("/usr/bin/curl -m 60 -k https://127.0.0.1/")
+      # Wait up to 1 minute for Apache to finish reloading.
+      OpenShift::Runtime::Utils.oo_spawn("/usr/bin/curl -m 60 -k https://127.0.0.1/")
+    end
 
     reqset.each do |fpath|
       File.open(fpath,'w') { |f|
