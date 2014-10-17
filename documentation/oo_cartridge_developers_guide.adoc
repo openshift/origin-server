@@ -1007,7 +1007,7 @@ Subscriptions to events published by other carts are defined via the `manifest.y
 
 [source,yaml]
 Subscribes:
-  <event name>
+  <event name>:
     Type: "<event type>"
   ...
 

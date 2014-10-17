@@ -433,11 +433,7 @@ NOTE: If you get unknown locale error when running _lokkit_, consult the trouble
 If you configured and started a BIND server per this document, or you are working against a BIND server that was already in place, you now need to add a record for your broker node (or host) to BIND's database. To accomplish this task, you will use the `nsupdate` command, which opens an interactive shell. Replace "broker.example.com" with your preferred hostname:
 
 ----
-# nsupdate -k ${keyfile}
-> server 127.0.0.1
-> update delete broker.example.com A
-> update add broker.example.com 180 A 10.4.59.x
-> send
+# oo-register-dns -h broker -d example.com -n 10.4.59.x -k ${keyfile}
 ----
 
 Press <ctrl-D> to exit from the interactive session.
