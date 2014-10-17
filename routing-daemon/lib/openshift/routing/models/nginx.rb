@@ -20,7 +20,14 @@ module OpenShift
       @nginx_service = cfg['NGINX_SERVICE']
       @ssl_port = cfg['SSL_PORT']
       @http_port = cfg['HTTP_PORT']
-
+      @nginx_plus = cfg['NGINX_PLUS'] == 'true'
+      health_check_interval = cfg['NGINX_PLUS_HEALTH_CHECK_INTERVAL']
+      health_check_fails = cfg['NGINX_PLUS_HEALTH_CHECK_FAILS']
+      health_check_passes = cfg['NGINX_PLUS_HEALTH_CHECK_PASSES']
+      health_check_uri = cfg['NGINX_PLUS_HEALTH_CHECK_URI']
+      @health_check_shared_memory = cfg['NGINX_PLUS_HEALTH_CHECK_SHARED_MEMORY']
+      @health_check_match_status = cfg['NGINX_PLUS_HEALTH_CHECK_MATCH_STATUS']
+      @health_check = @nginx_plus ? "health_check interval=#{health_check_interval} fails=#{health_check_fails} passes=#{health_check_passes} uri=#{health_check_uri} match=statusok;" : ""
       pool_name_format = cfg['POOL_NAME'] || 'pool_ose_%a_%n_80'
       @pool_fname_regex = Regexp.new("\\A(#{pool_name_format.gsub(/%./, '.*')})\\.conf\\Z")
     end
@@ -292,6 +299,7 @@ module OpenShift
 
     BACKEND = %q{
 upstream <%= pool_name %> {
+ zone <%= pool_name %> <%= @health_check_shared_memory %>;
  <%= servers %>
 }
 }
@@ -302,6 +310,7 @@ server {
   server_name <%= alias_str %>;
   location / {
     proxy_pass http://<%= pool_name %>;
+    <%= @health_check %>
   }
 }
 }
@@ -311,12 +320,18 @@ server {
   listen <%= @http_port %>;
   <%= locations %>
 }
+<% if @nginx_plus %>
+match statusok {
+  status <%= @health_check_match_status %>;
+}
+<% end %>
 }
 
     FRONTEND = %q{
   # route_name=<%= route_name %>
   location <%= path %> {
     proxy_pass http://<%= pool_name %>;
+    <%= @health_check %>
   }
 }
 
@@ -328,6 +343,7 @@ server {
   ssl_certificate_key <%= keyfname %>;
   location / {
     proxy_pass http://<%= pool_name %>;
+    <%= @health_check %>
   }
 }
 }
