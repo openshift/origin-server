@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.29.1
+Version: 1.29.2
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -97,6 +97,10 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %exclude %{cartridgedir}/usr/versions/*/template/*.pyo
 
 %changelog
+* Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.29.2-1
+- Bug 1151494 - Add WSGIApplicationGroup directive to wsgi.conf
+  (mfojtik@redhat.com)
+
 * Fri Aug 08 2014 Adam Miller <admiller@redhat.com> 1.29.1-1
 - bump_minor_versions for sprint 49 (admiller@redhat.com)
 
