@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.31.7
+Version: 1.31.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.31.8-1
+- ssh keys: remove special logins (lmeyer@redhat.com)
+- fix whitespace (lmeyer@redhat.com)
+- app container proxy: Add user login to ssh authorized_keys file
+  (thunt@redhat.com)
+
 * Mon Oct 13 2014 Adam Miller <admiller@redhat.com> 1.31.7-1
 - disable ha feature (rchopra@redhat.com)
 
