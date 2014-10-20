@@ -233,11 +233,8 @@ module OpenShift
 
           # Create a single SSH Authorized keys entry
           def key_entry(key_string, key_type, comment, login)
-            shell       = @container.container_plugin.gear_shell || "/bin/bash"
-	    prefix      = ''
-	    if login
-		    prefix      = "OPENSHIFT_LOGIN=#{Shellwords.escape login} " if ( login.length > 1 )
-	    end
+            shell     = @container.container_plugin.gear_shell || "/bin/bash"
+            prefix    = login ? "OPENSHIFT_LOGIN=#{Shellwords.escape login} " : ""
             command   = "command=\"#{prefix}#{shell}\",no-X11-forwarding"
             [command, key_type, key_string, key_id(comment)].join(' ')
           end

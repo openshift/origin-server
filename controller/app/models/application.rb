@@ -2913,10 +2913,8 @@ class Application
         key_attrs["login"] = key.cloud_user.login
       when SystemSshKey
         key_attrs["name"] = "domain-" + key_attrs["name"]
-        key_attrs["login"] = 'S';
       when ApplicationSshKey
         key_attrs["name"] = "application-" + key_attrs["name"]
-        key_attrs["login"] = 'A';
       end
       updated_keys_attrs.push(key_attrs)
     end
