@@ -12,7 +12,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.27.2
+Version: 1.27.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -53,6 +53,9 @@ cp -p facts/update_yaml.rb %{buildroot}%{update_yaml_root}
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.27.3-1
+- mco agent: Fix single ssh key addition (thunt@redhat.com)
+
 * Tue Oct 07 2014 Adam Miller <admiller@redhat.com> 1.27.2-1
 - node archive: improve doc, config logic (jolamb@redhat.com)
 - broker/node: Add parameter for gear destroy to signal part of gear creation
