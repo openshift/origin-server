@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.30.3
+Version: 1.30.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,11 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.30.4-1
+- app container proxy: Add user login to ssh authorized_keys file
+  (thunt@redhat.com)
+- Fixed bz1111562 (lxia@redhat.com)
+
 * Tue Oct 07 2014 Adam Miller <admiller@redhat.com> 1.30.3-1
 - node archive: improve doc, config logic (jolamb@redhat.com)
 - broker/node: Add parameter for gear destroy to signal part of gear creation
