@@ -21,7 +21,7 @@ module OpenShift
           def initialize(container, filename=nil)
             @container = container
             @username = container.uuid
-            @filename = filename || 
+            @filename = filename ||
               @container.container_dir + "/.ssh/authorized_keys"
 
             # override for testing
@@ -152,22 +152,22 @@ module OpenShift
           #
           # Examples:
           #   k = [
-          #       {'key' => 'AAA...', 
-          #        'type' => 'ssh-rsa', 
+          #       {'key' => 'AAA...',
+          #        'type' => 'ssh-rsa',
           #        'comment' => 'String'
           #       },
           #       {'key' => 'bar...',
           #        'type' => 'ssh-rsa',
           #        'comment' => 'more'
           #       },
-          #       {'key' => 'AAA...', 
+          #       {'key' => 'AAA...',
           #        'type' => 'ssh-rsa',
           #        'comment' => 'String'},
           #       ]
           #   replace_keys(k)
-          # 
+          #
           # Returns: nil on Success
-          # 
+          #
           def replace_keys(new_keys)
 
             modify do |keys|
@@ -197,12 +197,12 @@ module OpenShift
             return false unless ssh_keys.is_a? Array
             ssh_keys.each do |entry|
               return false if entry.nil?
-              return false if not 
+              return false if not
                 (entry['key'].is_a? String and entry['key'].length > 0)
               return false if not
                 (entry['type'].is_a? String and entry['type'].length > 0)
               return false if not
-                (entry['comment'].nil? or 
+                (entry['comment'].nil? or
                 (entry['comment'].is_a? String and entry['comment'].length > 0))
             end
             true
@@ -218,7 +218,7 @@ module OpenShift
               not entry.nil? and
               entry['key'].is_a? String and entry['key'].length > 0 and
               entry['type'].is_a? String and entry['type'].length > 0 and
-              (entry['comment'].nil? or 
+              (entry['comment'].nil? or
                (entry['comment'].is_a? String and entry['comment'].length > 0))
             # any false results invalidates the whole set
             }.reduce(:&)
