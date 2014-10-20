@@ -1,6 +1,6 @@
 Summary:       Openshift PAM module
 Name:          pam_openshift
-Version: 1.12.1
+Version: 1.12.2
 Release:       1%{?dist}
 Group:         System Environment/Base
 License:       GPLv2
@@ -41,6 +41,10 @@ install -D -m 644 oo-namespace-init.8 %{buildroot}/%{_mandir}/man8/oo-namespace-
 %attr(0750,root,root) %{_sbindir}/oo-namespace-init
 
 %changelog
+* Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.12.2-1
+- Bug 1146750 - Ensure permissions on temporary directories (jhonce@redhat.com)
+- Bug 1146750 - Ensure permissions on temporary directories (jhonce@redhat.com)
+
 * Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.12.1-1
 - bump_minor_versions for sprint 43 (admiller@redhat.com)
 
