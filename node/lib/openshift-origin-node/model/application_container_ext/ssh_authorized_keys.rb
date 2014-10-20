@@ -1,4 +1,5 @@
 require 'fcntl'
+require 'shellwords'
 
 module OpenShift
   module Runtime
@@ -235,7 +236,7 @@ module OpenShift
             shell       = @container.container_plugin.gear_shell || "/bin/bash"
 	    prefix      = ''
 	    if login
-		    prefix      = "OPENSHIFT_LOGIN=#{login} " if ( login.length > 1 )
+		    prefix      = "OPENSHIFT_LOGIN=#{Shellwords.escape login} " if ( login.length > 1 )
 	    end
             command   = "command=\"#{prefix}#{shell}\",no-X11-forwarding"
             [command, key_type, key_string, key_id(comment)].join(' ')
