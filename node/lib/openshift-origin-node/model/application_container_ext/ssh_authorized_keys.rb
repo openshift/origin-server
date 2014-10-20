@@ -58,12 +58,12 @@ module OpenShift
           #   # => nil
           #
           # Returns nil on Success or raises on Failure
-          def add_key(key_string, key_type=nil, comment=nil)
-            #@container.logger.info "Adding new key #{key_string} #{key_type} #{comment}"
+          def add_key(key_string, key_type=nil, comment=nil, login=nil )
+            #@container.logger.info "Adding new key #{key_string} #{key_type} #{comment} #{login}"
             comment = "" unless comment
 
             modify do |keys|
-              keys[key_id(comment)] = key_entry(key_string, key_type, comment)
+              keys[key_id(comment)] = key_entry(key_string, key_type, comment, login)
             end
 
           end
@@ -88,7 +88,7 @@ module OpenShift
             modify do |keys|
               new_keys.each do |k|
                 comment = k["comment"] || ""
-                keys[key_id(comment)] = key_entry(k["content"], k["type"], comment)
+                keys[key_id(comment)] = key_entry(k["content"], k["type"], comment, k["login"])
               end
             end
           end
@@ -108,7 +108,7 @@ module OpenShift
           #
           # Returns nil on Success or raises on Failure
           #
-          def remove_key(key_string, key_type=nil, comment=nil)
+          def remove_key(key_string, key_type=nil, comment=nil, login=nil)
             modify do |keys|
               if comment
                 keys.delete_if{ |k, v| v.end_with?(key_id(comment)) }
@@ -177,7 +177,7 @@ module OpenShift
               # add the new keys in
               new_keys.each do |key|
                 id = key_id(key['comment'])
-                entry = key_entry(key['key'], key['type'], key['comment'])
+                entry = key_entry(key['key'], key['type'], key['comment'], key['login'])
                 keys[id] = entry
               end
             end
@@ -231,9 +231,13 @@ module OpenShift
           end
 
           # Create a single SSH Authorized keys entry
-          def key_entry(key_string, key_type, comment)
+          def key_entry(key_string, key_type, comment, login)
             shell       = @container.container_plugin.gear_shell || "/bin/bash"
-            command   = "command=\"#{shell}\",no-X11-forwarding"
+	    prefix      = ''
+	    if login
+		    prefix      = "OPENSHIFT_LOGIN=#{login} " if ( login.length > 1 )
+	    end
+            command   = "command=\"#{prefix}#{shell}\",no-X11-forwarding"
             [command, key_type, key_string, key_id(comment)].join(' ')
           end
 
