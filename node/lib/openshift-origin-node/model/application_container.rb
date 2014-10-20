@@ -401,7 +401,7 @@ module OpenShift
           # git gc - do this last to maximize room  for git to write changes
           gear_level_tidy_git(gear_repo_dir)
         rescue Exception => e
-          logger.warn("An unknown exception occured during tidy for gear #{@uuid}: #{e.message}\n#{e.backtrace}")
+          logger.warn("An unknown exception occurred during tidy for gear #{@uuid}: #{e.message}\n#{e.backtrace}")
         ensure
           start_gear(user_initiated: false)
         end
@@ -515,7 +515,7 @@ module OpenShift
       def gear_level_tidy_tmp(gear_tmp_dir)
         # Temp dir cleanup
         tidy_action do
-          FileUtils.rm_rf(Dir.glob(PathUtils.join(gear_tmp_dir, "*")))
+          FileUtils.rm_rf(Dir.glob(PathUtils.join(gear_tmp_dir, uuid, '*')))
           logger.debug("Cleaned gear temp dir at #{gear_tmp_dir}")
         end
       end
