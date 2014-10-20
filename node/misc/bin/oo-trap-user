@@ -11,6 +11,10 @@ import re
 import selinux
 import subprocess
 import itertools
+import shlex
+
+# Shell compatible split that honors quoted strings
+shsplit = lambda a: [b.decode('utf-8') for b in shlex.split(a.encode('utf-8'))]
 
 EXT_LIB = "/usr/libexec/openshift/lib/util"
 
@@ -169,27 +173,37 @@ if __name__ == '__main__':
     gear_env()
 
     # Determine the command source
+    # Start with the command passed by the user through SSH
+    # be careful not to recurse (ssh adds $SHELL -c)
+    allargs = sys.argv
     #
+    if allargs[:2] == ['/usr/bin/oo-trap-user', '-c']:
+        # the final command is a SINGLE string
+        #syslog.syslog(syslog.LOG_DEBUG, "allargs: " + str(allargs))
+        allargs = shsplit(allargs[2])
+        # Provide for authorized_keys entries of form "NAME=value /usr/bin/oo-trap-user"
+        while allargs[0].find("=") > 0:
+             nv = allargs.pop(0)
+             nv = nv.split("=",2)
+             os.environ[nv[0]] = nv[1]
+
     # has sys.argv been replaced by an ssh key command?
     orig_cmd = os.environ.get('SSH_ORIGINAL_COMMAND')
     if orig_cmd != None:
         # extract the command which was replaced by SSH auth key command
         #syslog.syslog(syslog.LOG_DEBUG, "orig_cmd: " + orig_cmd)
-        allargs = orig_cmd.split() if orig_cmd else []
-    else:
-        # use the command passed by the user through SSH
-        # be careful not to recurse (ssh adds $SHELL -c)
-        allargs = sys.argv
-
-    if allargs[:2] == ['/usr/bin/oo-trap-user', '-c']:
-        # the final command is a SINGLE string
-        #syslog.syslog(syslog.LOG_DEBUG, "allargs: " + str(allargs))
-        allargs = allargs[2].split()
+        allargs = shsplit(orig_cmd) if orig_cmd else []
 
     if allargs == ['/usr/bin/oo-trap-user'] or allargs == []:
         # no command, avoid recursion, drop to shell
         #syslog.syslog(syslog.LOG_DEBUG, "no command: drop to rhcsh")
         allargs = ['rhcsh']
+
+    # Log OpenShift login if known, plus gear UUID
+    if config.get('SYSLOG_GEAR_LOGIN') == 'true':
+        syslog.syslog("oo_login: %s from: %s gearUuid=%s cmd=%s" %
+                     (os.environ.get('OPENSHIFT_LOGIN'), os.environ.get('SSH_CLIENT').split()[0],
+                     os.environ.get('OPENSHIFT_GEAR_UUID'), '+'.join(allargs)))
 
     # Determine the command to execute: use from command_map if provided
     try:

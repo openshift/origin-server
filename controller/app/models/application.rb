@@ -1958,7 +1958,7 @@ class Application
     # If this is a new group instance creation (gear creation and not a scale up), we can skip rollback
     if maybe_notify_app_create_op.empty? || user_env_vars.present?
       prereq = gear_id_prereqs[app_dns_gear_id].nil? ? [ops.last._id.to_s] : [gear_id_prereqs[app_dns_gear_id]]
-      op = PatchUserEnvVarsOp.new(group_instance_id: ginst_id, user_env_vars: user_env_vars, push_vars: true, 
+      op = PatchUserEnvVarsOp.new(group_instance_id: ginst_id, user_env_vars: user_env_vars, push_vars: true,
                                   skip_rollback: !is_scale_up, prereq: prereq)
       ops << op
       user_vars_op_id = op._id.to_s
@@ -2043,7 +2043,7 @@ class Application
             status = true
           else
             # does removing a gear with this sparse cart still maintain the multiplier?
-            # ensuring a float arithmetic to make correct comparisons 
+            # ensuring a float arithmetic to make correct comparisons
             status = (cur_total_gears -1) / ((cur_sparse_gears - 1) * 1.0) <= multiplier
           end
           status
@@ -2910,6 +2910,7 @@ class Application
       case key.class
       when UserSshKey
         key_attrs["name"] = key.cloud_user._id.to_s + "-" + key_attrs["name"]
+        key_attrs["login"] = key.cloud_user.login
       when SystemSshKey
         key_attrs["name"] = "domain-" + key_attrs["name"]
       when ApplicationSshKey
