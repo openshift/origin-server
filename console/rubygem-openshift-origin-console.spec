@@ -10,7 +10,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.31.6
+Version: 1.31.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -168,6 +168,12 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.31.7-1
+- Merge pull request #5870 from fabianofranz/bugs/1151548
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1151548 - adding cartridge must send supported gear size
+  (contact@fabianofranz.com)
+
 * Mon Oct 13 2014 Adam Miller <admiller@redhat.com> 1.31.6-1
 - Fixes indendation issue in coffeescript (contact@fabianofranz.com)
 
