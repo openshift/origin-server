@@ -5,7 +5,11 @@
 orig_lang=$LANG
 export LANG=C
 
-ruby_ver=$(/usr/bin/ruby --version | cut -d ' ' -f 2)
+if [ -f /usr/bin/ruby ]; then
+  ruby_ver=$(/usr/bin/ruby --version | cut -d ' ' -f 2)
+else
+  ruby_ver=""
+fi
 
 # If ruby193 scl installed, us it by default, otherwise use system ruby if it's
 # a recent enough version. Otherwise throw an error.
