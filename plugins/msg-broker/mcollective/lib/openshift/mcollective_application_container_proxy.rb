@@ -2187,7 +2187,8 @@ module OpenShift
 
         least_preferred_servers = [source_container.id]
         opts = { :node_profile => destination_gear_size, :district_uuid => destination_district_uuid,
-                 :gear => gear, :gear_exists_in_district => gear_exists_in_district, :required_uid => required_uid }
+                 :gear => gear, :gear_exists_in_district => gear_exists_in_district, :required_uid => required_uid,
+                 :region_id => source_server.region_id }
 
         # the ApplicationContainerProxy method is used so that the node selector plugin can be invoked
         destination_container = ApplicationContainerProxy.find_available(opts)
