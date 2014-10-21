@@ -3157,7 +3157,10 @@ module OpenShift
           reloaded_app = Application.find_by(_id: gear.application._id)
           reloaded_app.gears.each do |g|
             if g.server_identity
-              server = District.find_server(g.server_identity, districts)
+              # we are not providing the districts argument here
+              # since the current gear size might be different from what is now required
+              # districts list only contains districts that match rhe required node profile
+              server = District.find_server(g.server_identity)
               break
             end
           end
