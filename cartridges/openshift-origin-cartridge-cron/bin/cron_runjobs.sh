@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source "/usr/lib/openshift/cartridge_sdk/bash/sdk"
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 # source OpenShift environment variable into context
 function load_env {
