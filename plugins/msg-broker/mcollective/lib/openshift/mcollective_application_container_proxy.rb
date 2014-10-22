@@ -2080,7 +2080,7 @@ module OpenShift
           raise OpenShift::OOException.new("Could not set group instance gear_size to #{gear.group_instance.gear_size}") if res.nil? or !res["updatedExisting"]
           # destroy destination
           log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.uuid}' in '#{app.name}' with delete on '#{destination_container.id}'"
-          reply.append destination_container.destroy(gear, !district_changed, nil, true)
+          reply.append destination_container.destroy(gear, !district_changed, false, nil, true)
 
           raise
         end
@@ -2135,7 +2135,7 @@ module OpenShift
       reply = ResultIO.new
       log_debug "DEBUG: Deconfiguring old app '#{app.name}' on #{source_container.id} after move"
       begin
-        reply.append source_container.destroy(gear, !district_changed, gear.uid, true)
+        reply.append source_container.destroy(gear, !district_changed, false, gear.uid, true)
       rescue Exception => e
         log_debug "DEBUG: The application '#{app.name}' with gear uuid '#{gear.uuid}' is now moved to '#{destination_container.id}' but not completely deconfigured from '#{source_container.id}'"
         raise
