@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.30.4
+Version: 1.30.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Wed Oct 22 2014 Adam Miller <admiller@redhat.com> 1.30.5-1
+- Bug 1150140: Region was not being correctly handled during gear moves
+  (abhgupta@redhat.com)
+
 * Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.30.4-1
 - app container proxy: Add user login to ssh authorized_keys file
   (thunt@redhat.com)
