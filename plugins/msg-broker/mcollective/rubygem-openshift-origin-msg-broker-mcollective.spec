@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.30.5
+Version: 1.30.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Wed Oct 22 2014 Adam Miller <admiller@redhat.com> 1.30.6-1
+- Bug 1155478: Failed to add uid back to available_uids after gear move across
+  district (abhgupta@redhat.com)
+
 * Wed Oct 22 2014 Adam Miller <admiller@redhat.com> 1.30.5-1
 - Bug 1150140: Region was not being correctly handled during gear moves
   (abhgupta@redhat.com)
