@@ -11,7 +11,7 @@
 
 Summary:       OpenShift daemon for routing integration
 Name:          rubygem-%{gem_name}
-Version: 0.19
+Version: 0.20
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -87,6 +87,9 @@ cp -a init/* %{buildroot}/etc/rc.d/init.d/
 %attr(0750,-,-) %{_root_sbindir}/openshift-routing-daemon
 
 %changelog
+* Wed Oct 22 2014 Adam Miller <admiller@redhat.com> 0.20-1
+- Adding NGINX Plus health checks to routing-daemon (calfonso@redhat.com)
+
 * Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 0.19-1
 - Adding SSL configuration for nginx (calfonso@redhat.com)
 
