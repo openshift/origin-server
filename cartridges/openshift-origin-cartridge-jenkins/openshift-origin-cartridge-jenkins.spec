@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.25.2
+Version: 1.25.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -49,6 +49,13 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Oct 23 2014 Adam Miller <admiller@redhat.com> 1.25.3-1
+- Merge pull request #5902 from jwhonce/stage
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1153557 - Disable strict known_hosts checking in Jenkins
+  (mfojtik@redhat.com)
+- Version bump for the sprint 52 (mfojtik@redhat.com)
+
 * Tue Oct 07 2014 Adam Miller <admiller@redhat.com> 1.25.2-1
 - Add markers to disable bad ciphers for rhel6.6 (bparees@redhat.com)
 
