@@ -10,7 +10,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.31.7
+Version: 1.31.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -168,6 +168,10 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Oct 24 2014 Adam Miller <admiller@redhat.com> 1.31.8-1
+- Bug 1156374 - domain admin member must be able to see domain teams
+  (contact@fabianofranz.com)
+
 * Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.31.7-1
 - Merge pull request #5870 from fabianofranz/bugs/1151548
   (dmcphers+openshiftbot@redhat.com)
