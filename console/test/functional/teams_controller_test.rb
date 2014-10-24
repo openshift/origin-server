@@ -261,6 +261,18 @@ class TeamsControllerTest < ActionController::TestCase
     assert_select "a:content(?)", /Leave Team/
   end
 
+  test "should show team page and not show leave team button for domain admins that are not members" do
+    with_particular_user
+    Team.any_instance.expects(:owner?).at_least(0).returns(false)
+    Team.any_instance.expects(:admin?).at_least(0).returns(true)
+    Team.any_instance.expects(:me).at_least(0).returns(nil)
+    get :show, {:id => @team.id}
+    assert_template :show
+    assert_response :success
+    assert_select "a:content(?)", /Delete this team/, :count => 0
+    assert_select "a:content(?)", /Leave Team/, :count => 0
+  end
+
   test "should hide leave team button for global team members" do
     with_particular_user
     Team.any_instance.expects(:can_delete?).at_least(0).returns(false)
