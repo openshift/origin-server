@@ -299,7 +299,9 @@ module OpenShift
 
     BACKEND = %q{
 upstream <%= pool_name %> {
+<% if @nginx_plus %>
  zone <%= pool_name %> <%= @health_check_shared_memory %>;
+<% end %>
  <%= servers %>
 }
 }
