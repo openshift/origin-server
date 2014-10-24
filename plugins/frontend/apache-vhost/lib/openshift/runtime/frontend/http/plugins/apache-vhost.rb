@@ -122,6 +122,9 @@ module OpenShift
               reported_urls=[]
               with_lock_and_reload do
 
+                raise PluginException.new("Base directory #{@app_path} does not exist for the app",
+                                            @container_uuid, @fqdn) if not Dir.exists?(@app_path)
+
                 # The base config won't exist until the first connection is created
                 if not File.exists?(conf_path)
                   File.open(conf_path, File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
