@@ -43,6 +43,6 @@ class Team < RestApi::Base
   end
 
   def can_leave?
-    !owner? && !global?
+    me && !owner? && !global?
   end
 end
