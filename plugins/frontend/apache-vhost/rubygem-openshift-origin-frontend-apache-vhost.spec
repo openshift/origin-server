@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.10.2
+Version: 0.10.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -109,6 +109,10 @@ mv httpd/openshift-vhost-logconf.include %{buildroot}/etc/httpd/conf.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Mon Oct 27 2014 Adam Miller <admiller@redhat.com> 0.10.3-1
+- fix bz 1156361. Race condition between destroy-app and configure.
+  (rchopra@redhat.com)
+
 * Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 0.10.2-1
 - Bug 1153313: Disable SSLv3 (lmeyer@redhat.com)
 
