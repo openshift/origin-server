@@ -44,6 +44,7 @@ if defined? Capybara
       :phantomjs_options => %w[
         --disk-cache=yes
         --ignore-ssl-errors=yes
+        --ssl-protocol=TLSv1
         --load-images=no
       ],
     }.merge(debug))
