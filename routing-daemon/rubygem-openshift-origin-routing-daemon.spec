@@ -85,6 +85,7 @@ cp -a init/* %{buildroot}/etc/rc.d/init.d/
 %attr(0755,-,-) /etc/rc.d/init.d/openshift-routing-daemon
 %attr(0750,-,-) %{_root_sbindir}/oo-admin-ctl-routing
 %attr(0750,-,-) %{_root_sbindir}/openshift-routing-daemon
+%attr(0755,-,-) %{_var}/log/openshift
 
 %changelog
 * Wed Oct 22 2014 Adam Miller <admiller@redhat.com> 0.20-1
