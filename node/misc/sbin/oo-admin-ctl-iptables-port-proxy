@@ -42,7 +42,7 @@ stop() {
 check_firewall() {
     FALLBACK=$1
 
-    iptables -L | grep 'rhc-app-comm  all' >/dev/null 2>&1
+    iptables -nL | grep 'rhc-app-comm  all' >/dev/null 2>&1
     RETVAL=$?
     if [ ! $RETVAL -eq 0 ]; then
         echo "ERROR: rhc-app-comm INPUT rule not found.  Check /etc/sysconfig/iptables." 1>&2
@@ -77,14 +77,14 @@ case "$1" in
         fi
 
         RULES_ASSERTED=`grep ACCEPT $RULES_FILE | wc -l`
-        RULES=`iptables -L rhc-app-comm | grep ACCEPT | wc -l`
+        RULES=`iptables -nL rhc-app-comm | grep ACCEPT | wc -l`
         if [ ! $RULES_ASSERTED -eq $RULES ]; then
             echo "ERROR: A difference has been detected between state of $RULES_FILE and the rhc-app-comm iptables chain." 1>&2
             exit 1
         fi
 
         NAT_ASSERTED=`grep DNAT $NAT_FILE | wc -l`
-        NAT=`iptables -t nat -L | grep DNAT | wc -l`
+        NAT=`iptables -t nat -nL | grep DNAT | wc -l`
         # Bug 1040824 - We can't assume the openshift nat rules are the only ones
         # running.  For that reason we only alert if there are more OpenShift NAT
         # rules than what we see actually running.
