@@ -14,6 +14,7 @@ Requires:      java >= 1.6
 Requires:      jenkins
 Requires:      jenkins-plugin-openshift
 Requires:      openshift-origin-node-util
+Requires:      unzip
 Provides:      openshift-origin-cartridge-jenkins-1.4 = 2.0.0
 Obsoletes:     openshift-origin-cartridge-jenkins-1.4 <= 1.99.9
 BuildArch:     noarch
