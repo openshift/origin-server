@@ -4,28 +4,29 @@ source "/usr/lib/openshift/cartridge_sdk/bash/sdk"
 
 # source OpenShift environment variable into context
 function load_env {
-    [ -z "$1" ] && return 1
+    [ $# -ne 1 ] && return 1 # unexpected number of arguments
+    [ -z "$1" ] && return 2 # unexpected empty filename
+    [[ "$1" == *' '* ]] && return 3 # unexpected space(s) in filename
 
     if [ -d "$1" ]
     then
       for f in ${1}/*
       do
-        load_env $f
+        load_env "$f"
       done
       return
     fi
 
-    [ -f "$1" ] || return 0
+    [ -f "$1" ] || return 4 # unexpected invalid file
     [[ "$1" =~ .*\.rpmnew$ ]] && return 0
 
-    local contents=$(< $1)
-    local key=$(basename $1)
-    export $key=$(< $1)
+    local key="$(basename $1)"
+    export $key="$(< $1)"
 }
 
 for f in ~/.env/* ~/.env/user_vars/* ~/*/env/*
 do
-    load_env $f
+    load_env "$f"
 done
 
 export PATH=$(build_path)
