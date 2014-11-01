@@ -31,6 +31,9 @@ class ApplicationType
   attr_accessor :source
   attr_accessor :usage_rates
   attr_accessor :valid_gear_sizes
+  attr_accessor :name
+  attr_accessor :display_unique_name
+  alias_method :display_unique_name?, :display_unique_name
 
   attr_accessible :initial_git_url, :cartridges, :initial_git_branch, :scalable, :may_not_scale
   alias_attribute :categories, :tags
@@ -223,6 +226,12 @@ class ApplicationType
     new(:id => 'custom', :display_name => 'From Scratch').assign_attributes(attrs)
   end
 
+  def self.set_display_unique_name(types)
+    types.group_by { |e| e.display_name }.select { |k, v| v.size > 1 }.map(&:last).flatten.each do |t|
+      t.display_unique_name = true if t.name
+    end
+  end
+
   protected
     attr_accessor :automatic_updates
 
@@ -271,7 +280,7 @@ class ApplicationType
 
     def self.from_cartridge_type(type)
       attrs = {:id => "cart!#{type.name}", :source => :cartridge}
-      [:display_name, :tags, :description, :website, :version, :license, :license_url, :help_topics, :priority, :scalable, :usage_rates, :valid_gear_sizes].each do |m|
+      [:display_name, :name, :tags, :description, :website, :version, :license, :license_url, :help_topics, :priority, :scalable, :usage_rates, :valid_gear_sizes].each do |m|
         attrs[m] = type.send(m)
       end
       attrs[:provider] = type.support_type

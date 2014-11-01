@@ -59,10 +59,22 @@ def eputs(msg)
 end
 
 def load_rails_env
+  verbose "Loading broker environment."
   require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
   # Disable analytics for admin scripts
   Rails.configuration.analytics[:enabled] = false
   Rails.configuration.msg_broker[:rpc_options][:disctimeout] = OOAS_OPTIONS[:wait]
+  verbose "Finished loading broker environment."
+end
+
+# NOTE: only works for facts in this list:
+FACTS = %w[node_profile public_hostname public_ip]
+def get_fact_for_nodes(fact)
+  $OOAS_FACTS ||= begin # only ask once, and store result
+                    verbose "retrieving facts for nodes"
+                    OpenShift::ApplicationContainerProxy.get_details_for_all(FACTS)
+                  end
+  Hash[ $OOAS_FACTS.collect {|node,facts| [node, facts[fact] ] } ]
 end
 
 ######## TESTS #############
@@ -77,7 +89,7 @@ def check_nodes_public_hostname
   # get the PUBLIC_HOSTNAME from every node
   # and make sure it resolves and is not localhost
   #
-  OpenShift::MCollectiveApplicationContainerProxy.rpc_get_fact("public_hostname") do |node,host|
+  get_fact_for_nodes(:public_hostname).each do |node,host|
     names_for[host] << node
     $NODES_EXIST=true
     # test host resolution
@@ -114,7 +126,7 @@ def check_nodes_public_ip
   # get the PUBLIC_IP from every node
   # and make sure it's not localhost
   #
-  OpenShift::MCollectiveApplicationContainerProxy.rpc_get_fact("public_ip") do |node,ip|
+  get_fact_for_nodes(:public_ip).each do |node,ip|
     nodes_for[ip] << node
     if LOCALHOST.member? ip
       do_fail "PUBLIC_IP #{ip} should be public, not localhost"
@@ -134,78 +146,174 @@ def check_nodes_public_ip
   end
 end
 
-def check_nodes_cartridges
-  verbose "checking that all node hosts have cartridges installed"
-  #
-  # get the list of cartridges from every node
-  #
-  nodes = OpenShift::MCollectiveApplicationContainerProxy.known_server_identities
-  obsolete_carts = []
-  carts_for = nodes.map do |node|
-    carts = OpenShift::ApplicationContainerProxy.instance(node).get_available_cartridges
-    obs_carts, non_obs_carts = carts.partition {|cart| cart.is_obsolete?}
-    obsolete_carts |= obs_carts.map {|cart| cart.name}
-    [node, non_obs_carts.map {|cart| cart.name}.sort]
-  end.instance_eval {|ary| Hash[*ary.flatten(1)]}
+def version_cmp(version)
+  version.split('.').map {|seg| sprintf '%08d', seg}.join
+end
 
-  carts_for.each do |node, carts|
+def check_nodes_cartridges
+  verbose "Checking consistency of broker records with cartridges installed on node hosts."
+
+  # get the current carts the broker has, so we can compare to nodes.
+  seen = {} # keep the "latest" (i.e. most recently activated) cart version, which is earliest in the list
+  carts_for_broker = CartridgeType.latest.to_a.
+    inject([]) {|carts,c| carts << (seen[c.name] = c) unless seen[c.name]; carts }
+  disabled_carts, carts_for_broker = carts_for_broker.partition {|c| c.priority.nil?}
+  downloaded_carts, carts_for_broker = carts_for_broker.partition {|c| c.manifest_url}
+  obsolete_carts, carts_for_broker = carts_for_broker.partition {|c| c.is_obsolete?}
+  broker_version_of_cart = Hash[carts_for_broker.collect {|c| [c.name, "#{c.cartridge_vendor}-#{c.name}-#{c.cartridge_version}"] }]
+  [carts_for_broker, disabled_carts, downloaded_carts, obsolete_carts].each {|list| list.map! {|c| c.name }.sort! }
+  verbose "Broker expects nodes to have these cartridges: #{carts_for_broker.join ', '}"
+  verbose "Broker has disabled cartridges: #{disabled_carts.join ', '}" if !disabled_carts.empty?
+  verbose "Broker has imported downloadable cartridges: #{downloaded_carts.join ', '}" if !downloaded_carts.empty?
+
+  # retrieve list of nodes and their profiles.
+  # TODO: separate things out by platform - windows nodes expected to have different carts.
+  nodes_for_profile = Hash.new {|h,k| h[k]= Array.new }
+  profile_for_node = get_fact_for_nodes(:node_profile)
+  profile_for_node.each {|node,profile| nodes_for_profile[profile] << node }
+
+  #
+  # get the list of cartridges from every node. we are interested in whether the nodes have
+  # expected cartridges at all, and also in whether the versions match.
+  #
+  node_obsolete_carts = []
+  carts_for_profile = Hash.new {|h,k| h[k]= Array.new }
+  carts_for_node = {}
+  versioned_carts_for_node = {}
+  verbose "Retrieving cartridges for #{profile_for_node.size} nodes."
+  profile_for_node.each do |node,profile|
+    carts = OpenShift::ApplicationContainerProxy.instance(node).get_available_cartridges.
+      reject {|cart| disabled_carts.include? cart.name }.  # ignore broker-disabled carts
+      reject {|cart| downloaded_carts.include? cart.name } # ignore downloaded carts
+    obs_carts, carts = carts.partition {|cart| cart.is_obsolete?}
+    node_obsolete_carts |= obs_carts.map {|cart| cart.name } # note obsoletes, but do not expect at broker
+    carts_for_profile[profile] |= carts_for_node[node] = carts.map {|cart| cart.name }.uniq.sort
+    versioned_carts_for_node[node] = # array of only the latest version of each cart
+      carts.sort_by {|c| "#{c.name}-#{version_cmp(c.cartridge_version)}-#{c.cartridge_vendor}"}.
+        # ^^^ sorted so highest version of each cart name comes last; only that one is recorded (vvv)
+      inject({}) {|hash,c| hash[c.name] = "#{c.cartridge_vendor}-#{c.name}-#{c.cartridge_version}"; hash }
+  end
+
+  # check that nodes actually provide any active cartridges
+  return if carts_for_node.empty?  #nothing to do...
+  carts_for_node.each do |node, carts|
     if carts.empty?
-      do_fail "host #{node} does not have any cartridges installed"
+      do_fail "Host '#{node}' does not have any active cartridges installed"
     else
-      verbose "cartridges for #{node}: #{carts.join ', '}"
+      verbose "Active cartridges for #{node}: #{carts.join ', '}"
     end
   end
+  verbose "Some nodes have obsolete cartridges installed: #{node_obsolete_carts.uniq.sort.join(', ')}" if node_obsolete_carts.present?
 
-  verbose "In addition, some nodes have obsolete cartridges installed: #{obsolete_carts.uniq.sort.join(', ')}" if obsolete_carts.present?
+  # if possible, check that profiles provide cartridges specified in broker conf.
+  if restricted = Rails.configuration.openshift[:cartridge_gear_sizes]
+    mismatch = []
+    restricted.each do |cart,profiles|  # restricted in specific profiles as specified
+      next if !carts_for_broker.include? cart  # ignore disabled/downloaded/obsolete
+      verbose "Broker requires the '#{cart}' cartridge in profile(s): #{profiles.join ', '}"
+      profiles.each do |prof|
+        next if carts_for_profile[prof].include?(cart)
+        mismatch << "Profile '#{prof}' does not provide cartridge '#{cart}' specified by VALID_GEAR_SIZES_FOR_CARTRIDGE"
+      end
+    end
+    unrestricted = carts_for_broker - restricted.keys # not explicitly listed, so expect in all profiles
+    verbose "Broker expects all profiles to have cartridge(s): #{unrestricted.join ', '}"
+    carts_for_profile.each do |prof,profile_carts|
+      verbose "Nodes in profile '#{prof}' provide these cartridges: #{profile_carts.join ', '}"
+      next if (missing = unrestricted - profile_carts).empty?
+      mismatch << "Profile '#{prof}' does not provide cartridge(s) #{missing.join ', '} as expected by the broker"
+    end
+    mismatch.empty? or
+      do_fail "\n  To limit cartridge availability by profile, use broker.conf:VALID_GEAR_SIZES_FOR_CARTRIDGE\n  #{mismatch.join(%Q[\n  ])}"
+  else # if that conf option isn't there, inform instead of warn about variations between profile cartridge sets
+    mismatch = []
+    carts_for_profile.each do |prof,profile_carts|
+      verbose "Nodes in profile '#{prof}' provide these cartridges: #{profile_carts.join ', '}"
+      next if (missing = carts_for_broker - profile_carts).empty?
+      mismatch << "Profile #{prof} does not provide cartridge(s) #{missing.join ', '} that are active according to the broker."
+    end
+    mismatch.empty? or verbose <<-"MISMATCH"
 
-  carts_for.empty? and return #nothing to do...
-
-  #
-  # check it's the same on every node
-  #
-  verbose "checking that same cartridges are installed on all node hosts"
-  all_carts = carts_for.values.flatten.uniq.sort
-  if all_carts.empty?
-    do_fail "no cartridges are installed; please install cartridges on your node hosts"
-    return
-  end
-  any_missing = false
-  carts_for.each do |node,carts|
-    missing = all_carts - carts
-    missing.empty? or do_fail "node #{node} cartridge list is missing #{missing.join ', '}"
-    any_missing ||= !missing.empty?
-  end
-  #
-  # check against broker's list of carts
-  #
-  # This gets /broker/rest/cartridges API doc. API versions 1.2 and 1.3 seem OK,
-  # may need to revisit for future versions.
-  return if any_missing # would likely get false positive
-  verbose "checking that broker's list of cartridges is not stale"
-  begin
-    require 'json'
-    api_carts = JSON.parse(RestClient.get('http://localhost:8080/broker/rest/cartridges.json'))
-    api_carts = api_carts["data"].reject {|cart| cart["url"].present?}
-                                 .map {|cart| cart["name"]}
-                                 .sort
-    verbose "API reports carts: #{api_carts.join ', '}"
-
-    do_fail <<-"MISMATCH" unless api_carts == all_carts
-      The broker's list of cartridges does not match what is available on
-      the node hosts.
-
-      Broker is missing: #{(all_carts - api_carts).join ', '}
-      Broker has extra: #{(api_carts - all_carts).join ', '}
-
-      You can instruct the broker to pull an updated list of cartridges from a node
-      and clear the management console's cache using the following commands:
-
-        # oo-admin-ctl-cartridge -c import-node --activate --obsolete
-        # oo-admin-console-cache --clear
+      Cartridges active on the broker are missing from some profiles.
+      Attempting to use cartridges in a profile that does not provide them
+      will result in errors. This may be intentional or you may wish to
+      fix this by installing all missing cartridges on nodes missing them.
+      If you do so, remember to restart mcollective on each node afterward.
+      "oo-admin-ctl-cartridge -c deactivate" can be used to deactivate cartridges at the broker.
+      \n#{mismatch.join "\n"}
     MISMATCH
-  rescue StandardError => e
-    do_fail "Couldn't retrieve cartridge list from broker: #{e}"
   end
+
+  # check that broker has imported cartridges provided by profiles.
+  mismatch = []
+  carts_for_profile.each do |prof,profile_carts|
+    next if (extra = profile_carts - carts_for_broker).empty?
+    mismatch << "Profile #{prof} provides cartridge(s) #{extra.join ', '} that are not imported by the broker."
+  end
+  mismatch.empty? or do_fail <<-"MISMATCH"
+
+    The broker has not imported all available cartridges.
+      #{mismatch.join "\n      "}
+    To import new cartridges into the broker:
+      # oo-admin-ctl-cartridge -c import-profile --activate
+  MISMATCH
+
+  # check cart list is the same on every node in a profile.
+  # also that broker has imported everything and versions on nodes match the broker.
+  verbose "Checking that same cartridges are installed on all node hosts in each profile."
+  mismatch = []
+  version_mismatch = []
+  nodes_for_profile.each do |profile,nodes|
+    nodes.each do |node|
+      node_mismatch = false
+      if !(missing = carts_for_profile[profile] - carts_for_node[node]).empty?
+        mismatch << "node '#{node}' cartridge list is missing #{missing.join ', '} compared to the profile '#{profile}'"
+        node_mismatch = true
+      end
+      if !(extra = carts_for_node[node] - carts_for_broker).empty?
+        mismatch << "node '#{node}' has extra cartridge(s) that the broker has not imported: #{extra.join ', '}"
+        node_mismatch = true
+      end
+      # check whether cartridge versions match as best we can
+      v4c = versioned_carts_for_node[node] # "missing" means the node has it, but not at broker's version
+      missing = broker_version_of_cart.map {|cart,v| v4c[cart] && v4c[cart] != v ? v : nil}.compact
+      # "extra" means node has it, not at the broker's version, and not excluded (inactive/obsolete/downloaded)
+      extra = versioned_carts_for_node[node].values - broker_version_of_cart.values
+      if !(missing + extra).empty?
+        version_mismatch << <<-"MISMATCH"
+        For node '#{node}', the cartridge versions do not match what the broker has active:
+          Broker has: #{missing.join ', '}
+            Node has: #{extra.join ', '}
+        MISMATCH
+      end
+    end
+  end
+  do_fail <<-"MISMATCH" if !mismatch.empty?
+
+    There were mismatches in cartridges available on nodes:
+      #{mismatch.join "\n      "}
+
+    All nodes in a profile should have the same set of cartridges installed.
+    Restart mcollective after installing new cartridges on a node.
+    To import new cartridges into the broker:
+      # oo-admin-ctl-cartridge -c import-profile --activate
+  MISMATCH
+  do_fail <<-"MISMATCH" if !version_mismatch.empty?
+
+    Some cartridge versions on the broker and nodes did not match.
+    If nodes have different cartridge versions, moving gears between
+    them may fail, and there may be other inconsistencies. Cartridge
+    versions are also used to determine when gears need upgrades and
+    whether restarts are required. Ensure that all nodes have the latest
+    cartridge versions installed. Restart mcollective on each node after
+    updating cartridges.
+    \n#{version_mismatch.join "\n"}
+    To import updated cartridges on the broker and upgrade existing gears:
+      # oo-admin-ctl-cartridge -c import-profile --activate
+      # oo-admin-ctl-cartridge -c migrate
+      # oo-admin-upgrade archive
+      # oo-admin-upgrade upgrade-gear --version <version>
+  MISMATCH
 end
 
 #########################################################################

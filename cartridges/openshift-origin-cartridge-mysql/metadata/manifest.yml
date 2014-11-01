@@ -8,7 +8,7 @@ Version: '5.5'
 Versions:
 - '5.1'
 - '5.5'
-Cartridge-Version: 0.2.17
+Cartridge-Version: 0.2.18
 Compatible-Versions:
 - 0.2.11
 - 0.2.12
@@ -16,6 +16,7 @@ Compatible-Versions:
 - 0.2.14
 - 0.2.15
 - 0.2.16
+- 0.2.17
 Cartridge-Vendor: redhat
 License: GPL
 Vendor: Oracle

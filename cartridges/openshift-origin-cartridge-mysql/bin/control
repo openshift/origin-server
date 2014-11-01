@@ -7,10 +7,10 @@ export OPENSHIFT_MYSQL_VERSION=$(mysql_version)
 
 start_timeout=45
 stop_timeout=30
-if [[ -n "${OPENSHIFT_MYSQL_START_TIMEOUT}" && "${OPENSHIFT_MYSQL_START_TIMEOUT}" =~ ^[0-9]+$ ]] ; then
+if [[ "${OPENSHIFT_MYSQL_START_TIMEOUT:-}" =~ ^[0-9]+$ ]] ; then
     start_timeout="${OPENSHIFT_MYSQL_START_TIMEOUT}"
 fi
-if [[ -n "${OPENSHIFT_MYSQL_STOP_TIMEOUT}" && "${OPENSHIFT_MYSQL_STOP_TIMEOUT}" =~ ^[0-9]+$ ]] ; then
+if [[ "${OPENSHIFT_MYSQL_STOP_TIMEOUT:-}" =~ ^[0-9]+$ ]] ; then
     stop_timeout="${OPENSHIFT_MYSQL_STOP_TIMEOUT}"
 fi
 

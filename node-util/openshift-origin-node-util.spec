@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.29.5
+Version: 1.31.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -145,6 +145,7 @@ rm -rf %{buildroot}
 %attr(0750,-,-) %{_sbindir}/oo-restorecon
 %attr(0750,-,-) %{_sbindir}/oo-restorer
 %attr(0750,-,-) %{_sbindir}/oo-admin-gear
+%attr(0750,-,-) %{_sbindir}/oo-gear-firewall
 %attr(0750,-,apache) %{_sbindir}/oo-restorer-wrapper.sh
 %attr(0750,-,-) %{_sbindir}/oo-httpd-singular
 %attr(0750,-,-) %{_sbindir}/oo-su
@@ -171,6 +172,7 @@ rm -rf %{buildroot}
 
 %{_mandir}/man8/oo-accept-node.8.gz
 %{_mandir}/man8/oo-admin-gear.8.gz
+%{_mandir}/man8/oo-gear-firewall.8.gz
 %{_mandir}/man8/oo-admin-ctl-gears.8.gz
 %{_mandir}/man8/oo-auto-idler.8.gz
 %{_mandir}/man8/oo-idler-stats.8.gz
@@ -201,6 +203,26 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.30.5-1
+- bz1151744 - wrap the wait for reload to finish inside of the lockfile
+  (rchopra@redhat.com)
+
+* Mon Oct 13 2014 Adam Miller <admiller@redhat.com> 1.30.4-1
+- node: add oo-gear-firewall tool (lmeyer@redhat.com)
+
+* Wed Oct 01 2014 Adam Miller <admiller@redhat.com> 1.30.3-1
+- Bug 1141922 (lnader@redhat.com)
+
+* Tue Sep 30 2014 Adam Miller <admiller@redhat.com> 1.30.2-1
+- bz1147054 - use common lockfile (rchopra@redhat.com)
+
+* Thu Sep 18 2014 Adam Miller <admiller@redhat.com> 1.30.1-1
+- bump_minor_versions for sprint 51 (admiller@redhat.com)
+- Watchman filters out haproxy/logshifter (agoldste@redhat.com)
+- Bug 1141304 - use full path for pwck (jhonce@redhat.com)
+- Fully qualify repquota path usages to avoid PATH lookups
+  (ironcladlou@gmail.com)
+
 * Wed Sep 10 2014 Adam Miller <admiller@redhat.com> 1.29.5-1
 - Merge pull request #5802 from ironcladlou/bz/1140144
   (dmcphers+openshiftbot@redhat.com)

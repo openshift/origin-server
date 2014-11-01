@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.29.2
+Version: 1.31.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,38 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Wed Oct 22 2014 Adam Miller <admiller@redhat.com> 1.30.6-1
+- Bug 1155478: Failed to add uid back to available_uids after gear move across
+  district (abhgupta@redhat.com)
+
+* Wed Oct 22 2014 Adam Miller <admiller@redhat.com> 1.30.5-1
+- Bug 1150140: Region was not being correctly handled during gear moves
+  (abhgupta@redhat.com)
+
+* Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.30.4-1
+- app container proxy: Add user login to ssh authorized_keys file
+  (thunt@redhat.com)
+- Fixed bz1111562 (lxia@redhat.com)
+
+* Tue Oct 07 2014 Adam Miller <admiller@redhat.com> 1.30.3-1
+- node archive: improve doc, config logic (jolamb@redhat.com)
+- broker/node: Add parameter for gear destroy to signal part of gear creation
+  (jolamb@redhat.com)
+
+* Wed Sep 24 2014 Adam Miller <admiller@redhat.com> 1.30.2-1
+- Better error messages around no nodes available (dmcphers@redhat.com)
+
+* Thu Sep 18 2014 Adam Miller <admiller@redhat.com> 1.30.1-1
+- bump_minor_versions for sprint 51 (admiller@redhat.com)
+- Multiple bug fixes: Bug 1086061 - Should update the description of clean
+  command for oo-admin-ctl-cartridge tool Bug 1109647 - Loss of alias on
+  SYNOPSIS part for oo-admin-ctl-app Bug 1065853 - Should prompt warning when
+  leaving source code url blank but add branch/tag during app creation Bug
+  1143024 - A setting of ZONES_MIN_PER_GEAR_GROUP=2 with two available zones
+  will always error as though only one zone is available Bug 1099796 - Should
+  refine the error message when removing a nonexistent global team from file
+  (abhgupta@redhat.com)
+
 * Wed Sep 10 2014 Adam Miller <admiller@redhat.com> 1.29.2-1
 - Add a hidden, unsupported change_region option to oo-admin-move for non-
   scaled apps (agrimm@redhat.com)

@@ -61,7 +61,7 @@ function stop() {
 }
 
 function restart() {
-    echo "${1}ing Ruby cart"
+    echo "${1}ing Ruby cartridge"
     mkdir -p ${OPENSHIFT_REPO_DIR}public
     write_httpd_passenv $HTTPD_PASSENV_FILE
     oo-erb ${OPENSHIFT_RUBY_DIR}conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf

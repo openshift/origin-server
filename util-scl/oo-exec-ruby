@@ -1,18 +1,42 @@
 #!/bin/bash
 
-# Ensure that the ruby193 SCL's directories come first in the PATH,
-# LD_LIBRARY_PATH, PKG_CONFIG_PATH, and MANPATH variables.
-dir=/opt/rh/ruby193/root/usr/bin
-[[ ${PATH}: =~ ^$dir: ]] || export PATH="$dir:${PATH/:$dir}"
-dir=/opt/rh/ruby193/root/usr/lib64:/opt/rh/v8314/root/usr/lib64
-[[ ${LD_LIBRARY_PATH}: =~ ^$dir: ]] || export LD_LIBRARY_PATH="$dir:${LD_LIBRARY_PATH/:$dir}"
+# We are kind of abusing string evaluation of equality, so set LANG for the
+# specific check for version
+orig_lang=$LANG
+export LANG=C
 
-exec "$@"
+if [ -f /usr/bin/ruby ]; then
+  ruby_ver=$(/usr/bin/ruby --version | cut -d ' ' -f 2)
+else
+  ruby_ver=""
+fi
 
-# We use the above implementation instead of the following because we want to
-# avoid using the scl command.
-#
-# scl <action> <collection1>...<collectionN> <command> doesn't handle multiple params for command.
-# If it did we would use:  exec scl enable ruby193 "$@"
-#COMMAND="$(printf "%q " "$@")"
-#exec scl enable ruby193 "$COMMAND"
+# If ruby193 scl installed, us it by default, otherwise use system ruby if it's
+# a recent enough version. Otherwise throw an error.
+if scl -l | grep ruby193 &> /dev/null; then
+    # Ensure that the ruby193 SCL's directories come first in the PATH,
+    # LD_LIBRARY_PATH, PKG_CONFIG_PATH, and MANPATH variables.
+
+    export LANG=$orig_lang
+    dir=/opt/rh/ruby193/root/usr/bin
+    [[ ${PATH}: =~ ^$dir: ]] || export PATH="$dir:${PATH/:$dir}"
+    dir=/opt/rh/ruby193/root/usr/lib64:/opt/rh/v8314/root/usr/lib64
+    [[ ${LD_LIBRARY_PATH}: =~ ^$dir: ]] || export LD_LIBRARY_PATH="$dir:${LD_LIBRARY_PATH/:$dir}"
+
+    exec "$@"
+
+    # We use the above implementation instead of the following because we want to
+    # avoid using the scl command.
+    #
+    # scl <action> <collection1>...<collectionN> <command> doesn't handle multiple params for command.
+    # If it did we would use:  exec scl enable ruby193 "$@"
+    #COMMAND="$(printf "%q " "$@")"
+    #exec scl enable ruby193 "$COMMAND"
+elif [[ $ruby_ver < "1.9" ]]; then
+    export LANG=$orig_lang
+    exec "$@"
+else
+    export LANG=$orig_lang
+    printf "ERROR: scl ruby193 not found and ruby version too old.\n" >&2
+    exit 1
+fi

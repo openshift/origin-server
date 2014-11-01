@@ -20,3 +20,5 @@ dependency_dirs:
 - standalone/deployments: deployments
 build_dependency_dirs:
 - ~/.m2
+snapshot_exclusions:
+- standalone/tmp

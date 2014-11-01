@@ -7,6 +7,9 @@
     .tile-table-cell
       %h3
         = link_to type.display_name, application_type_path(type), :class => 'tile-target'
+        - if type.display_unique_name?
+          %span.muted.tile-meta
+            = "(#{type.name})"
 
     .tile-table-cell
       - if type.cartridge?

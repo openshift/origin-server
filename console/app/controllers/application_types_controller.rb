@@ -28,16 +28,23 @@ class ApplicationTypesController < ConsoleController
 
     if @tag = params[:tag].presence
       types = ApplicationType.tagged(@tag, :as => current_user)
+      ApplicationType.set_display_unique_name(types)
+
+
       @type_groups = [["Tagged with #{Array(@tag).to_sentence}", types.sort!]]
 
       render :search
     elsif @search = params[:search].presence
       types = ApplicationType.search(@search, :as => current_user)
+      ApplicationType.set_display_unique_name(types)
+
       @type_groups = [["Matches search '#{@search}'", types]]
 
       render :search
     else
       types = ApplicationType.all(:as => current_user)
+      ApplicationType.set_display_unique_name(types)
+
       @featured_types = types.select{ |t| t.tags.include?(:featured) }.sample(3).sort!
       groups, other = in_groups_by_tag(types, [:instant_app, :xpaas, :java, :php, :ruby, :python])
       groups.each do |g|

@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.27.3
+Version: 1.29.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -109,6 +109,15 @@ fi
 
 
 %changelog
+* Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.28.3-1
+- Bug 1147946 - Do not snapshot jboss*/standalone/tmp (jhonce@redhat.com)
+
+* Tue Sep 23 2014 Adam Miller <admiller@redhat.com> 1.28.2-1
+- Bug 1145123 - Updated jbossas manifest description (mfojtik@redhat.com)
+
+* Thu Sep 18 2014 Adam Miller <admiller@redhat.com> 1.28.1-1
+- bump_minor_versions for sprint 51 (admiller@redhat.com)
+
 * Wed Sep 10 2014 Adam Miller <admiller@redhat.com> 1.27.3-1
 - Bump cartridge versions (agoldste@redhat.com)
 

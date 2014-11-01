@@ -989,7 +989,10 @@ Publish events are defined via the `manifest.yml` for the cartridge, in
 the following format:
 
 [source,yaml]
-Publishes:   <event name>:     Type: "<event type>"   ...
+Publishes:
+  <event name>:
+    Type: "<event type>"
+  ...
 
 When a cartridge is added to an application, each entry in the `Publishes` section of the manifest is used to construct events dispatched to other cartridges in the application. For each publish entry, OpenShift will attempt to execute a script named `hooks/<event name>`:
 
@@ -1003,7 +1006,10 @@ All lines of output (on stdout) produced by the script will be joined by single 
 Subscriptions to events published by other carts are defined via the `manifest.yml` for the cartridge, in the following format:
 
 [source,yaml]
-Subscribes:   <event name>     Type: "<event type>"   ...
+Subscribes:
+  <event name>:
+    Type: "<event type>"
+  ...
 
 When a cartridge publish event is fired, the subscription entries in the `Subscribes` section whose `Type` matches that of the publish event will be processed. Subscriptions which have a `Type` that starts with `ENV:` are processed differently, as described below. For each matching subscription event, OpenShift will attempt to execute a script named `hooks/<event name>`:
 
@@ -1026,7 +1032,10 @@ It's often useful to pull in environment variables from all add-on cartridges wi
 The convention for adding the `ENV:*` subscription to a cartridge manifest is as follows:
 
 [source,yaml]
-Subscribes:  set-env:    Type: ENV:*    Required: false
+Subscribes:
+  set-env:
+    Type: ENV:*
+    Required: false
 
 ===== Targeted ENV: Subscription Type
 
@@ -1037,12 +1046,16 @@ A targeted `ENV:` subscription takes the same format as a normal subscription ev
 Suppose the fictitious "AwesomeSQL" cartridge publishes environment variables with the following manifest entry:
 
 [source,yaml]
-Publishes:   publish-awesomesql-connection-info:     Type: "ENV:NET_TCP:db:awesomesql"
+Publishes:
+  publish-awesomesql-connection-info:
+    Type: "ENV:NET_TCP:db:awesomesql"
 
 The corresponding subscription event would be written thus:
 
 [source,yaml]
-Subscribes:   set-awesomesql-connection-info:     Type: "ENV:NET_TCP:db:awesomesql"
+Subscribes:
+  set-awesomesql-connection-info:
+    Type: "ENV:NET_TCP:db:awesomesql"
 
 === Cartridge Event Example
 Consider a simple example of a PHP cartridge which can react when MySQL is added to an application, so that it can set environment variables on the gear to be able to connect to the newly added MySQL cartridge on a different gear.
@@ -1050,12 +1063,16 @@ Consider a simple example of a PHP cartridge which can react when MySQL is added
 This requires a `Subscribes` section in the PHP cartridge `manifest.yml`:
 
 [source,yaml]
-Subscribes:   set-mysql-connection-info:     Type: "NET_TCP:db:mysql"
+Subscribes:
+  set-mysql-connection-info:
+    Type: "NET_TCP:db:mysql"
 
 And a `Publishes` section in the MySQL cartridge `manifest.yml`:
 
 [source,yaml]
-Publishes:   publish-mysql-connection-info:     Type: "NET_TCP:db:mysql"
+Publishes:
+  publish-mysql-connection-info:
+    Type: "NET_TCP:db:mysql"
 
 The PHP cartridge implements a script in `hooks/set-mysql-connection-info`, and the MySQL cartridge implements a script in `hooks/publish-mysql-connection-info`.
 

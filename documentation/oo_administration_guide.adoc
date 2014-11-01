@@ -470,8 +470,8 @@ You should see the following cartridges available to install:
 * openshift-origin-cartridge-cron.noarch : Embedded cron support for express
 * openshift-origin-cartridge-diy.noarch : Provides diy support
 * openshift-origin-cartridge-haproxy.noarch : Provides embedded haproxy-1.4 support
-* openshift-origin-cartridge-jbosseap.noarch : Provides JBossEAP6.0 support
-* openshift-origin-cartridge-jbossews.noarch : Provides JBossEWS1.0 support
+* openshift-origin-cartridge-jbossas : Provides JBossAS functionality, but see the note on JBoss below
+* openshift-origin-cartridge-jbossews : Provides JBossEWS functionality, but see the note on JBoss below
 * openshift-origin-cartridge-jenkins.noarch : Provides jenkins-1 support
 * openshift-origin-cartridge-jenkins-client.noarch : Embedded jenkins client support for express
 * openshift-origin-cartridge-mysql.noarch : Provides embedded mysql support
@@ -481,30 +481,23 @@ You should see the following cartridges available to install:
 * openshift-origin-cartridge-python.noarch : Provides python-2.6 support
 * openshift-origin-cartridge-ruby.noarch : Provides ruby rack support running on Phusion Passenger
 
-=== Install JBoss EAP and JBoss EWS Support
-In order to enable consumers of the PaaS to create JBoss EAP / JBoss EWS gears, we will need to install all of the necessary cartridges for the application server and supporting build systems. Perform the following command to install the required cartridges:
+[NOTE]
+====
+*What about JBoss?*
 
-*Execute the following on the node host*:
+JBoss cartridges are distributed with OpenShift, however they will not work without a Java application server to run against.
+The JBoss and WildFly application servers are not currently available as RPMs, so unfortunately we cannot include them
+in our dependencies repo. Refer to the link:oo_m4_release_notes.html[OpenShift Origin M4 Release Notes] for a workaround to enable JBoss cartridges.
+====
 
-----
-# yum install openshift-origin-cartridge-jbosseap.noarch openshift-origin-cartridge-jbossews.noarch openshift-origin-cartridge-jenkins.noarch openshift-origin-cartridge-jenkins-client.noarch
-----
-
-The above command will allow users to create JBoss EAP and JBoss EWS gears. This also installs support for the Jenkins continuous integration environment, which is discussed in detail in the link:oo_user_guide.html#jenkins-continuous-integration[OpenShift Origin User's Guide]. At the time of this writing, the above command will download and install an additional 285 packages on your node host.
-
-NOTE: Depending on your connection and speed of your node host, this installation may take several minutes.
-
-=== Clear the Broker Application Cache
-At this point, you will notice if you try to create a JBoss EAP or JBoss EWS based application via the web console that the application type is not available. This is because the broker host creates a cache of available gear types to increase performance. After adding a new cartridge, you need to clear this cache in order for the new gear type to be available to users.
-
-*Execute the following on the broker host*:
+=== Register the New Cartridges
+From a Broker host, run the following command to poll a Node for available cartridge information:
 
 ----
-# cd /var/www/openshift/broker
-# bundle exec rake tmp:clear
+$ oo-admin-ctl-cartridge -c import-node --activate
 ----
 
-It may take several minutes before you see the new cartridges available on the web console as it takes a few minutes for the cache to completely clear.
+This will automatically register the new cartridges with the Broker and make them available to users for new hosted applications.
 
 === Test the New Cartridges
 Open up your preferred browser and enter the following URL, using the correct host and domain name for your environment:

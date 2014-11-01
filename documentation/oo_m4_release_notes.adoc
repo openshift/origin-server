@@ -1,0 +1,98 @@
+= OpenShift Origin Milestone 4 Release Notes
+OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
+LATEST DOC UPDATES
+:data-uri:
+:toc2:
+:icons:
+:numbered:
+
+== Enabling JBoss Cartridges
+As with previous milestones, OpenShift Origin M4 is capable of running Java server cartridges. However, because the popular Java engines do not distribute their software as RPMs, these cartridges cannot be packaged the same way that other standard cartridges are.
+
+If you are interested in running Java cartridges in your Origin M4 deployment, here are instructions footnote:[These instructions are adapted from an answer that originally appeared on https://stackoverflow.com/questions/25582773/how-can-i-install-jboss-eap-and-jboss-ews-support-in-openshift-origin/26137719#26137719:[StackOverflow].] that will help you.
+
+=== Install the Necessary Packages
+First, install the following RPMs *on every Node host*. You can either do this directly with `yum install -y <URL>` or by first downloading them and running `yum` on the local files:
+
+----
+https://s3-us-west-2.amazonaws.com/getup-mirror/getup-openshift-origin-release-4/dependencies/tomcat6-6.0.39-1.noarch.rpm
+https://s3-us-west-2.amazonaws.com/getup-mirror/getup-openshift-origin-release-4/dependencies/tomcat7-7.0.50-1.noarch.rpm
+https://s3-us-west-2.amazonaws.com/getup-mirror/getup-openshift-origin-release-4/dependencies/maven3-3.0.3-4.noarch.rpm
+https://s3-us-west-2.amazonaws.com/getup-mirror/getup-openshift-origin-release-4/dependencies/jboss-as7-modules-7.1.1.Final-1.noarch.rpm
+https://s3-us-west-2.amazonaws.com/getup-mirror/getup-openshift-origin-release-4/dependencies/jboss-as7-7.1.1.Final-1.noarch.rpm
+----
+
+If the installs were successful, you should now be able to install the associated OpenShift cartridges on the same hosts:
+
+----
+yum install openshift-origin-cartridge-jbossas
+yum install openshift-origin-cartridge-jbossews
+----
+
+To confirm that these installed correctly, you can check by searching the output of `yum list installed`:
+
+----
+# yum list installed | grep jboss
+jboss-as7.noarch                          7.1.1.Final-1        @/jboss-as7-7.1.1.Final-1.noarch
+jboss-as7-modules.noarch                  7.1.1.Final-1        @/jboss-as7-modules-7.1.1.Final-1.noarch
+jboss-openshift-metrics-module.noarch     1.0.2.redhat_1-1.2.el6oso
+openshift-origin-cartridge-jbossas.noarch 1.26.1.1-1.el6       @openshift-origin
+openshift-origin-cartridge-jbossews.noarch
+
+# yum list installed | grep tomc
+apache-tomcat-apis.noarch                 0.1-1.el6            @base
+tomcat6.noarch                            6.0.39-1             @/tomcat6-6.0.39-1.noarch
+tomcat7.noarch                            7.0.50-1             @/tomcat7-7.0.50-1.noarch
+----
+
+=== Refresh the List of Available Cartridges
+Now the software is installed, but the new cartridges must be registered with the OpenShift Broker.
+
+First, *on each Node host*, restart MCollective:
+
+----
+service ruby193-mcollective restart
+----
+
+You should see output similar to:
+
+----
+Shutting down mcollective:                                 [  OK  ]
+Starting mcollective: warn 2014/09/30 04:31:42: config.rb:117:in `block in loadconfig' Use of deprecated 'topicprefix' option.  This option is ignored and should be removed from '/opt/rh/ruby193/root/etc/mcollective/server.cfg'
+                                                           [  OK  ]
+----
+
+Now, *on any one Broker host*, run the following `oo-admin` command:
+
+----
+oo-admin-ctl-cartridge -c import-node --activate
+----
+
+If the command is successfu, you should see output like this:
+
+----
+# oo-admin-ctl-cartridge -c import-node --activate
+warn 2014/09/30 04:33:03: config.rb:117:in `block in loadconfig' Use of deprecated 'topicprefix' option.  This option is ignored and should be removed from '/opt/rh/ruby193/root/etc/mcollective/client.cfg'
+Updating 3 cartridges ...
+542a6ac5653e8a988b000001 # A jbossas-7 (active)
+542a6ac5653e8a988b000002 # A jbossews-2.0 (active)
+542a6ac5653e8a988b000003 # A jbossews-1.0 (active)
+----
+
+TIP: If this doesn't work straight away, you can trying rebooting hosts (first any Node-only systems, then any systems serving as Brokers) and rerunning the `oo-admin` command.
+
+Finally, to confirm that the process was successful, use the `rhc` command against your OpenShift Origin deployment to list the available cartridges:
+
+----
+rhc cartridge list
+----
+
+Among the available cartridges you should see output similar to:
+
+----
+jbossas-7           JBoss Application Server 7           web
+jbossews-1.0        Tomcat 6 (JBoss EWS 1.0)             web
+jbossews-2.0        Tomcat 7 (JBoss EWS 2.0)             web
+----
+
+That's it! You're ready to run Java apps in your OpenShift Origin M4 system.

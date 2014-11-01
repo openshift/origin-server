@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.30.5
+Version: 1.32.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,70 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.31.8-1
+- ssh keys: remove special logins (lmeyer@redhat.com)
+- fix whitespace (lmeyer@redhat.com)
+- app container proxy: Add user login to ssh authorized_keys file
+  (thunt@redhat.com)
+
+* Mon Oct 13 2014 Adam Miller <admiller@redhat.com> 1.31.7-1
+- disable ha feature (rchopra@redhat.com)
+
+* Tue Oct 07 2014 Adam Miller <admiller@redhat.com> 1.31.6-1
+- Merge pull request #5743 from dobbymoodge/node_block_rollback
+  (dmcphers+openshiftbot@redhat.com)
+- node archive: improve doc, config logic (jolamb@redhat.com)
+- broker/node: Add parameter for gear destroy to signal part of gear creation
+  (jolamb@redhat.com)
+- Preventing rollback for PatchUserEnvVarsOp in case of gear creation
+  (abhgupta@redhat.com)
+
+* Thu Oct 02 2014 Adam Miller <admiller@redhat.com> 1.31.5-1
+- Bug 1145132 - Domain validation fails when adding size due to previously
+  removed size (abhgupta@redhat.com)
+
+* Tue Sep 30 2014 Adam Miller <admiller@redhat.com> 1.31.4-1
+- Merge pull request #5845 from mfojtik/wildfly_test_fix
+  (dmcphers+openshiftbot@redhat.com)
+- Adding checks and repair logic for invalid gear sizes in domains
+  (abhgupta@redhat.com)
+- Fixed wildfly cartridge name in cucumber tests (mfojtik@redhat.com)
+- Bug 1146681 - oo-admin-ctl-domain cannot change allowed gear sizes for a
+  mixed-case domain (abhgupta@redhat.com)
+- Merge pull request #5839 from bparees/fix_jboss_test
+  (dmcphers+openshiftbot@redhat.com)
+- use regex handling for jboss string (bparees@redhat.com)
+
+* Wed Sep 24 2014 Adam Miller <admiller@redhat.com> 1.31.3-1
+- Merge pull request #5829 from mfojtik/wildfly_test
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_devexp_328 - Initial Wildfly 8 cucumber tests
+  (mfojtik@redhat.com)
+
+* Tue Sep 23 2014 Adam Miller <admiller@redhat.com> 1.31.2-1
+- Multiple bug fixes Bug 1109647 - Loss of alias on SYNOPSIS part for oo-admin-
+  ctl-app Bug 1144610 - oo-admin-usage is broken Bug 1130435 - Setting a same
+  scale info on a cartridge makes connection hooks being run
+  (abhgupta@redhat.com)
+
+* Thu Sep 18 2014 Adam Miller <admiller@redhat.com> 1.31.1-1
+- bump_minor_versions for sprint 51 (admiller@redhat.com)
+- Multiple bug fixes: Bug 1086061 - Should update the description of clean
+  command for oo-admin-ctl-cartridge tool Bug 1109647 - Loss of alias on
+  SYNOPSIS part for oo-admin-ctl-app Bug 1065853 - Should prompt warning when
+  leaving source code url blank but add branch/tag during app creation Bug
+  1143024 - A setting of ZONES_MIN_PER_GEAR_GROUP=2 with two available zones
+  will always error as though only one zone is available Bug 1099796 - Should
+  refine the error message when removing a nonexistent global team from file
+  (abhgupta@redhat.com)
+- Multiple bug fixes  - Bug 1108556: incorrect layout in oo-admin-ctl-domain
+  man page  - Bug 1117643: Missing '--allowed_gear_sizes' option in help of oo-
+  admin-ctl-domain  - Bug 1112455: Should give proper info when the same addon
+  cartridges added to one application  - Bug 1112636: zend-5.6 should be
+  removed from warning message when try to create an app using invalid download
+  cartridge  - Bug 1109647: Loss of alias on SYNOPSIS part for oo-admin-ctl-app
+  (abhgupta@redhat.com)
+
 * Wed Sep 10 2014 Adam Miller <admiller@redhat.com> 1.30.5-1
 - Bug 1084090: False positives reported for stale ssh keys  - In cases where
   the user had multiple domains, false positives could be reported for stale

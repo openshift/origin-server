@@ -8,7 +8,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.29.3
+Version: 1.31.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -109,6 +109,46 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Tue Oct 07 2014 Adam Miller <admiller@redhat.com> 1.30.5-1
+- oo-accept-systems: fix errors from PR 5851 (lmeyer@redhat.com)
+- oo-accept-systems: improve cartridge integrity checks (lmeyer@redhat.com)
+
+* Thu Oct 02 2014 Adam Miller <admiller@redhat.com> 1.30.4-1
+- Bug 1145132 - Domain validation fails when adding size due to previously
+  removed size (abhgupta@redhat.com)
+
+* Tue Sep 30 2014 Adam Miller <admiller@redhat.com> 1.30.3-1
+- Bug 1146681 - oo-admin-ctl-domain cannot change allowed gear sizes for a
+  mixed-case domain (abhgupta@redhat.com)
+- Adding checks and repair logic for invalid gear sizes in domains
+  (abhgupta@redhat.com)
+
+* Tue Sep 23 2014 Adam Miller <admiller@redhat.com> 1.30.2-1
+- Multiple bug fixes Bug 1109647 - Loss of alias on SYNOPSIS part for oo-admin-
+  ctl-app Bug 1144610 - oo-admin-usage is broken Bug 1130435 - Setting a same
+  scale info on a cartridge makes connection hooks being run
+  (abhgupta@redhat.com)
+
+* Thu Sep 18 2014 Adam Miller <admiller@redhat.com> 1.30.1-1
+- bump_minor_versions for sprint 51 (admiller@redhat.com)
+- <oo-accept-broker> fix up handling of IFS (jdetiber@redhat.com)
+- Multiple bug fixes: Bug 1086061 - Should update the description of clean
+  command for oo-admin-ctl-cartridge tool Bug 1109647 - Loss of alias on
+  SYNOPSIS part for oo-admin-ctl-app Bug 1065853 - Should prompt warning when
+  leaving source code url blank but add branch/tag during app creation Bug
+  1143024 - A setting of ZONES_MIN_PER_GEAR_GROUP=2 with two available zones
+  will always error as though only one zone is available Bug 1099796 - Should
+  refine the error message when removing a nonexistent global team from file
+  (abhgupta@redhat.com)
+- Multiple bug fixes  - Bug 1108556: incorrect layout in oo-admin-ctl-domain
+  man page  - Bug 1117643: Missing '--allowed_gear_sizes' option in help of oo-
+  admin-ctl-domain  - Bug 1112455: Should give proper info when the same addon
+  cartridges added to one application  - Bug 1112636: zend-5.6 should be
+  removed from warning message when try to create an app using invalid download
+  cartridge  - Bug 1109647: Loss of alias on SYNOPSIS part for oo-admin-ctl-app
+  (abhgupta@redhat.com)
+- o-a-c-team: typo per bug 1141848 (lmeyer@redhat.com)
+
 * Wed Sep 10 2014 Adam Miller <admiller@redhat.com> 1.29.3-1
 - Add a hidden, unsupported change_region option to oo-admin-move for non-
   scaled apps (agrimm@redhat.com)

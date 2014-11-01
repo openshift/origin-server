@@ -36,24 +36,27 @@ class PatchUserEnvVarsOp < PendingAppOp
     result_io = ResultIO.new
     gear = nil
 
-    begin
-      gear = application.get_app_dns_gear
-    rescue OpenShift::UserException
-      # if the head gear is missing, do not perform any operations and just return
-      Rails.logger.info "DNS gear not found. Skipping rollback for PatchUserEnvVarsOp."
-      return result_io
-    end
-
-    unless gear.nil? or gear.removed
-      set_vars, unset_vars = Application.sanitize_user_env_variables(user_env_vars)
-      if group_instance_id.present?
-        gears_endpoint = get_gears_ssh_endpoint(get_group_instance)
-      else
-        gears_endpoint = get_gears_ssh_endpoint(application)
+    unless skip_rollback
+      begin
+        gear = application.get_app_dns_gear
+      rescue OpenShift::UserException
+        # if the head gear is missing, do not perform any operations and just return
+        Rails.logger.info "DNS gear not found. Skipping rollback for PatchUserEnvVarsOp."
+        return result_io
       end
-      gear.unset_user_env_vars(set_vars, gears_endpoint) if set_vars.present?
-      gear.set_user_env_vars(saved_user_env_vars, gears_endpoint) if saved_user_env_vars.present?
+  
+      unless gear.nil? or gear.removed
+        set_vars, unset_vars = Application.sanitize_user_env_variables(user_env_vars)
+        if group_instance_id.present?
+          gears_endpoint = get_gears_ssh_endpoint(get_group_instance)
+        else
+          gears_endpoint = get_gears_ssh_endpoint(application)
+        end
+        gear.unset_user_env_vars(set_vars, gears_endpoint) if set_vars.present?
+        gear.set_user_env_vars(saved_user_env_vars, gears_endpoint) if saved_user_env_vars.present?
+      end
     end
+    
     result_io
   end
 

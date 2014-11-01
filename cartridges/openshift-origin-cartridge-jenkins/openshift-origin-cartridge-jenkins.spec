@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.25.1
+Version: 1.26.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -14,6 +14,7 @@ Requires:      java >= 1.6
 Requires:      jenkins
 Requires:      jenkins-plugin-openshift
 Requires:      openshift-origin-node-util
+Requires:      unzip
 Provides:      openshift-origin-cartridge-jenkins-1.4 = 2.0.0
 Obsoletes:     openshift-origin-cartridge-jenkins-1.4 <= 1.99.9
 BuildArch:     noarch
@@ -49,6 +50,9 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Oct 07 2014 Adam Miller <admiller@redhat.com> 1.25.2-1
+- Add markers to disable bad ciphers for rhel6.6 (bparees@redhat.com)
+
 * Fri Aug 08 2014 Adam Miller <admiller@redhat.com> 1.25.1-1
 - bump_minor_versions for sprint 49 (admiller@redhat.com)
 

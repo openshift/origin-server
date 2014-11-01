@@ -401,6 +401,7 @@ module OpenShift
     # INPUTS:
     # * gear: a Gear object
     # * keep_uid: boolean
+    # * is_group_rollback: boolean - flag for optional archive on rollback
     # * uid: Integer: reserved UID
     # * skip_hooks: boolean
     #
@@ -410,9 +411,10 @@ module OpenShift
     # NOTES:
     # * uses execute_direct
     #
-    def destroy(gear, keep_uid=false, uid=nil, skip_hooks=false)
+    def destroy(gear, keep_uid=false, is_group_rollback=false, uid=nil, skip_hooks=false)
       args = build_base_gear_args(gear)
       args['--skip-hooks'] = true if skip_hooks
+      args['--is-group-rollback'] = true if is_group_rollback
       begin
         result = execute_direct(@@C_CONTROLLER, 'app-destroy', args)
         result_io = parse_result(result, gear)
@@ -1826,8 +1828,8 @@ module OpenShift
         end
       end
 
-      log_debug "DEBUG: Fixing DNS and mongo for gear '#{gear.name}' after move"
-      log_debug "DEBUG: Changing server identity of '#{gear.name}' from '#{source_container.id}' to '#{destination_container.id}'"
+      log_debug "DEBUG: Fixing DNS and mongo for gear '#{gear.uuid}' after move"
+      log_debug "DEBUG: Changing server identity of '#{gear.uuid}' from '#{source_container.id}' to '#{destination_container.id}'"
       gear.server_identity = destination_container.id
       # Persist server identity for gear in mongo
       res = Application.where({"_id" => app.id, "gears.uuid" => gear.uuid}).update({"$set" => {"gears.$.server_identity" => gear.server_identity}})
@@ -2077,8 +2079,8 @@ module OpenShift
           res = Application.where({"_id" => app.id, "group_instances._id" => gear.group_instance.id}).update({"$set" => {"group_instances.$.gear_size" => gear.group_instance.gear_size}})
           raise OpenShift::OOException.new("Could not set group instance gear_size to #{gear.group_instance.gear_size}") if res.nil? or !res["updatedExisting"]
           # destroy destination
-          log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' in '#{app.name}' with delete on '#{destination_container.id}'"
-          reply.append destination_container.destroy(gear, !district_changed, nil, true)
+          log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.uuid}' in '#{app.name}' with delete on '#{destination_container.id}'"
+          reply.append destination_container.destroy(gear, !district_changed, false, nil, true)
 
           raise
         end
@@ -2133,7 +2135,7 @@ module OpenShift
       reply = ResultIO.new
       log_debug "DEBUG: Deconfiguring old app '#{app.name}' on #{source_container.id} after move"
       begin
-        reply.append source_container.destroy(gear, !district_changed, gear.uid, true)
+        reply.append source_container.destroy(gear, !district_changed, false, gear.uid, true)
       rescue Exception => e
         log_debug "DEBUG: The application '#{app.name}' with gear uuid '#{gear.uuid}' is now moved to '#{destination_container.id}' but not completely deconfigured from '#{source_container.id}'"
         raise
@@ -2252,12 +2254,12 @@ module OpenShift
       source_container = gear.get_proxy
       platform = gear.group_instance.platform
       log_debug "DEBUG: Gear platform is '#{platform}'"
-      log_debug "DEBUG: Creating new account for gear '#{gear.name}' on #{destination_container.id}"
+      log_debug "DEBUG: Creating new account for gear '#{gear.uuid}' on #{destination_container.id}"
       sshkey_required = false
       initial_deployment_dir_required = false
       reply.append destination_container.create(gear, quota_blocks, quota_files, sshkey_required, initial_deployment_dir_required)
       rsync_keyfile = Rails.configuration.auth[:rsync_keyfile]
-      log_debug "DEBUG: Moving content for app '#{app.name}', gear '#{gear.name}' to #{destination_container.id}"
+      log_debug "DEBUG: Moving content for app '#{app.name}', gear '#{gear.uuid}' to #{destination_container.id}"
       case platform.downcase
         when "windows"
           #Rsync arguments had to be changed for windows to move the gear with full rights and reset them correctly in the post move method
@@ -2267,10 +2269,10 @@ module OpenShift
       end
 
       if $?.exitstatus != 0
-        raise OpenShift::NodeException.new("Error moving app '#{app.name}',platform '#{platform}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
+        raise OpenShift::NodeException.new("Error moving app '#{app.name}',platform '#{platform}', gear '#{gear.uuid}' from #{source_container.id} to #{destination_container.id}", 143)
       end
 
-      log_debug "DEBUG: Moving system components for app '#{app.name}', gear '#{gear.name}' to #{destination_container.id}"
+      log_debug "DEBUG: Moving system components for app '#{app.name}', gear '#{gear.uuid}' to #{destination_container.id}"
       case platform.downcase
         when "windows"
           #Rsync arguments changed, preserving extended attributes and ACLs cannot be used on windows
@@ -2280,7 +2282,7 @@ module OpenShift
       end
 
       if $?.exitstatus != 0
-        raise OpenShift::NodeException.new("Error moving system components for app '#{app.name}', platform '#{platform}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
+        raise OpenShift::NodeException.new("Error moving system components for app '#{app.name}', platform '#{platform}', gear '#{gear.uuid}' from #{source_container.id} to #{destination_container.id}", 143)
       end
 
       unless platform.downcase == "windows"
@@ -3131,10 +3133,20 @@ module OpenShift
         end
       end
       if server_infos.empty?
-        if require_district && require_zone
-          raise OpenShift::NodeUnavailableException.new("No districted zone nodes available", 140)
-        elsif require_district
-          raise OpenShift::NodeUnavailableException.new("No district nodes available", 140)
+        if require_district
+          if require_zone
+            if region_id
+              raise OpenShift::NodeUnavailableException.new("No nodes available for the specified gear size/region/zone combination", 140)
+            else
+              raise OpenShift::NodeUnavailableException.new("No nodes available for the specified gear size/zone combination", 140)
+            end
+          else
+            if region_id
+              raise OpenShift::NodeUnavailableException.new("No nodes available for the specified gear size/region combination", 140)
+            else
+              raise OpenShift::NodeUnavailableException.new("No nodes available for the specified gear size", 140)
+            end
+          end
         end
       end
       # Remove the restricted servers from the list
@@ -3145,7 +3157,10 @@ module OpenShift
           reloaded_app = Application.find_by(_id: gear.application._id)
           reloaded_app.gears.each do |g|
             if g.server_identity
-              server = District.find_server(g.server_identity, districts)
+              # we are not providing the districts argument here
+              # since the current gear size might be different from what is now required
+              # districts list only contains districts that match rhe required node profile
+              server = District.find_server(g.server_identity)
               break
             end
           end
@@ -3166,12 +3181,21 @@ module OpenShift
             min_zones_per_gear_group = Rails.configuration.msg_broker[:regions][:min_zones_per_gear_group]
             if available_zones_count < min_zones_per_gear_group
               active_zones = []
+              gi_zones = []
+              reloaded_gi = reloaded_app.group_instances.find_by(_id: gear.group_instance._id)
+              gi_server_names = reloaded_gi.gears.map {|gi_gear| gi_gear.server_identity}.uniq.compact
               districts.each do |district|
                 district.servers.where(region_id: server.region_id).each { |s| active_zones << s.zone_id }
+                district.servers.where(:name.in => gi_server_names).each { |s| gi_zones << s.zone_id }
               end
+
               active_zones = active_zones.uniq.compact
+              gi_zones = gi_zones.uniq.compact
               required_min_zones = [active_zones.length, min_zones_per_gear_group].min
-              if available_zones_count < required_min_zones
+
+              # include the zones that the existing app gears belong to
+              revised_available_zone_count = (zones_consumed_capacity.keys | gi_zones).uniq.compact.length
+              if revised_available_zone_count < required_min_zones
                 raise OpenShift::OOException.new("Unable to find minimum zones required for application gear group. " \
                                                    "Available zones:#{available_zones_count}, Needed min zones:#{required_min_zones}")
               end
@@ -3700,11 +3724,11 @@ module OpenShift
     end
 
     def build_ssh_key_args_with_content(ssh_keys)
-      ssh_keys.map { |k| {'key' => k['content'], 'type' => k['type'], 'comment' => k['name'], 'content' => k['content']} }
+      ssh_keys.map { |k| {'key' => k['content'], 'type' => k['type'], 'comment' => k['name'], 'content' => k['content'], 'login' => k['login']} }
     end
 
     def build_ssh_key_args(ssh_keys)
-      ssh_keys.map { |k| {'key' => k['content'], 'type' => k['type'], 'comment' => k['name']} }
+      ssh_keys.map { |k| {'key' => k['content'], 'type' => k['type'], 'comment' => k['name'], 'login' => k['login']} }
     end
 
   end

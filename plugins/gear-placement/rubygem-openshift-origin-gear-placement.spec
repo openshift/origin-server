@@ -67,7 +67,7 @@ cp conf/openshift-origin-gear-placement.conf.pin-user-to-host-example %{buildroo
 %files
 %dir %{gem_instdir}
 %dir %{gem_dir}
-%doc Gemfile LICENSE README
+%doc %{gem_docdir}
 %{gem_dir}/doc/%{gem_name}-%{version}
 %{gem_dir}/gems/%{gem_name}-%{version}
 %{gem_dir}/cache/%{gem_name}-%{version}.gem

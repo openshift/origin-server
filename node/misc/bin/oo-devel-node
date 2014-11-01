@@ -807,3 +807,15 @@ command :'delete-endpoints' do |c|
   end
 end
 alias_command :'conceal-port', :'delete-endpoints'
+
+command :'report-deployments' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID)
+  c.description = 'Reports deployments found on Node to Broker'
+
+  c.action do |args, options|
+    container = new_container(options.with_container_uuid, c)
+    env = ::OpenShift::Runtime::Utils::Environ::for_gear(container.container_dir)
+    execute { container.report_deployments(env, out: STDOUT) }
+    STDOUT.puts "Completed reporting deployments to Broker for gear #{options.with_container_uuid}"
+  end
+end

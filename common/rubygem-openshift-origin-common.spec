@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.28.1
+Version: 1.29.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -125,6 +125,12 @@ rm -rf %{buildroot}%{gem_instdir}/.yardoc*
 %doc %{gem_docdir}
 
 %changelog
+* Tue Sep 23 2014 Adam Miller <admiller@redhat.com> 1.28.3-1
+- oo-diagnostics: test_mcollective_direct_addressing (miciah.masters@gmail.com)
+
+* Thu Sep 18 2014 Adam Miller <admiller@redhat.com> 1.28.2-1
+- oo-diagnostics: add test_sshd_permit_root_login (miciah.masters@gmail.com)
+
 * Fri Aug 08 2014 Adam Miller <admiller@redhat.com> 1.28.1-1
 - bump_minor_versions for sprint 49 (admiller@redhat.com)
 

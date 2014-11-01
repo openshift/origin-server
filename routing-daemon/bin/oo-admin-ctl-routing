@@ -1,0 +1,229 @@
+#!/usr/bin/env oo-ruby
+#--
+# Copyright 2014 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+require 'rubygems'
+require 'logger'
+require 'parseconfig'
+
+# Initialize the controller lazily, so we initialize it exactly zero
+# times if we never use it and exactly one time if we do use it.
+class LazyLBController
+  def method_missing m, *args, &block
+    @lb_controller ||= @lb_controller_class.new @lb_model_class, Logger.new(STDOUT), $cfgfile
+    @lb_controller.send m, *args, &block
+  end
+
+  def update
+    # Only proxy the update method if we have proxied other method invocations..
+    method_missing :update if @lb_controller
+  end
+
+  def initialize
+    cfg = ParseConfig.new($cfgfile)
+
+    case cfg['LOAD_BALANCER']
+    when 'lbaas'
+      require 'openshift/routing/controllers/asynchronous'
+      require 'openshift/routing/models/lbaas'
+
+      @lb_controller_class = OpenShift::AsyncLoadBalancerController
+      @lb_model_class = OpenShift::LBaaSLoadBalancerModel
+    when 'nginx'
+      require 'openshift/routing/controllers/simple'
+      require 'openshift/routing/models/nginx'
+
+      @lb_controller_class = OpenShift::SimpleLoadBalancerController
+      @lb_model_class = OpenShift::NginxLoadBalancerModel
+    when 'f5'
+      require 'openshift/routing/controllers/simple'
+      require 'openshift/routing/models/f5-icontrol-rest'
+
+      @lb_controller_class = OpenShift::SimpleLoadBalancerController
+      @lb_model_class = OpenShift::F5IControlRestLoadBalancerModel
+    when 'f5_batched'
+      require 'openshift/routing/controllers/batched'
+      require 'openshift/routing/models/f5-icontrol-rest'
+
+      @lb_model_class = OpenShift::F5IControlRestLoadBalancerModel
+      @lb_controller_class = OpenShift::BatchedLoadBalancerController
+    when 'dummy'
+      require 'openshift/routing/models/dummy'
+      require 'openshift/routing/controllers/simple'
+
+      @lb_model_class = OpenShift::DummyLoadBalancerModel
+      @lb_controller_class = OpenShift::SimpleLoadBalancerController
+    when 'dummy_async'
+      require 'openshift/routing/models/dummy'
+      require 'openshift/routing/controllers/asynchronous'
+
+      @lb_model_class = OpenShift::DummyLoadBalancerModel
+      @lb_controller_class = OpenShift::AsyncLoadBalancerController
+    else
+      raise StandardError.new "No valid setting for LOAD_BALANCER was found in #{$cfgfile}"
+    end
+  end
+end
+
+$cfgfile = '/etc/openshift/routing-daemon.conf'
+if (pos = ARGV.find_index('--config'))
+  ARGV.delete_at(pos)
+  $cfgfile = ARGV.delete_at(pos)
+end
+
+lb = LazyLBController.new
+
+# Group command-line arguments by semicolons.
+#
+# TODO: If we ensure that we are using Ruby 1.9 or newer, then we can
+# use slice_before instead.
+argvs = ARGV.inject([[]]) do |args,arg|
+  if arg==';'
+    args.push []
+  else
+    args.last.push arg
+  end
+  args
+end.select {|argv| not argv.empty?}
+
+exitval = 0
+argvs.each do |argv|
+  begin
+    case argv.shift
+    when 'get-job-status'
+      raise ArgumentError.new 'Requires a job id.' unless 1 == argv.count
+      begin
+        puts "Requesting status of job #{argv[0]}."
+        puts lb.get_job_status argv[0]
+      rescue NoMethodError
+        raise ArgumentError.new 'The load balancer does not support the get-job-status command.'
+      end
+
+    when 'list-pools'
+      puts 'Listing pools.'
+      puts lb.pools.map{|k,v|"  #{k} (#{v.members.length} members)\n"}.join
+
+    when 'add-pool'
+      raise ArgumentError.new "Requires a pool name." unless 1 == argv.count || 2 == argv.count
+      if 1 == argv.count
+        puts "Adding pool #{argv[0]}."
+        lb.create_pool argv[0]
+      else
+        puts "Adding pool #{argv[0]} with monitor #{argv[1]}."
+        lb.create_pool *argv
+      end
+
+    when 'delete-pool'
+      raise ArgumentError.new "Requires a pool name." unless 1 == argv.count
+      puts "Deleting pool #{argv[0]}."
+      lb.delete_pool argv[0]
+
+    when 'list-routes'
+      raise ArgumentError.new "Requires no arguments." unless argv.empty?
+      puts 'Listing routes.'
+      puts lb.routes.map { |r|
+        if lb.active_routes.include? r
+          r
+        else
+          r + " (inactive)"
+        end
+      }.join "\n"
+      # TODO: Extend the LoadBalancerController class with a method that
+      # provides additional information about routes.
+
+    when 'add-route'
+      raise ArgumentError.new "Requires a pool name, name, and path." unless 3 == argv.length
+      puts "Adding route #{argv[1]} for path #{argv[2]} to pool #{argv[0]}."
+      lb.create_route *argv
+
+    when 'delete-route'
+      raise ArgumentError.new "Requires a pool name and a route name." unless 2 == argv.length
+      puts "Deleting route #{argv[1]} from pool #{argv[0]}."
+      lb.delete_route *argv
+
+    when 'list-monitors'
+      raise ArgumentError.new "Requires no arguments." unless argv.empty?
+      puts 'Listing monitors.'
+      puts lb.monitors.join "\n"
+      # TODO: Extend the LoadBalancerController class with a method that
+      # provides additional information about monitors.
+
+    when 'create-monitor'
+      raise ArgumentError.new "Requires a monitor name, path, and \"up\" code." unless 3 == argv.length
+      puts "Adding monitor #{argv[0]} for path #{argv[1]} with \"up\" code \"#{argv[2]}\"."
+      lb.create_monitor *argv
+
+    when 'delete-monitor'
+      raise ArgumentError.new "Requires a pool name." unless 1 == argv.length
+      puts "Deleting monitor #{argv[0]}."
+      lb.delete_monitor *argv
+
+    when 'list-pool-members'
+      raise ArgumentError.new "Requires a pool name." unless 1 == argv.length
+      puts "Listing pool members for pool #{argv[0]}."
+      pool_name = argv[0]
+      members = lb.pools[pool_name].members
+      if members.count > 0
+        puts "Pool #{pool_name} has #{members.count} members:\n" + members.map {|m| "  "+m+"\n"}.join
+      else
+        puts "Pool #{pool_name} has 0 members.\n"
+      end
+
+    when 'add-pool-member'
+      raise ArgumentError.new "Requires a name and host:port." unless 2 == argv.length
+      puts "Adding pool member #{argv[1]} for pool #{argv[0]}."
+      lb.pools[argv[0]].add_member *argv[1].split(':')
+
+    when 'delete-pool-member'
+      raise ArgumentError.new "Requires a name and host:port." unless 2 == argv.length
+      puts "Deleting pool member #{argv[0]} from pool #{argv[1]}."
+      lb.pools[argv[0]].delete_member *argv[1].split(':')
+
+    when 'list-pool-aliases'
+      raise ArgumentError.new "Requires an alias name." unless 1 == argv.length
+      puts "Listing aliases for pool #{argv[0]}."
+      pool_name = argv[0]
+      aliases = lb.pools[pool_name].get_aliases
+      if aliases.count > 0
+        puts "Pool #{pool_name} has #{aliases.count} aliases:\n" + aliases.map {|m| "  "+m+"\n"}.join
+      else
+        puts "Pool #{pool_name} has 0 aliases.\n"
+      end
+
+    when 'add-alias'
+      raise ArgumentError.new "Requires a pool name and an alias." unless 2 == argv.length
+      puts "Adding alias #{argv[1]} for pool #{argv[0]}."
+      lb.pools[argv[0]].add_alias argv[1]
+
+    when 'delete-alias'
+      raise ArgumentError.new "Requires a pool name and an alias." unless 2 == argv.length
+      puts "Deleting alias #{argv[0]} from pool #{argv[1]}."
+      lb.pools[argv[0]].delete_alias argv[1]
+
+    else
+      raise ArgumentError.new "Usage: #{$0} {list-pools|add-pool <name> [<monitor-name>]|delete-pool <name>|list-routes|add-alias <pool> <name>|delete-alias <pool> <name>|add-route <pool> <name> <path>|delete-route <pool> <route_name>|list-monitors|create-monitor <name> <path> <up-code>|delete-monitor <name>list-pool-members <pool>|add-pool-member <pool> <host>:<port>|delete-pool-member <pool> <host>:<port>}"
+    end
+
+  rescue => e
+    $stderr.print("#{e.class}: ") unless e.class == ArgumentError
+    $stderr.puts(e.to_s)
+    $stderr.puts(e.backtrace) unless e.class == ArgumentError
+    exit 1
+  end
+end
+lb.update
+
+exit(exitval.to_i)

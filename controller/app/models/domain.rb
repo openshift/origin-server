@@ -171,7 +171,7 @@ class Domain
 
   # Defend against namespace changes after creation.
   before_update do
-    if namespace_changed? && Application.where(domain_id: _id).present?
+    if canonical_namespace_changed? && Application.where(domain_id: _id).present?
       raise OpenShift::UserException.new("Domain contains applications. Delete applications first before changing the domain namespace.", 128)
     end
   end

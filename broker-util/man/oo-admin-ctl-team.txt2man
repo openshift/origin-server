@@ -20,7 +20,7 @@ OPTIONS
 
                delete          - Delete team
 
-               show            - Show team and it’s members
+               show            - Show team and its members
 
                sync            - Syncs with LDAP groups
 

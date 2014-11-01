@@ -14,7 +14,9 @@ module AdminConsole
       when "apps_per_domain"
         respond_with ApplicationStats.apps_per_domain_binning
       when "domains_per_user"
-        respond_with DomainStats.domains_per_user_binning        
+        respond_with DomainStats.domains_per_user_binning   
+      when "system_summary"
+        respond_with AdminConsole::Stats.systems_summaries(true)     
       else
         #TODO respond with 404
       end

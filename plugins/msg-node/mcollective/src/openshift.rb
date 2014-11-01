@@ -393,10 +393,11 @@ module MCollective
 
       def oo_app_destroy(args)
         skip_hooks = args['--skip-hooks'] ? args['--skip-hooks'] : false
+        is_group_rollback = args['--is-group-rollback'] ? args['--is-group-rollback'] : false
         output     = ""
         begin
           container    = get_app_container_from_args(args)
-          out, err, rc = container.destroy(skip_hooks)
+          out, err, rc = container.destroy(skip_hooks, is_group_rollback)
 
           output << out
           output << err
@@ -457,9 +458,10 @@ module MCollective
         ssh_key  = args['--with-ssh-key']
         key_type = args['--with-ssh-key-type']
         comment  = args['--with-ssh-key-comment']
+        login    = args['--with-ssh-key-login']
 
         with_container_from_args(args) do |container|
-          container.add_ssh_keys([{:content => ssh_key, :type => key_type, :comment => comment}])
+          container.add_ssh_keys([{:content => ssh_key, :type => key_type, :comment => comment, :login => login}])
         end
       end
 

@@ -1,6 +1,7 @@
-var fs    = require('fs');
-var http  = require('http');
-var https = require('https');
+var constants = require('constants');
+var fs        = require('fs');
+var http      = require('http');
+var https     = require('https');
 
 
 /*!  {{{  section: 'Module-Exports'                                      */
@@ -27,10 +28,14 @@ exports.createProtocolServer = function(protocol, opts) {
       proto_handler = http.createServer();
       break;
     case 'https':
-      var ssl_opts  = { };
-      ssl_opts.ca  =  fs.readFileSync(opts.ca);
+      var ssl_opts  = {
+        secureProtocol: 'SSLv23_method',
+        secureOptions: constants.SSL_OP_NO_SSLv3
+      };
+      ssl_opts.ca   = fs.readFileSync(opts.ca);
       ssl_opts.cert = fs.readFileSync(opts.certificate);
       ssl_opts.key  = fs.readFileSync(opts.private_key);
+
       proto_handler = https.createServer(ssl_opts);
       break;
   }

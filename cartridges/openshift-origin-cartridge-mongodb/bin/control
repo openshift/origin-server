@@ -3,6 +3,12 @@ source "${OPENSHIFT_MONGODB_DIR}/lib/mongodb_context"
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 export STOPTIMEOUT=20
 
+function mongo_client() {
+  url="${OPENSHIFT_MONGODB_DB_HOST}:${OPENSHIFT_MONGODB_DB_PORT}/admin"
+  auth="-u ${OPENSHIFT_MONGODB_DB_USERNAME} -p ${OPENSHIFT_MONGODB_DB_PASSWORD}"
+  mongodb_context "mongo ${url} ${auth}"
+}
+
 function isrunning() {
     if [ -f $OPENSHIFT_MONGODB_DIR/pid/mongodb.pid ]; then
         set +e
@@ -19,8 +25,9 @@ function isrunning() {
 
 function _wait_for_mongod_to_startup() {
     i=0
-    while (! echo "exit" | mongodb_context "mongo ${OPENSHIFT_MONGODB_DB_HOST}" > /dev/null 2>&1) \
+    while (! echo "exit" | mongo_client > /dev/null 2>&1) \
              && [ $i -lt 60 ]; do
+        echo "Waiting for mongo to start..."
         sleep 1
         i=$(($i + 1))
     done

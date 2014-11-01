@@ -12,6 +12,7 @@ class PendingAppOp
   field :prereq,            type: Array
   field :retry_count,       type: Integer,  default: 0
   field :retry_rollback_op, type: Moped::BSON::ObjectId
+  field :skip_rollback,     type: Boolean
 
   def prereq
     self.attributes["prereq"] || []
@@ -128,6 +129,20 @@ class PendingAppOp
       spec.application = application
       application.component_instances.detect{ |i| i.matches_spec?(spec) }
     end
+  end
+
+  def is_app_delete_op_group?
+    if pending_app_op_group.nil?
+      return false
+    else
+      return (pending_app_op_group.kind_of?(RemoveFeaturesOpGroup) and pending_app_op_group.remove_all_features)
+    end
+  end
+
+  # any child op that does not require connections to be re-executed
+  # should override this method and return false
+  def reexecute_connections?
+    return true
   end
 
   def if_not_found(e)

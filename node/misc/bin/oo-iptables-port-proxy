@@ -6,7 +6,7 @@ filter_rules_file=/etc/openshift/iptables.filter.rules
 lock_file=/var/lock/oo-iptables-port-proxy.rules.lock
 
 function help() {
-    echo "Usage: $0 addproxy|removeproxy|showproxies"
+    echo "Usage: $0 addproxy|removeproxy|showproxy"
 }
 
 function getaddr() {
@@ -110,7 +110,7 @@ function addproxy() {
         iptables -t filter $filter_input_rule
         atomic_filter_config sed -i "s/#COMMIT/${filter_output_rule}\n${filter_input_rule}\n#COMMIT/g"
     fi
- 
+
     # Add the iptables nat rule.
     if ! grep -q "dport ${proxyport}" $nat_rules_file; then
         nat_output_rule="-A OUTPUT -d ${baddr}/32 -m tcp -p tcp --dport ${proxyport} -j DNAT --to-destination ${target}"
@@ -136,7 +136,7 @@ function addproxies() {
 # removeproxy 38032
 function removeproxy() {
     proxyport=$1
-    
+
     # Remove the filter rules
     grep "comment ${proxyport}" $filter_rules_file | while read line; do
         cmd=$(echo $line | sed 's/-I/-D/' | sed 's/rhc-app-comm 1/rhc-app-comm/')

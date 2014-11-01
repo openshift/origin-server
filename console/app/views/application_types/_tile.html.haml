@@ -6,7 +6,9 @@
     .tile-table-cell
       %h3
         = link_to type.display_name, application_type_path(type), :class => 'tile-target'
-
+        - if type.display_unique_name?
+          %span.muted.tile-meta
+            = "(#{type.name})"
       = application_type_tags(type.tags - excluded_tags)
 
       - if type.tags.include?(:in_development)

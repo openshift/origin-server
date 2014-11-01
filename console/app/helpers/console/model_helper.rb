@@ -120,14 +120,14 @@ module Console::ModelHelper
   end
 
   def add_cartridge_gear_sizes(application, cartridge_type, capabilities)
-    gear_sizes = [application.gear_profile]
+    gear_sizes = [application.gear_profile].map(&:to_sym)
     if application.scales? && cartridge_type
       gear_estimate = gear_estimate_for_scaled_app({'1' => [cartridge_type]})
       increasing = (gear_estimate.begin > 0 || gear_estimate.end > 0)
       gear_sizes = capabilities.allowed_gear_sizes if increasing
-      if cartridge_type.valid_gear_sizes?
-        gear_sizes &= cartridge_type.valid_gear_sizes 
-      end
+    end
+    if cartridge_type && cartridge_type.valid_gear_sizes?
+      gear_sizes &= cartridge_type.valid_gear_sizes 
     end
     gear_sizes
   end

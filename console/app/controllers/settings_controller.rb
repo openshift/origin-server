@@ -13,7 +13,7 @@ class SettingsController < ConsoleController
     async{ @keys = Key.all :as => @user }
     async{ @authorizations = Authorization.all :as => @user }
 
-    join!(30)
+    join!(Console.config.background_request_timeout || 30)
 
     update_sshkey_uploaded(@keys)
 

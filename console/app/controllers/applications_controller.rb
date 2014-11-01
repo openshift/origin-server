@@ -82,7 +82,7 @@ class ApplicationsController < ConsoleController
     else
       async{ @applications = Application.find :all, :as => current_user, :params => {:include => :cartridges} }
       async{ @domains = user_domains }
-      join!(10)
+      join!(Console.config.background_request_timeout || 10)
     end
 
     render :first_steps and return if @applications.blank?
@@ -192,12 +192,11 @@ class ApplicationsController < ConsoleController
   end
 
   def show
-    @capabilities = user_capabilities
-
     if params[:test]
-      @capabilities.send(:max_gears=, params[:test_gears].to_i) if params[:test_gears]
       @application = Fixtures::Applications.send(params[:test])
       @domain = Domain.new({:name => @application.domain_id}, true)
+      @capabilities = Domain::Capabilities.new({:max_gears => 3})
+      @capabilities.send(:max_gears=, params[:test_gears].to_i) if params[:test_gears]
       @gear_groups = @application.cartridge_gear_groups
       @gear_groups_with_state = @application.gear_groups
       @gear_groups.each{ |g| g.merge_gears(@gear_groups_with_state) }
@@ -210,7 +209,9 @@ class ApplicationsController < ConsoleController
     async{ @gear_groups_with_state = GearGroup.all(:as => current_user, :params => {:application_id => app_id, :timeout => 3}) }
     async{ sshkey_uploaded? }
 
-    join!(30)
+    join!(Console.config.background_request_timeout || 30)
+
+    @capabilities = @application.domain.capabilities
 
     @gear_groups = @application.cartridge_gear_groups
     @gear_groups.each{ |g| g.merge_gears(@gear_groups_with_state) }

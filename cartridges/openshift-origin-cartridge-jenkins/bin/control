@@ -64,6 +64,14 @@ function start() {
   if marker_present "enable_debugging"; then
       JENKINS_CMD="${JENKINS_CMD} -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=${OPENSHIFT_JENKINS_IP}:7600,suspend=n"
   fi
+
+  if marker_present "disable_bad_ciphers_auto"; then
+      JENKINS_CMD="${JENKINS_CMD} -Ddisable_bad_sslciphers=auto"
+  fi
+
+  if marker_present "disable_bad_ciphers_yes"; then
+      JENKINS_CMD="${JENKINS_CMD} -Ddisable_bad_sslciphers=yes"
+  fi
   
   if [ -z "$JENKINS_WAR_PATH" ]; then
     JENKINS_WAR_PATH=/usr/lib/jenkins/jenkins.war

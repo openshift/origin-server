@@ -9,6 +9,13 @@
 # The following will create polyinstantiated directories for OpenShift
 #
 
+# logger -i -s "oo-namespace-init" -p user.info "`date`: 1:$1 2:$2 3:$3 4:$4"
+
+# ensure gear can always read temporary directories
+if [ "$2" != "tmpfs" ]; then
+  /bin/chmod 1700 "$2"
+fi
+
 # Unless this is a new instance, get out now
 [ "$3" = 0 ] && exit 0
 

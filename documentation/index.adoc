@@ -29,7 +29,8 @@ link:oo_deployment_guide_vagrant.html[Vagrant Deployment Guide] +
 link:oo_deployment_guide_vm.html[Virtual Machine Deployment Guide] +
 link:oo_client_tools_installation_guide.html[Client Tools Installation Guide]
 
-a|link:oo_administration_guide.html[Administration Guide] +
+a|link:oo_m4_release_notes.html[Origin M4 Release Notes] +
+link:oo_administration_guide.html[Administration Guide] +
 link:oo_cartridge_guide.html[Cartridge Guide] +
 link:oo_troubleshooting_guide.html[Troubleshooting Guide] +
 link:oo_notes_running_a_local_ddns.html[Notes on Running a Local DNS]

@@ -50,7 +50,7 @@ class Alias < RestApi::Base
       self.ssl_certificate = @certificate_file
       if !@certificate_chain_file.nil?
         self.ssl_certificate.strip!
-        self.ssl_certificate << "\n" << @certificate_chain_file.strip
+        self.ssl_certificate << "\n" << @certificate_chain_file.strip << "\n"
       end
     end
     normalize_ssl_certificate
@@ -82,6 +82,21 @@ class Alias < RestApi::Base
 
   def <=>(a)
     return self.name <=> a.name
+  end
+
+  def errors
+    e = super
+    {
+      :certificate_file => :ssl_certificate,
+      :certificate_chain_file => :ssl_certificate_chain,
+      :certificate_private_key_file => :private_key,
+      :certificate_pass_phrase => :pass_phrase
+    }.each do |field, api_field|
+      Array(e[api_field]).each do |err|
+        e.add(field, err) 
+      end
+    end
+    e
   end
 
 end
