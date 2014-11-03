@@ -123,7 +123,7 @@ end
 
 command :aliases do |c|
   c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID [--porcelain]"
-  c.description = 'List the SSL certificates'
+  c.description = 'List your own domain name for your application'
 
   c.option '-q', '--porcelain', 'format output as JSON'
   c.action do |args, options|
