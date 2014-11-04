@@ -81,7 +81,7 @@
 #   @see [ApplicationsController#index]
 class RestApplication < OpenShift::Model
   attr_accessor :framework, :creation_time, :id, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url,
-      :gear_profile, :scalable, :health_check_path, :building_with, :building_app, :build_job_url, :cartridges, :initial_git_url, :members,
+      :gear_profile, :scalable, :ha, :health_check_path, :building_with, :building_app, :build_job_url, :cartridges, :initial_git_url, :members,
       :auto_deploy, :deployment_branch, :keep_deployments, :deployment_type
 
   def initialize(app, url, nolinks=false, applications=nil)
@@ -96,6 +96,7 @@ class RestApplication < OpenShift::Model
 
     self.gear_profile = app.default_gear_size
     self.scalable = app.scalable
+    self.ha = app.ha
 
     if ssh_uri = app.ssh_uri.presence
       self.git_url = "ssh://#{ssh_uri}/~/git/#{@name}.git/"
