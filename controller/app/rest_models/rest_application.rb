@@ -244,6 +244,9 @@ class RestApplication < OpenShift::Model
       self.links["MAKE_HA"] = Link.new("Make the application Highly Available (HA)", "POST", URI::join(url, "application/#{@id}/events"), [
           Param.new("event", "string", "event", "make-ha")
         ]) if Rails.configuration.openshift[:allow_ha_applications]
+      self.links["DISABLE_HA"] = Link.new("Disable Highly Available (HA) on the application", "POST", URI::join(url, "application/#{@id}/events"), [
+          Param.new("event", "string", "event", "disable-ha")
+        ]) if Rails.configuration.openshift[:allow_ha_applications]
 
      #delete must be the last link
      self.links["DELETE"] = Link.new("Delete application", "DELETE", URI::join(url, "application/#{@id}"))
