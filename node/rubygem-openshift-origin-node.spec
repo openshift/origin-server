@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.31.8
+Version: 1.31.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Nov 03 2014 Adam Miller <admiller@redhat.com> 1.31.9-1
+- make the default crt/key/chain file to be configurable in vhost template
+  (rchopra@redhat.com)
+
 * Thu Oct 23 2014 Adam Miller <admiller@redhat.com> 1.31.8-1
 - oo-trap-user: preserve quoting on shell commands (lmeyer@redhat.com)
 
