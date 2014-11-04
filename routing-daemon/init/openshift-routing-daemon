@@ -1,80 +1,90 @@
-#!/bin/sh
+#!/usr/bin/env oo-ruby
 #
-# openshift-routing-daemon:        Starts the routing-daemon.configuration
-# daemon for OpenShift.
+# openshift-routing-daemon  Starts the routing daemon for OpenShift 
 #
-# chkconfig: 345 85 15
-# description:  This is a daemon which listens for notifications of \
-#   application lifecycle events on ActiveMQ from the OpenShift \
-#   routing plug-in and configures an external routing \
-#   appropriately.
+# chkconfig:       345 89 11
+# processname:     openshift-routing-daemon
 #
-# processname: ruby
-# config: /etc/openshift/routing-daemon.conf
-# pidfile: /var/run/openshift-routing-daemon.pid
-#
-
-### BEGIN INIT INFO
-# Required-Start: $local_fs $network $named
-# Required-Stop: $local_fs $network
-# Default-Start: 2 3 4 5
-# Default-Stop: 0 1 6
-# Short-Description: Starts the routing daemon for OpenShift
-# Description: This is a daemon which listens for notifications of
+# short-description: Starts the routing daemon for OpenShift
+# description: This is a daemon which listens for notifications of
 #               application lifecycle events on ActiveMQ from the
 #               OpenShift routing plug-in and configures an external
 #               routing appropriately.
-### END INIT INFO
 
-base='openshift-routing-daemon'
+require 'rubygems'
+require 'daemons'
+require 'timeout'
+require 'openshift-origin-common/utils/path_utils'
+require 'openshift/routing/daemon'
 
-[ -f /etc/openshift/routing-daemon.conf ] || exit 6
-[ -x /usr/sbin/openshift-routing-daemon ] || exit 6
 
-# Source function library.
-. /etc/rc.d/init.d/functions
+# load any custom configuration elements for Watchman
+path = "/etc/sysconfig/watchman"
+if File.exists? path
+  config = ParseConfig.new path
+  config.get_params.each { |k| ENV[k] = config[k] }
+end
 
-start() {
-    echo -n $"Starting OpenShift Load Balancer Daemon: "
-    /usr/sbin/openshift-routing-daemon start
-    RETVAL=$?
-    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/openshift-routing-daemon && success $"$base startup" || failure $"$base startup"
-    echo
+Options = {
+    :backtrace => true,
+    :ontop => false,
+    :log_output => true,
+    :dir_mode => :system,
+    :multiple => false,
+    :script => 'openshift-routing-daemon',
 }
 
-stop() {
-    echo -n $"Stopping OpenShift Load Balancer Daemon: "
-    /usr/sbin/openshift-routing-daemon stop
-    RETVAL=$?
-    [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/openshift-routing-daemon && success $"$base shutdown" || failure $"$base shutdown"
-    echo
-}
+def daemon_running?
+  %x[/usr/bin/pgrep -f '^openshift-routing-daemon']
+  $?.exitstatus == 0
+end
 
-# See how we were called.
-case "$1" in
-    start)
-        start
-        ;;
-    stop)
-        stop
-        ;;
-    status)
-        /usr/sbin/openshift-routing-daemon status
-        RETVAL=$?
-        ;;
-    reload|restart|force-reload)
-        stop
-        start
-        ;;
-    condrestart|try-restart)
-        if [ -f /var/run/openshift-routing-daemon.pid ]
-        then
-            stop
-            start
-        fi
-        ;;
-    *)
-        echo $"Usage: $0 {start|stop|status|restart|force-reload|condrestart|try-restart|reload}"
-        exit 2
-esac
-exit $RETVAL
+def locked
+  Timeout::timeout(ENV['LOCK_TIMEOUT'] || 60) do
+    PathUtils.flock('/var/lock/openshift-routing-daemon.lock') do
+      yield
+    end
+  end
+rescue Timeout::Error
+  puts 'openshift-routing-daemon operation timed out'
+  exit! 1
+end
+
+case ARGV[0]
+  when 'stop'
+    puts 'Stopping openshift-routing-daemon'
+    locked  do
+      Daemons.run_proc(Options[:script], Options)
+    end
+  when 'start'
+    puts 'Starting openshift-routing-daemon'
+    locked  do
+      Daemons.run_proc(Options[:script], Options) do
+	OpenShift::RoutingDaemon.new.listen
+      end
+    end
+  when 'restart'
+    puts 'Stopping openshift-routing-daemon'
+    locked do
+      loop do
+        Daemons.run(Options[:script], Options.merge(ARGV: ['stop']))
+        break unless daemon_running?
+        sleep 1
+        $stdout.write '.'
+      end
+      puts 'Starting openshift-routing-daemon'
+      Daemons.run_proc(Options[:script], Options.merge(ARGV: ['start'])) do
+	OpenShift::RoutingDaemon.new.listen
+      end
+    end
+  when 'status'
+    if daemon_running?
+      puts 'openshift-routing-daemon is running'
+      exit 0
+    else
+      puts 'openshift-routing-daemon is not running'
+      exit 1
+    end
+  else
+    locked { Daemons.run(Options[:script], Options) }
+end

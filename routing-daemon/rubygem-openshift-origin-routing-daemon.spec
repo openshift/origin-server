@@ -62,7 +62,7 @@ gem install -V \
 mkdir -p %{buildroot}/%{_var}/log/openshift
 
 mkdir -p %{buildroot}%{_root_sbindir}
-cp bin/oo-* bin/openshift-routing-daemon %{buildroot}%{_root_sbindir}/
+cp bin/oo-* %{buildroot}%{_root_sbindir}/
 
 mkdir -p %{buildroot}%{gem_dir}
 cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
@@ -84,7 +84,6 @@ cp -a init/* %{buildroot}/etc/rc.d/init.d/
 %config(noreplace) /etc/openshift/routing-daemon.conf
 %attr(0755,-,-) /etc/rc.d/init.d/openshift-routing-daemon
 %attr(0750,-,-) %{_root_sbindir}/oo-admin-ctl-routing
-%attr(0750,-,-) %{_root_sbindir}/openshift-routing-daemon
 %attr(0755,-,-) %{_var}/log/openshift
 
 %changelog
