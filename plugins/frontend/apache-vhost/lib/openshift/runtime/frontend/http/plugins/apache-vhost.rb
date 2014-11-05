@@ -52,9 +52,9 @@ module OpenShift
 
               @template_http  = File.join(@basedir, TEMPLATE_HTTP)
               @template_https = File.join(@basedir, TEMPLATE_HTTPS)
-              @ssl_cert_path = @config.get("OPENSHIFT_DEFAULT_SSL_CRT_PATH")
-              @ssl_chain_path = @config.get("OPENSHIFT_DEFAULT_SSL_CRT_CHAIN_PATH")
-              @ssl_key_path = @config.get("OPENSHIFT_DEFAULT_SSL_KEY_PATH")
+              @ssl_cert_path = (@config.get("OPENSHIFT_DEFAULT_SSL_CRT_PATH") || "/etc/pki/tls/certs/localhost.crt")
+              @ssl_chain_path = (@config.get("OPENSHIFT_DEFAULT_SSL_CRT_CHAIN_PATH") || "/etc/pki/tls/certs/localhost.crt")
+              @ssl_key_path = (@config.get("OPENSHIFT_DEFAULT_SSL_KEY_PATH") || "/etc/pki/tls/private/localhost.key")
             end
 
 
