@@ -38,6 +38,8 @@ check() {
 }
 
 start() {
+    # Fix the IP address and config params if they changed.
+    oo-rebuild-haproxy-sni-proxy || :
     $exec -c -q -f $cfgfile
     if [ $? -ne 0 ]; then
         echo "Errors in configuration file, check with $prog check."
@@ -89,12 +91,7 @@ fdr_status() {
 }
 
 case "$1" in
-    start)
-        # Fix the IP address and config params if they changed.
-        oo-rebuild-haproxy-sni-proxy || :
-        start
-        ;;
-    stop|restart|reload)
+    start|stop|restart|reload)
         $1
         ;;
     force-reload)
