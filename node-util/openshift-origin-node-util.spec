@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.30.5
+Version: 1.30.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -203,6 +203,10 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Thu Nov 06 2014 Adam Miller <admiller@redhat.com> 1.30.6-1
+- Perf Improvement? (dmcphers@redhat.com)
+- Bug 1160770 - consider CNAMEs when checking last access (agrimm@redhat.com)
+
 * Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.30.5-1
 - bz1151744 - wrap the wait for reload to finish inside of the lockfile
   (rchopra@redhat.com)
