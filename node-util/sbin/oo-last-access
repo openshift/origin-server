@@ -82,10 +82,9 @@ class LastAccessUpdater
 
   def add_alias_data
     Dir['/etc/httpd/conf.d/openshift/*.conf'].each do |conf|
-      output = File.open(conf.strip).read()
       server_name = nil
       uuid        = nil
-      output.each_line do |line|
+      IO.foreach(conf.strip) do |line|
         if line =~ /ServerName/
           server_name = line.split[1]
         elsif line =~ /SetEnv GEAR_UUID/
@@ -102,8 +101,7 @@ class LastAccessUpdater
       next unless File.directory?(gear_conf)
       uuid = File.basename(gear_conf).split('_')[0]
       Dir["#{gear_conf}/*"].each do |server_alias|
-        output = File.open(server_alias).read()
-        output.each_line do |line|
+        IO.foreach(server_alias) do |line|
           if line =~ /ServerAlias/
             @all_apps_info[line.split[1]] = uuid
             break
