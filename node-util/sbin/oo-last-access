@@ -80,6 +80,39 @@ class LastAccessUpdater
     end
   end
 
+  def add_alias_data
+    Dir['/etc/httpd/conf.d/openshift/*.conf'].each do |conf|
+      output = File.open(conf.strip).read()
+      server_name = nil
+      uuid        = nil
+      output.each_line do |line|
+        if line =~ /ServerName/
+          server_name = line.split[1]
+        elsif line =~ /SetEnv GEAR_UUID/
+          uuid        = line.split[2]
+        end
+        break if server_name && uuid
+      end
+      if server_name && uuid
+        @all_apps_info[server_name] = uuid
+      end
+    end
+
+    Dir['/etc/httpd/conf.d/openshift/*_*'].each do |gear_conf|
+      next unless File.directory?(gear_conf)
+      uuid = File.basename(gear_conf).split('_')[0]
+      Dir["#{gear_conf}/*"].each do |server_alias|
+        output = File.open(server_alias).read()
+        output.each_line do |line|
+          if line =~ /ServerAlias/
+            @all_apps_info[line.split[1]] = uuid
+            break
+          end
+        end
+      end
+    end
+  end
+
   def print_apps_data
     @all_apps_info.each do |app_dns, gear_uuid|
       puts "#{app_dns} - #{gear_uuid}"
@@ -170,6 +203,7 @@ single_instance do
   l = LastAccessUpdater.new(ENV["GEAR_BASE_DIR"], logfiles)
   l.load_addrs_ignore
   l.load_apps_data
+  l.add_alias_data
   gears_found_count = l.parse_log
   if gears_found_count==0
     puts "ERROR : No gears were found in the log files. Check log file locations"
