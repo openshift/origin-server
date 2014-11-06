@@ -85,9 +85,10 @@ module PathUtils
   # @param lock_file [String] path including file to use for locking
   # @param unlink_file [true, false] should lock file be removed when lock released?
   def flock(lock_file, unlink_file = true)
-    File.open(lock_file, File::RDWR|File::CREAT|File::TRUNC, 0600) do |lock|
+    File.open(lock_file, File::RDWR|File::CREAT|File::TRUNC|File::SYNC, 0640) do |lock|
       lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
       lock.flock(File::LOCK_EX)
+      lock.write(Process.pid)
 
       begin
         yield(lock)
