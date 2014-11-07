@@ -492,22 +492,32 @@ module OpenShift
         if proxy_cartridge = @cartridge_model.web_proxy
           unless options[:hot_deploy] == true or options[:init]
             result = update_proxy_status(cartridge: proxy_cartridge,
-                                         action: :disable,
+                                         action:    :disable,
                                          gear_uuid: self.uuid,
-                                         persist: false)
+                                         persist:   false)
             result[:proxy_results].each do |proxy_gear_uuid, result|
               buffer << result[:messages].join("\n")
             end
           end
         end
-        buffer << @cartridge_model.stop_gear(options)
+
+        begin
+          buffer << @cartridge_model.stop_gear(options)
+        rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
+          raise e if options[:user_initiated] == true || options[:force] == false
+
+          logger.warn("stop_gear for #{self.uuid} failed with #{e.message}\n#{e.stdout}\n#{e.stderr}")
+        end
+
         unless buffer.empty?
           buffer.chomp!
           buffer << "\n"
         end
+
         if options[:force]
           kill_procs(options)
         end
+
         buffer << stopped_status_attr
         buffer
       end
