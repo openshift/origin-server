@@ -28,9 +28,13 @@ class FrontendPlugin < OpenShift::Runtime::WatchmanPlugin
   # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] operation
   # @param [lambda<>] next_update calculates the time for next check
   # @param [DateTime] epoch is when plugin was object instantiated
-  def initialize(config, logger, gears, operation, next_update = lambda { DateTime.now + Rational(1, 24) }, epoch = DateTime.now)
+  def initialize(config, logger, gears, operation, next_update = nil, epoch = DateTime.now)
     super(config, logger, gears, operation)
-    @next_update = next_update
+
+    @deleted_age = 172800
+    @deleted_age = ENV['FRONTEND_CLEANUP_PERIOD'].to_i unless ENV['FRONTEND_CLEANUP_PERIOD'].nil?
+
+    @next_update = next_update || lambda { DateTime.now + Rational(@deleted_age, 86400) }
     @next_check  = epoch
   end
 
