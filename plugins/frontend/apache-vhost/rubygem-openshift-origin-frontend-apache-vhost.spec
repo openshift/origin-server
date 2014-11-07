@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.10.4
+Version: 0.10.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -109,6 +109,9 @@ mv httpd/openshift-vhost-logconf.include %{buildroot}/etc/httpd/conf.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Thu Nov 06 2014 Adam Miller <admiller@redhat.com> 0.10.5-1
+- Bug 1160752 - Make apache-vhost more atomic (jhonce@redhat.com)
+
 * Mon Nov 03 2014 Adam Miller <admiller@redhat.com> 0.10.4-1
 - for custom certs; chain file is the same as ssl file (rchopra@redhat.com)
 - make the default crt/key/chain file to be configurable in vhost template
