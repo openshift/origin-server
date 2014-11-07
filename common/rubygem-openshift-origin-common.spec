@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.28.3
+Version: 1.28.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -125,6 +125,9 @@ rm -rf %{buildroot}%{gem_instdir}/.yardoc*
 %doc %{gem_docdir}
 
 %changelog
+* Thu Nov 06 2014 Adam Miller <admiller@redhat.com> 1.28.4-1
+- Bug 1160752 - Make apache-vhost more atomic (jhonce@redhat.com)
+
 * Tue Sep 23 2014 Adam Miller <admiller@redhat.com> 1.28.3-1
 - oo-diagnostics: test_mcollective_direct_addressing (miciah.masters@gmail.com)
 
