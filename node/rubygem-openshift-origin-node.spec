@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.31.9
+Version: 1.31.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Nov 06 2014 Adam Miller <admiller@redhat.com> 1.31.10-1
+- Bug 1160752 - Add Watchman plugin to clean up vhost configurations
+  (jhonce@redhat.com)
+
 * Mon Nov 03 2014 Adam Miller <admiller@redhat.com> 1.31.9-1
 - make the default crt/key/chain file to be configurable in vhost template
   (rchopra@redhat.com)
