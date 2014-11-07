@@ -16,14 +16,13 @@
 
 require 'rubygems'
 require 'openshift-origin-frontend-apachedb'
+require 'openshift-origin-common'
 require 'openshift-origin-node/model/frontend/http/plugins/frontend_http_base'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/node_logger'
 require 'erb'
 require 'json'
 require 'fcntl'
-
-$OpenShift_ApacheVirtualHosts_Lock = Mutex.new
 
 module OpenShift
   module Runtime
@@ -33,11 +32,11 @@ module OpenShift
 
           class ApacheVirtualHosts < PluginBaseClass
 
-            TEMPLATE_HTTP  = "frontend-vhost-http-template.erb"
-            TEMPLATE_HTTPS = "frontend-vhost-https-template.erb"
+            TEMPLATE_HTTP  = 'frontend-vhost-http-template.erb'
+            TEMPLATE_HTTPS = 'frontend-vhost-https-template.erb'
+            LOCKFILE       = '/var/run/openshift/apache-vhost.lock'
 
-            LOCK = $OpenShift_ApacheVirtualHosts_Lock
-            LOCKFILE = "/var/run/openshift/apache-vhost.lock"
+            FILE_OPTS = File::RDWR | File::CREAT | File::TRUNC | File::SYNC
 
             attr_reader :basedir, :token, :app_path
 
@@ -59,7 +58,7 @@ module OpenShift
 
 
             def conf_path
-              File.join(@basedir, "#{@container_uuid}_#{@namespace}_0_#{@container_name}.conf")
+              PathUtils.join(@basedir, "#{@container_uuid}_#{@namespace}_0_#{@container_name}.conf")
             end
 
             def element_path(path)
@@ -70,7 +69,7 @@ module OpenShift
                 tpath = path.gsub('/','_').gsub(' ','_')
                 order = 599999 - [99999, path.length].min
               end
-              File.join(@app_path,"#{order}_element-#{tpath}.conf")
+              PathUtils.join(@app_path,"#{order}_element-#{tpath}.conf")
             end
 
             def parse_connection(element_file)
@@ -98,17 +97,17 @@ module OpenShift
             end
 
             def self.purge_by_uuid(uuid)
-              basedir = ::OpenShift::Config.new.get("OPENSHIFT_HTTP_CONF_DIR")
+              basedir = ::OpenShift::Config.new.get('OPENSHIFT_HTTP_CONF_DIR')
               with_lock_and_reload do
-                FileUtils.rm_rf(Dir.glob(File.join(basedir, "#{uuid}_*")))
+                truncate(PathUtils.join(basedir, "#{uuid}_*"))
               end
             end
 
             def self.purge_by_fqdn(fqdn)
               # Determine the UUID so that we can catch aliases.
-              basedir = ::OpenShift::Config.new.get("OPENSHIFT_HTTP_CONF_DIR")
+              basedir = ::OpenShift::Config.new.get('OPENSHIFT_HTTP_CONF_DIR')
               name = fqdn.sub(/\..*$/,'')
-              Dir.glob(File.join(basedir, "*_#{name}.conf")).map { |p|
+              Dir.glob(PathUtils.join(basedir, "*_#{name}.conf")).map { |p|
                 File.basename(p).sub(/_.*$/,'')
               }.each do |uuid|
                 purge_by_uuid(uuid)
@@ -117,33 +116,32 @@ module OpenShift
 
             def destroy
               with_lock_and_reload do
-                FileUtils.rm_rf(Dir.glob(File.join(@basedir, "#{@container_uuid}_*")))
+                truncate(PathUtils.join(@basedir, "#{@container_uuid}_*"))
               end
             end
 
             def connect(*elements)
-              reported_urls=[]
               with_lock_and_reload do
 
                 raise PluginException.new("Base directory #{@app_path} does not exist for the app",
-                                            @container_uuid, @fqdn) if not Dir.exists?(@app_path)
+                                          @container_uuid, @fqdn) if not Dir.exists?(@app_path)
 
                 # The base config won't exist until the first connection is created
-                if not File.exists?(conf_path)
-                  File.open(conf_path, File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
-                    server_name = @fqdn
-                    include_path = @app_path
-                    app_uuid = @application_uuid
-                    gear_uuid = @container_uuid
-                    app_namespace = @namespace
-                    ssl_certificate_file = @ssl_cert_path
+                unless File.size?(conf_path)
+                  File.open(conf_path, FILE_OPTS, 0644) do |f|
+                    # setup binding environment
+                    server_name                = @fqdn
+                    include_path               = @app_path
+                    app_uuid                   = @application_uuid
+                    gear_uuid                  = @container_uuid
+                    app_namespace              = @namespace
+                    ssl_certificate_file       = @ssl_cert_path
                     ssl_certificate_chain_file = @ssl_chain_path
-                    ssl_key_file = @ssl_key_path
-                    f.write(ERB.new(File.read(@template_http)).result(binding))
-                    f.write("\n")
-                    f.write(ERB.new(File.read(@template_https)).result(binding))
-                    f.write("\n")
-                    f.fsync
+                    ssl_key_file               = @ssl_key_path
+
+                    buffer = ERB.new(File.read(@template_http)).result(binding) << "\n"
+                    buffer << ERB.new(File.read(@template_https)).result(binding) << "\n"
+                    f.write(buffer)
                   end
                 end
 
@@ -156,69 +154,69 @@ module OpenShift
                     options["ssl_to_gear"]=1
                   end
 
-                  File.open(element_path(path), File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
-                    f.write("# ELEMENT: ")
-                    f.write([path, uri, options].to_json)
-                    f.write("\n")
+                  buffer = '# ELEMENT: ' << [path, uri, options].to_json << "\n"
 
-                    gen_default_rule=false
-                    proxy_proto = "http"
-                    if options["gone"]
-                      f.puts("RewriteRule ^#{path}(/.*)?$ - [NS,G]")
-                    elsif options["forbidden"]
-                      f.puts("RewriteRule ^#{path}(/.*)?$ - [NS,F]")
-                    elsif options["noproxy"]
-                      f.puts("RewriteRule ^#{path}(/.*)?$ - [NS,L]")
-                    elsif options["health"]
-                      f.puts("RewriteRule ^#{path}(/.*)?$ /var/www/html/health.txt [NS,L]")
-                    elsif options["redirect"]
-                      f.puts("RewriteRule ^#{path}(/.*)?$ #{uri} [R,NS,L]")
-                    elsif options["file"]
-                      f.puts("RewriteRule ^#{path}(/.*)?$ #{uri} [NS,L]")
-                    elsif options["tohttps"]
-                      f.puts("RewriteCond %{HTTPS} =off")
-                      f.puts("RewriteRule ^#{path}(/.*)?$ https://%{HTTP_HOST}$1 [R,NS,L]")
-                      gen_default_rule = true
-                    elsif options["ssl_to_gear"]
-                      f.puts("RewriteCond %{HTTPS} =off")
-                      f.puts("RewriteRule ^#{path}(/.*)?$ https://%{HTTP_HOST}$1 [R,NS,L]")
-                      proxy_proto="https"
-                      gen_default_rule = true
-                    else
-                      gen_default_rule = true
-                    end
+                  gen_default_rule=false
+                  proxy_proto     = 'http'
+                  if options['gone']
+                    buffer << "RewriteRule ^#{path}(/.*)?$ - [NS,G]\n"
+                  elsif options['forbidden']
+                    buffer << "RewriteRule ^#{path}(/.*)?$ - [NS,F]\n"
+                  elsif options['noproxy']
+                    buffer << "RewriteRule ^#{path}(/.*)?$ - [NS,L]\n"
+                  elsif options['health']
+                    buffer << "RewriteRule ^#{path}(/.*)?$ /var/www/html/health.txt [NS,L]\n"
+                  elsif options['redirect']
+                    buffer << "RewriteRule ^#{path}(/.*)?$ #{uri} [R,NS,L]\n"
+                  elsif options['file']
+                    buffer << "RewriteRule ^#{path}(/.*)?$ #{uri} [NS,L]\n"
+                  elsif options['tohttps']
+                    buffer << "RewriteCond %{HTTPS} =off\n"
+                    buffer << "RewriteRule ^#{path}(/.*)?$ https://%{HTTP_HOST}$1 [R,NS,L]\n"
+                    gen_default_rule = true
+                  elsif options['ssl_to_gear']
+                    buffer << "RewriteCond %{HTTPS} =off\n"
+                    buffer << "RewriteRule ^#{path}(/.*)?$ https://%{HTTP_HOST}$1 [R,NS,L]\n"
+                    proxy_proto      ="https"
+                    gen_default_rule = true
+                  else
+                    gen_default_rule = true
+                  end
 
-                    if gen_default_rule
-                      tpath = path.empty? ? "/" : path
+                  if gen_default_rule
+                    tpath = path.empty? ? "/" : path
 
-                      if uri.empty?
-                        turi = "127.0.0.1:80"
-                      elsif tpath[-1] != uri[-1]
-                        # tpath and uri are unequal, fix uri to match tpath
-                        if uri.end_with?("/")
-                          turi = uri[0..-2]
-                        else
-                          turi = uri + "/"
-                        end
+                    if uri.empty?
+                      turi = "127.0.0.1:80"
+                    elsif tpath[-1] != uri[-1]
+                      # tpath and uri are unequal, fix uri to match tpath
+                      if uri.end_with?("/")
+                        turi = uri[0..-2]
                       else
-                        turi = uri
+                        turi = uri + "/"
                       end
-
-                      f.puts("ProxyPass #{tpath} #{proxy_proto}://#{turi} retry=0")
-
-                      f.puts("ProxyPassReverse #{tpath} #{proxy_proto}://#{turi}")
-                      f.puts("ProxyPassReverse #{tpath} #{proxy_proto}://#{fqdn}#{tpath}")
+                    else
+                      turi = uri
                     end
 
-                    f.fsync
+                    buffer << "ProxyPass #{tpath} #{proxy_proto}://#{turi} retry=0\n"
+                    buffer << "ProxyPassReverse #{tpath} #{proxy_proto}://#{turi}\n"
+                    buffer << "ProxyPassReverse #{tpath} #{proxy_proto}://#{fqdn}#{tpath}\n"
+                  end
+
+                  File.open(element_path(path), FILE_OPTS, 0644) do |file|
+                    file.write(buffer)
                   end
                 end
               end
-              reported_urls
+
+              []
             end
 
             def connections
-              Dir.glob(element_path('*')).map do |p|
+              candidates = Dir.glob(element_path('*'))
+              candidates.delete_if { |f| not File.size?(f)}
+              candidates.map do |p|
                 parse_connection(p)
               end
             end
@@ -226,12 +224,10 @@ module OpenShift
             def disconnect(*paths)
               with_lock_and_reload do
                 paths.flatten.each do |p|
-                  FileUtils.rm_f(element_path(p))
+                  truncate(element_path(p))
                 end
               end
             end
-
-
 
             def idle_path
               File.join(@app_path, "000000_idler.conf")
@@ -239,23 +235,21 @@ module OpenShift
 
             def idle
               with_lock_and_reload do
-                File.open(idle_path, File::RDWR | File::CREAT | File::TRUNC, 0644 ) do |f|
-                  f.puts("RewriteRule ^/(.*)$ /var/www/html/restorer.php/#{@container_uuid}/$1 [NS,L]")
+                File.open(idle_path, FILE_OPTS, 0644 ) do |f|
+                  f.write("RewriteRule ^/(.*)$ /var/www/html/restorer.php/#{@container_uuid}/$1 [NS,L]\n")
                 end
               end
             end
 
             def unidle
               with_lock_and_reload do
-                FileUtils.rm_f(idle_path)
+                truncate(idle_path)
               end
             end
 
             def idle?
-              File.exists?(idle_path)
+              !! File.size?(idle_path)
             end
-
-
 
             def sts_path
               File.join(@app_path, "000001_sts_header.conf")
@@ -263,18 +257,19 @@ module OpenShift
 
             def sts(max_age=15768000)
               with_lock_and_reload do
-                File.open(sts_path, File::RDWR | File::CREAT | File::TRUNC, 0644 ) do |f|
-                  f.puts("# MAX_AGE: #{max_age.to_i}")
-                  f.puts("Header set Strict-Transport-Security \"max-age=#{max_age.to_i}\"")
-                  f.puts("RewriteCond %{HTTPS} =off")
-                  f.puts("RewriteRule ^(.*)$ https://%{HTTP_HOST}$1 [R,NS,L]")
+                File.open(sts_path, FILE_OPTS, 0644 ) do |f|
+                  buffer = %Q(# MAX_AGE: #{max_age.to_i}\n)
+                  buffer << %Q(Header set Strict-Transport-Security "max-age=#{max_age.to_i}"\n)
+                  buffer << %Q(RewriteCond %{HTTPS} =off\n)
+                  buffer << %Q(RewriteRule ^(.*)$ https://%{HTTP_HOST}$1 [R,NS,L]\n)
+                  f.write(buffer)
                 end
               end
             end
 
             def no_sts
               with_lock_and_reload do
-                FileUtils.rm_f(sts_path)
+                truncate(sts_path)
               end
             end
 
@@ -297,28 +292,28 @@ module OpenShift
             end
 
             def alias_path(server_alias)
-              File.join(@app_path, "#{alias_path_prefix}#{server_alias}.conf")
+              PathUtils.join(@app_path, "#{alias_path_prefix}#{server_alias}.conf")
             end
 
             def aliases
-              Dir.glob(alias_path('*')).map { |f|
-                File.basename(f,".conf").gsub(alias_path_prefix,'')
-              } + ssl_certs.map { |ssl_cert, priv_key, server_alias|
-                server_alias
-              }
+              candidates = Dir.glob(alias_path('*'))
+              candidates.delete_if { |f| not File.size?(f) }
+              candidates.map do |f|
+                File.basename(f, '.conf').gsub(alias_path_prefix, '')
+              end + ssl_certs.map { |_, _, server_alias| server_alias }
             end
 
             def add_alias_impl(server_alias)
-              File.open(alias_path(server_alias), File::RDWR | File::CREAT | File::TRUNC, 0644 ) do |f|
-                f.puts("ServerAlias #{server_alias}")
-                f.puts("ProxyPassReverse / http://#{server_alias}/")
-                f.fsync
+              File.open(alias_path(server_alias), FILE_OPTS, 0644) do |f|
+                buffer = "ServerAlias #{server_alias}\n"
+                buffer << "ProxyPassReverse / http://#{server_alias}/\n"
+                f.write(buffer)
               end
             end
 
             def add_alias(server_alias)
               with_lock_and_reload do
-                if not File.exists?(ssl_conf_path(server_alias))
+                unless File.size?(ssl_conf_path(server_alias))
                   add_alias_impl(server_alias)
                 end
               end
@@ -326,12 +321,10 @@ module OpenShift
 
             def remove_alias(server_alias)
               with_lock_and_reload do
-                FileUtils.rm_f(alias_path(server_alias))
+                truncate(alias_path(server_alias))
                 remove_ssl_cert_impl(server_alias)
               end
             end
-
-
 
             def ssl_conf_prefix
               "#{@container_uuid}_#{@namespace}_9_"
@@ -348,7 +341,6 @@ module OpenShift
             def ssl_key_path(server_alias)
               File.join(@app_path, server_alias + ".key")
             end
-
 
             def ssl_certs
               Dir.glob(ssl_conf_path('*')).map { |conf_path|
@@ -373,49 +365,48 @@ module OpenShift
                     # BZ 1090358 in the case of reconstructing the frontend for a moved gear,
                     # the alias_path is already removed in favor of the vhost ssl_conf_path,
                     # so just proceed if that is already there:
-                                           ) unless File.exists?(ssl_conf_path(server_alias))
+                                           ) unless File.size?(ssl_conf_path(server_alias))
                 end
 
                 ssl_certificate_file = ssl_certificate_path(server_alias)
                 ssl_key_file = ssl_key_path(server_alias)
                 ssl_certificate_chain_file = ssl_certificate_path(server_alias)
 
-                File.open(ssl_certificate_file, File::RDWR | File::CREAT | File::TRUNC, 0600) do |f|
+                File.open(ssl_certificate_file, FILE_OPTS, 0600) do |f|
                   f.write(ssl_cert)
-                  f.fsync
                 end
 
-                File.open(ssl_key_file, File::RDWR | File::CREAT | File::TRUNC, 0600) do |f|
+                File.open(ssl_key_file, FILE_OPTS, 0600) do |f|
                   f.write(priv_key)
-                  f.fsync
                 end
 
-                File.open(ssl_conf_path(server_alias), File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
+                File.open(ssl_conf_path(server_alias), FILE_OPTS, 0644) do |f|
+                  # setup binding environment for ERB processing
                   server_name = server_alias
                   include_path = @app_path
                   app_uuid = @application_uuid
                   gear_uuid = @container_uuid
                   app_namespace = @namespace
-                  f.write(ERB.new(File.read(@template_http)).result(binding))
-                  f.write("\n")
-                  f.write(ERB.new(File.read(@template_https)).result(binding))
-                  f.write("\n")
-                  f.fsync
+
+                  buffer = ERB.new(File.read(@template_http)).result(binding)  << "\n"
+                  buffer << ERB.new(File.read(@template_https)).result(binding) << "\n"
+                  f.write(buffer)
                 end
 
-                FileUtils.rm_f(alias_path(server_alias)) if File.exists?(alias_path(server_alias))
+                truncate(alias_path(server_alias))
               end
             end
 
             def remove_ssl_cert_impl(server_alias)
-              FileUtils.rm_f(ssl_conf_path(server_alias))
-              FileUtils.rm_f(ssl_certificate_path(server_alias))
-              FileUtils.rm_f(ssl_key_path(server_alias))
+              truncate(ssl_conf_path(server_alias))
+              truncate(ssl_certificate_path(server_alias))
+              truncate(ssl_key_path(server_alias))
+              truncate(ssl_key_path(server_alias))
             end
 
             def remove_ssl_cert(server_alias)
               with_lock_and_reload do
-                if File.exists?(ssl_conf_path(server_alias))
+                if File.size?(ssl_conf_path(server_alias))
                   add_alias_impl(server_alias)
                 end
                 remove_ssl_cert_impl(server_alias)
@@ -424,24 +415,16 @@ module OpenShift
 
             # Private: Lock and reload changes to Apache
             def self.with_lock_and_reload
-              LOCK.synchronize do
-                File.open(LOCKFILE, File::RDWR | File::CREAT | File::TRUNC | File::SYNC , 0640) do |f|
-                  f.sync = true
-                  f.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
-                  f.flock(File::LOCK_EX)
-                  f.write(Process.pid)
-                  begin
-                    yield
-                  ensure
-                    f.flock(File::LOCK_UN)
-                  end
-                end
-              end
+              PathUtils.flock(LOCKFILE, false) { yield }
               ::OpenShift::Runtime::Frontend::Http::Plugins::reload_httpd
             end
 
             def with_lock_and_reload(&block)
               self.class.with_lock_and_reload(&block)
+            end
+
+            def truncate(path)
+              Dir.glob(path).each { |e| File.truncate(e, 0) if File.file?(e) }
             end
 
           end
