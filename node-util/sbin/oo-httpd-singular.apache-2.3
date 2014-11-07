@@ -37,11 +37,10 @@ HTTPD_SYSTEM="apachectl"
 HTTPD_CMDS=["graceful"]
 HTTPD_PRE_CMDS=["configtest"]
 LOCKFILE=File.join(Dir::tmpdir,"httpd_singular.lock")
-APACHE_LOCK_FILE="/var/run/openshift/apache-vhost.lock"
 REQPREFIX="httpd_singular.req"
 
-def single_instance(lockfile, &block)
-  File.open(lockfile, File::CREAT|File::TRUNC|File::RDWR, 0640) do |f|
+def single_instance(&block)
+  File.open(LOCKFILE, File::CREAT|File::TRUNC|File::RDWR, 0640) do |f|
     f.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
     begin
       f.flock(File::LOCK_EX)
@@ -98,7 +97,7 @@ end
 
 # Process all requests and get our output back
 rc=0
-single_instance(LOCKFILE) do
+single_instance do
   
   reqset = load_reqset()
 
@@ -107,10 +106,7 @@ single_instance(LOCKFILE) do
     err=""
     rc=0
     [HTTPD_PRE_CMDS, ARGV[0]].flatten.each do |cmd|
-      status=1
-      single_instance(APACHE_LOCK_FILE) do
-        out, err, status =  OpenShift::Runtime::Utils.oo_spawn("#{HTTPD_SYSTEM} #{cmd}")
-      end
+      out, err, status =  OpenShift::Runtime::Utils.oo_spawn("#{HTTPD_SYSTEM} #{cmd}")
       if status != 0
         rc = status
         break
