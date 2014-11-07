@@ -16,9 +16,12 @@ class InitGearOp < PendingAppOp
 
   def execute
     application.atomic_update do
+      application.reload if application.persisted?
+
+      gear_attrs =  { custom_id: gear_id, host_singletons: host_singletons, app_dns: app_dns, sparse_carts: [] }
 
       # create the group instance
-      group_instance =
+      gear_attrs[:group_instance] =
         begin
           get_group_instance
         rescue Mongoid::Errors::DocumentNotFound
@@ -27,25 +30,27 @@ class InitGearOp < PendingAppOp
         end
 
       # create the component instances, if they are not present
-      sparse_carts = []
       skip_map = application.downloaded_cart_map.nil? # some apps will be unreadable by old code during the switch over
       comp_specs.compact.each do |spec|
         spec.application = self.application
-        unless group_instance.has_component?(spec)
+        unless gear_attrs[:group_instance].has_component?(spec)
           cartridge = spec.cartridge(pending_app_op_group)
 
           instance = ComponentInstance.from(cartridge, spec.name)
-          instance.group_instance_id = group_instance._id
+          instance.group_instance_id = gear_attrs[:group_instance]._id
           application.component_instances << instance
           application.downloaded_cart_map[instance.cartridge.original_name] = CartridgeCache.cartridge_to_data(instance.cartridge) if cartridge.singleton? && !skip_map
         end
 
         # check if this is a sparse cart
-        sparse_carts << application.find_component_instance_for(spec)._id if spec.component.is_sparse?
+        gear_attrs[:sparse_carts] << application.find_component_instance_for(spec)._id if spec.component.is_sparse?
       end
 
       # add the gear
-      application.gears << Gear.new(custom_id: gear_id, group_instance: group_instance, host_singletons: host_singletons, app_dns: app_dns, sparse_carts: sparse_carts)
+      if Rails.configuration.openshift[:use_predictable_gear_uuids]
+        gear_attrs[:uuid] = Gear.make_predictable_uuid(application)
+      end
+      application.gears << Gear.new(gear_attrs)
     end
   end
 

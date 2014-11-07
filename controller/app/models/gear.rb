@@ -26,7 +26,7 @@ class Gear
   embeds_many :port_interfaces, class_name: PortInterface.name
 
   # Initializes the gear
-  def initialize(attrs = nil, options = nil)
+  def initialize(attrs, options = nil)
     custom_id = attrs[:custom_id]
     attrs.delete(:custom_id)
     group_instance = attrs[:group_instance]
@@ -34,13 +34,22 @@ class Gear
 
     super(attrs, options)
     self._id = custom_id unless custom_id.nil?
-    self.uuid = self._id.to_s unless self.uuid.present?
+    self.uuid = self._id.to_s if self.uuid.blank? || self.uuid.length > 32
     if app_dns
       self.name = group_instance.application.name unless self.name.present?
     else
       self.name = self.uuid.to_s unless self.name.present?
     end
     self.group_instance_id = group_instance._id
+  end
+
+  # assume that this is run within application lock with fresh data
+  def self.make_predictable_uuid(app)
+    uuids = app.gears.map {|g| g.uuid }
+    1.upto(Float::INFINITY) do |index| # find uuid not already used
+      uuid = "#{app.domain_namespace}-#{app.canonical_name}-#{index}"
+      return uuid if !uuids.include? uuid
+    end
   end
 
   def component_instances
