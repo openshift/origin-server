@@ -47,10 +47,10 @@ module OpenShift
               super(container_uuid, fqdn, container_name, namespace, application_uuid)
 
               @token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
-              @app_path = File.join(@basedir, token)
+              @app_path = PathUtils.join(@basedir, token)
 
-              @template_http  = File.join(@basedir, TEMPLATE_HTTP)
-              @template_https = File.join(@basedir, TEMPLATE_HTTPS)
+              @template_http  = PathUtils.join(@basedir, TEMPLATE_HTTP)
+              @template_https = PathUtils.join(@basedir, TEMPLATE_HTTPS)
               @ssl_cert_path = (@config.get("OPENSHIFT_DEFAULT_SSL_CRT_PATH") || "/etc/pki/tls/certs/localhost.crt")
               @ssl_chain_path = (@config.get("OPENSHIFT_DEFAULT_SSL_CRT_CHAIN_PATH") || "/etc/pki/tls/certs/localhost.crt")
               @ssl_key_path = (@config.get("OPENSHIFT_DEFAULT_SSL_KEY_PATH") || "/etc/pki/tls/private/localhost.key")
@@ -230,7 +230,7 @@ module OpenShift
             end
 
             def idle_path
-              File.join(@app_path, "000000_idler.conf")
+              PathUtils.join(@app_path, "000000_idler.conf")
             end
 
             def idle
@@ -252,7 +252,7 @@ module OpenShift
             end
 
             def sts_path
-              File.join(@app_path, "000001_sts_header.conf")
+              PathUtils.join(@app_path, "000001_sts_header.conf")
             end
 
             def sts(max_age=15768000)
@@ -331,15 +331,15 @@ module OpenShift
             end
 
             def ssl_conf_path(server_alias)
-              File.join(@basedir, ssl_conf_prefix + "#{server_alias}.conf")
+              PathUtils.join(@basedir, ssl_conf_prefix + "#{server_alias}.conf")
             end
 
             def ssl_certificate_path(server_alias)
-              File.join(@app_path, server_alias + ".crt")
+              PathUtils.join(@app_path, server_alias + ".crt")
             end
 
             def ssl_key_path(server_alias)
-              File.join(@app_path, server_alias + ".key")
+              PathUtils.join(@app_path, server_alias + ".key")
             end
 
             def ssl_certs
