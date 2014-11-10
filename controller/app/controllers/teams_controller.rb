@@ -40,11 +40,12 @@ class TeamsController < BaseController
     authorize! :create_team, current_user
     name = params[:name].presence
 
-    return render_error(:forbidden, "Reached team limit of #{@cloud_user.max_teams}", 193) if Team.where(owner_id: @cloud_user._id).length >= @cloud_user.max_teams
-
     team = Team.new(name: name, owner_id: @cloud_user._id)
     if team.valid?
-      team.save_with_duplicate_check! 
+      Lock.run_in_user_lock(@cloud_user) do
+        return render_error(:forbidden, "Reached team limit of #{@cloud_user.max_teams}", 193) if Team.where(owner_id: @cloud_user._id).length >= @cloud_user.max_teams
+        team.save_with_duplicate_check! 
+      end
     else
       messages = get_error_messages(team)
       return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
