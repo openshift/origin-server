@@ -19,6 +19,8 @@ module OpenShift
       @confdir = cfg['NGINX_CONFDIR']
       @nginx_service = cfg['NGINX_SERVICE']
       @ssl_port = cfg['SSL_PORT']
+      @ssl_cert = cfg['NGINX_SSL_CERTIFICATE']
+      @ssl_key = cfg['NGINX_SSL_KEY']
       @http_port = cfg['HTTP_PORT']
       @nginx_plus = cfg['NGINX_PLUS'] == 'true'
       health_check_interval = cfg['NGINX_PLUS_HEALTH_CHECK_INTERVAL']
@@ -315,9 +317,21 @@ server {
     <%= @health_check %>
   }
 }
+
+server {
+  listen <%= @ssl_port %> ssl;
+  server_name <%= alias_str %>;
+  location / {
+    proxy_pass http://<%= pool_name %>;
+    <%= @health_check %>
+  }
+}
 }
 
     FRONTEND_SERVER = %q{
+ssl_certificate <%= @ssl_cert %>;
+ssl_certificate_key <%= @ssl_key %>;
+
 server {
   listen <%= @http_port %>;
   <%= locations %>
@@ -327,6 +341,17 @@ match statusok {
   status <%= @health_check_match_status %>;
 }
 <% end %>
+
+server {
+  listen <%= @ssl_port %> ssl;
+  <%= locations %>
+}
+<% if @nginx_plus %>
+match statusok {
+  status <%= @health_check_match_status %>;
+}
+<% end %>
+
 }
 
     FRONTEND = %q{
