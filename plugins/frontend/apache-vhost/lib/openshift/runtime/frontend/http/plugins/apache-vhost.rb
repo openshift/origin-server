@@ -439,10 +439,13 @@ module OpenShift
               self.class.with_lock_and_reload(&block)
             end
 
-            def truncate(path)
+            def self.truncate(path)
               Dir.glob(path).each { |e| File.truncate(e, 0) if File.file?(e) }
             end
 
+            def truncate(path)
+              self.class.truncate(path)
+            end
           end
 
         end
