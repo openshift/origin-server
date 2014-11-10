@@ -17,6 +17,7 @@
 
 require 'etc'
 require 'fileutils'
+require 'openshift-origin-common'
 require 'openshift-origin-node'
 require 'openshift-origin-node/utils/cgroups/libcgroup'
 
@@ -69,9 +70,21 @@ command :destroygear do |c|
       usage(c.syntax)
     end
 
-    fqdn = %x[grep #{options.with_container_uuid} /var/lib/openshift/.httpd.d/nodes.txt |awk -F '( |/)' '{print $1}']
-    fqdn = fqdn.split("\n").first.chomp unless fqdn.empty?
-    options.default fqdn: fqdn
+    config = OpenShift::Config.new
+    unless options.fqdn
+      if config.get('OPENSHIFT_FRONTEND_HTTP_PLUGINS').include?('openshift-origin-frontend-apache-mod-rewrite')
+        fqdn = %x[grep #{options.with_container_uuid} /var/lib/openshift/.httpd.d/nodes.txt |awk -F '( |/)' '{print $1}']
+        options.default fqdn: fqdn.split("\n").first.chomp unless fqdn.empty?
+      end
+
+      if config.get('OPENSHIFT_FRONTEND_HTTP_PLUGINS').include?('openshift-origin-frontend-apache-vhost')
+        entries = Dir.glob("#{options.with_container_uuid}_*.conf")
+        if 1 == entries.length
+          fqdn = %x[/bin/awk -- '/ServerName/ {print $2; exit}' #{entries.first}].chomp
+          options.default fqdn: fqdn unless fqdn.empty?
+        end
+      end
+    end
 
     begin
       path  = Dir["/cgroup/*/openshift/#{options.with_container_uuid}/freezer.state"].first
@@ -121,7 +134,7 @@ command :destroygear do |c|
       $stdout.write "Deleting stale info from /var/lib/openshift/.httpd.d/ files...\n  for #{options.with_container_uuid}"
       OpenShift::Runtime::FrontendHttpServer.purge(options.with_container_uuid)
 
-      if options.fqdn && ! options.fqdn.empty?
+      if options.fqdn && !options.fqdn.empty?
         $stdout.write "\n  for #{options.fqdn}"
         OpenShift::Runtime::FrontendHttpServer.purge(options.fqdn)
       else
