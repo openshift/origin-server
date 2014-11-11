@@ -29,13 +29,15 @@ class OomPlugin < OpenShift::Runtime::WatchmanPlugin
   PLUGIN_NAME    = 'OOM Plugin'
   MEMSW_LIMIT    = 'memory.memsw.limit_in_bytes'
   MEMSW_USAGE    = 'memory.memsw.usage_in_bytes'
+  CG_RETRIES     = 3
+  BUMP_RETRIES   = 3
 
   # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] config
   # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] logger
   # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] gears
   # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] operation
   # @param [Fixnum] number of seconds to wait after calling forcestop
-  def initialize(config, logger, gears, operation, stop_wait_seconds = 10)
+  def initialize(config, logger, gears, operation, stop_wait_seconds = 5)
     super(config, logger, gears, operation)
     # TODO: Make this configurable?
     @memsw_multiplier = 1.1
@@ -44,7 +46,7 @@ class OomPlugin < OpenShift::Runtime::WatchmanPlugin
     @stop_wait_seconds = stop_wait_seconds
   end
 
-  def try_cgstore(cg, attr, value, retries=3)
+  def try_cgstore(cg, attr, value, retries=CG_RETRIES)
     1.upto(retries) do
       begin
         cg.store(attr, value)
@@ -56,7 +58,7 @@ class OomPlugin < OpenShift::Runtime::WatchmanPlugin
     return false
   end
 
-  def try_cgfetch(cg, attr, retries=3)
+  def try_cgfetch(cg, attr, retries=CG_RETRIES)
     1.upto(retries) do
       begin
         return cg.fetch(attr)
@@ -101,8 +103,8 @@ class OomPlugin < OpenShift::Runtime::WatchmanPlugin
       end
 
       begin
+        retries = BUMP_RETRIES
         # Verify that we are ready to reset to the old limit
-        retries = 3
         current = try_cgfetch(cgroup, MEMSW_USAGE)[MEMSW_USAGE].to_i
         increased = orig_memsw_limit
         app = OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
@@ -115,7 +117,7 @@ class OomPlugin < OpenShift::Runtime::WatchmanPlugin
           if not try_cgstore(cgroup, MEMSW_LIMIT, increased)
             Syslog.warning %Q(#{PLUGIN_NAME}: Failed to increase memsw limit for gear #{uuid})
           end
-          sleep 5
+          sleep @stop_wait_seconds
           retries -= 1
           current = try_cgfetch(cgroup, MEMSW_USAGE)[MEMSW_USAGE].to_i
         end
