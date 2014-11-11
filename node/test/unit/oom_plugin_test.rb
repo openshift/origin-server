@@ -24,7 +24,7 @@ class OomPluginTest < OpenShift::NodeBareTestCase
   def setup
     Syslog.open(File.basename($0), Syslog::LOG_PID, Syslog::LOG_DAEMON) unless Syslog.opened?
 
-    @uuids = %w(52cc244091aa71fac4000007 52cc244091aa71fac4000008 52cc244091aa71fac4000009)
+    @uuids = %w(52cc244091aa71fac4000007 52cc244091aa71fac4000008 52cc244091aa71fac4000009 52cc244091aa71fac400000a)
     @gears = mock
     @gears.stubs(:ids).returns @uuids
     @gears.stubs(:empty?).returns @uuids.empty?
@@ -39,6 +39,10 @@ class OomPluginTest < OpenShift::NodeBareTestCase
 
     @libcgroup_mock = mock('OpenShift::Runtime::Utils::Cgroups::Libcgroup')
     @libcgroup_mock.stubs(:parameters).returns(parameters)
+
+    @appcontainer_mock = mock('OpenShift::Runtime::ApplicationContainer')
+    @appcontainer_mock.stubs(:kill_procs).returns(nil)
+    
   end
 
   def test_no_oom_control
@@ -62,19 +66,19 @@ class OomPluginTest < OpenShift::NodeBareTestCase
                      {'under_oom'        => '1',
                       'oom_kill_disable' => '0'}}).
         times(@uuids.length)
-    @libcgroup_mock.expects(:fetch).with(OomPlugin::MEMSW_LIMIT).returns({OomPlugin::MEMSW_LIMIT => 1024}).times(3)
-    @libcgroup_mock.expects(:fetch).with(OomPlugin::MEMSW_USAGE).returns({OomPlugin::MEMSW_LIMIT => 1024}).times(3)
-    @libcgroup_mock.expects(:store).with(OomPlugin::MEMSW_LIMIT, kind_of(Fixnum)).times(@uuids.length * 2)
+    @libcgroup_mock.expects(:fetch).with(OomPlugin::MEMSW_LIMIT).returns({OomPlugin::MEMSW_LIMIT => 1024}).times(@uuids.length)
+    @libcgroup_mock.expects(:fetch).with(OomPlugin::MEMSW_USAGE).returns({OomPlugin::MEMSW_USAGE => 1024}).times(@uuids.length * (OomPlugin::BUMP_RETRIES + 1))
+    @libcgroup_mock.expects(:store).with(OomPlugin::MEMSW_LIMIT, kind_of(Fixnum)).times(@uuids.length * (OomPlugin::BUMP_RETRIES + 1))
 
     OpenShift::Runtime::ApplicationContainer.stubs(:from_uuid).
         with(any_of(*@uuids)).
-        returns(nil)
+        returns(@appcontainer_mock)
 
     OpenShift::Runtime::Utils::Cgroups::Libcgroup.stubs(:new).
         with(any_of(*@uuids)).
         returns(@libcgroup_mock)
 
-    @operation.expects(:call).with(:start, any_of(*@uuids)).times(3)
+    @operation.expects(:call).with(:restart, any_of(*@uuids)).times(@uuids.length)
 
     OomPlugin.new(nil, nil, @gears, @operation, 0).apply(nil)
   end
