@@ -1,33 +1,30 @@
-#!/bin/bash -e
+#!/bin/bash -eu
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 mysql_version="$1"
-old_cart_version="$2"
-new_cart_version="$3"
+curr="$2"
+next="$3"
 
-env_dir="${OPENSHIFT_MYSQL_DIR}/env"
-
-if [[ $new_cart_version == 0.2.5 ]]; then
+if [[ "$next" == "0.2.5" ]]; then
   files=$(shopt -s nullglob; shopt -s dotglob; echo data/ib_logfile*)
   if [ ${#files} -gt 0 ]; then
     mv data/ib_logfile* /tmp
   fi
 fi
 
-# The LD_LIBRARY_PATH is now handled by the Node itself
-# and constructed using LD_LIBRARY_PATH_ELEMENT. This will
-# remove the existing LD_LIBRARY_PATH so the Node one can
-# take the precedence.
-#
-if [[ $new_cart_version == "0.2.9" ]]; then
+if [[ "$next" == "0.2.9" ]]; then
+  # The LD_LIBRARY_PATH is now handled by the Node itself
+  # and constructed using LD_LIBRARY_PATH_ELEMENT. This will
+  # remove the existing LD_LIBRARY_PATH so the Node one can
+  # take the precedence.
   if [ -f ${OPENSHIFT_MYSQL_DIR}env/LD_LIBRARY_PATH ]; then
     rm -f ${OPENSHIFT_MYSQL_DIR}env/LD_LIBRARY_PATH
   fi
 fi
 
-# There is now a VERSION variable to allow the detection of 5.5
-# in rhcsh.
-if [[ $new_cart_version == "0.2.16" ]]; then
-  set_env_var 'OPENSHIFT_MYSQL_VERSION' $mysql_version $env_dir
+if [[ "$next" == "0.2.16" ]]; then
+  # There is now a VERSION variable to allow the detection of 5.5
+  # in rhcsh.
+  set_env_var 'OPENSHIFT_MYSQL_VERSION' $mysql_version "${OPENSHIFT_MYSQL_DIR}/env"
 fi
