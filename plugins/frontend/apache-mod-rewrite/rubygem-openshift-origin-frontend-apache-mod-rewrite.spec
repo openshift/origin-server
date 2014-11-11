@@ -15,7 +15,7 @@
 
 Summary:       OpenShift Apache mod_rewrite frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.8.0
+Version: 0.8.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -136,6 +136,11 @@ mv httpd/frontend-mod-rewrite-https-template.erb %{buildroot}%{appdir}/.httpd.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 0.8.1-1
+- Bug 1160861 - Prevent both frontends installed at same time
+  (jhonce@redhat.com)
+- bump_minor_versions for sprint 53 (admiller@redhat.com)
+
 * Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 0.7.2-1
 - Bug 1153313: Disable SSLv3 (lmeyer@redhat.com)
 
