@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.32.0
+Version: 1.32.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,30 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.32.1-1
+- Fix formatting (dmcphers@redhat.com)
+- Bug 1160494 - Protect Ops stop_gear from cartridge errors (jhonce@redhat.com)
+- Bug 1160752 - Add Watchman plugin to clean up vhost configurations
+  (jhonce@redhat.com)
+- Merge pull request #5813 from sztsian/bz1073725
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1160652 - Set defaults for the new crt/key/chain apache vhost plugin
+  configuration (bleanhar@redhat.com)
+- make the default crt/key/chain file to be configurable in vhost template
+  (rchopra@redhat.com)
+- Merge branch 'bz1073725' of https://github.com/sztsian/origin-server into
+  bz1073725 (zsun@fedoraproject.org)
+- Merge branch 'master' of https://github.com/openshift/origin-server into
+  bz1073725 (zsun@fedoraproject.org)
+- bz 1116750 fix the description of command "aliases" (zsun@fedoraproject.org)
+- add unit test function for bz 1073725 (sztsian@gmail.com)
+- iptables-port-proxy: use -n on iptables -L (lmeyer@redhat.com)
+- oo-trap-user: preserve quoting on shell commands (lmeyer@redhat.com)
+- bump_minor_versions for sprint 53 (admiller@redhat.com)
+- bz 1073725 https://bugzilla.redhat.com/show_bug.cgi?id=1073725 Test if the
+  env exists before reporting exceeded USER_VARIABLE_MAX_COUNT. If all the env
+  exists, just update them, otherwise report the error (zsun@fedoraproject.org)
+
 * Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.31.7-1
 - Merge pull request #5890 from sosiouxme/rfe1134139
   (dmcphers+openshiftbot@redhat.com)
