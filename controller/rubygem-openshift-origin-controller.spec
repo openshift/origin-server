@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.32.0
+Version: 1.32.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,13 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.32.1-1
+- Fix race condition in team creation (decarr@redhat.com)
+- Bug 1158737 - exposes the "ha" attribute on the "application" rest endpoint
+  (contact@fabianofranz.com)
+- Bug 1158737 - exposes DISABLE_HA on broker (contact@fabianofranz.com)
+- bump_minor_versions for sprint 53 (admiller@redhat.com)
+
 * Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.31.8-1
 - ssh keys: remove special logins (lmeyer@redhat.com)
 - fix whitespace (lmeyer@redhat.com)
