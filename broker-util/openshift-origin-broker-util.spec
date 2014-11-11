@@ -8,7 +8,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.31.0
+Version: 1.31.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -109,6 +109,9 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.31.1-1
+- bump_minor_versions for sprint 53 (admiller@redhat.com)
+
 * Tue Oct 07 2014 Adam Miller <admiller@redhat.com> 1.30.5-1
 - oo-accept-systems: fix errors from PR 5851 (lmeyer@redhat.com)
 - oo-accept-systems: improve cartridge integrity checks (lmeyer@redhat.com)
