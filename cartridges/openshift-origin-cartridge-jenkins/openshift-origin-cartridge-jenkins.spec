@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.26.0
+Version: 1.26.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -50,6 +50,18 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.26.1-1
+- Merge pull request #5931 from bparees/clear_jenkins_upgrade
+  (dmcphers+openshiftbot@redhat.com)
+- remove old upgrade logic (bparees@redhat.com)
+- Jenkins cart: Add "unzip" dependency (jolamb@redhat.com)
+- Merge pull request #5898 from mfojtik/jenkins_ssh
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 53 (admiller@redhat.com)
+- Version bump for the sprint 52 (mfojtik@redhat.com)
+- Bug 1153557 - Disable strict known_hosts checking in Jenkins
+  (mfojtik@redhat.com)
+
 * Tue Oct 07 2014 Adam Miller <admiller@redhat.com> 1.25.2-1
 - Add markers to disable bad ciphers for rhel6.6 (bparees@redhat.com)
 
