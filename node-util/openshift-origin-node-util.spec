@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.31.0
+Version: 1.31.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -203,6 +203,24 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.31.1-1
+- Fix calls to config (jhonce@redhat.com)
+- Bug 1162096 - Fix oo-admin-gear destroygear (jhonce@redhat.com)
+- Merge pull request #5932 from jwhonce/bug/1160752
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1160752 - Make Watchman frontend cleanup period configurable
+  (jhonce@redhat.com)
+- Revert "bz1147054 - use common lockfile" (jhonce@redhat.com)
+- Revert "bz1151744 - wrap the wait for reload to finish inside of the
+  lockfile" (jhonce@redhat.com)
+- Bug 1160752 - Add Watchman plugin to clean up vhost configurations
+  (jhonce@redhat.com)
+- Bug 1160752 - Make apache-vhost more atomic (jhonce@redhat.com)
+- Perf Improvement? (dmcphers@redhat.com)
+- Bug 1160770 - consider CNAMEs when checking last access (agrimm@redhat.com)
+- node-util: "conflicting TE rule" for openshift.pp (lmeyer@redhat.com)
+- bump_minor_versions for sprint 53 (admiller@redhat.com)
+
 * Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.30.5-1
 - bz1151744 - wrap the wait for reload to finish inside of the lockfile
   (rchopra@redhat.com)
