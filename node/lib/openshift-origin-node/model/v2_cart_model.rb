@@ -1142,7 +1142,7 @@ module OpenShift
               if reported_urls
                 reported_urls.each do |url|
                   outstr = "Cartridge #{cartridge.name} endpoint #{endpoint.private_port_name} is exposed at URL #{url}"
-                  
+
                   # Add env variable for the public port mapping.
                   @container.add_env_var(endpoint.public_port_name, url[/(\d+)$/])
                   if endpoint.description
