@@ -75,6 +75,27 @@ module OpenShift
       end
     end
 
+    def test_ha_conf
+      app_cfg = File.join(@basedir, "#{@container_uuid}_#{@namespace}_0_#{@container_name}.conf")
+      ha_app_cfg = File.join(@basedir, "#{@container_uuid}_#{@namespace}_0_#{@container_name}_ha.conf")
+
+      exercise_connections_api
+      assert File.size?(app_cfg), "App configuration must exist"
+      assert !File.size?(ha_app_cfg), "HA app configuration must not exist"
+
+      gear_fqdn = @fqdn
+      app_fqdn = "somegear-#{@namespace}.#{@domain}"
+      @plugin.fqdn = app_fqdn
+      exercise_connections_api
+      assert File.size?(app_cfg), "App configuration must exist"
+      app_cfg_fqdn = %x[/bin/awk -- '/ServerName/ {print $2; exit}' #{app_cfg}].chomp
+      assert_equal gear_fqdn, app_cfg_fqdn, "App configuration's ServerName must be gear's FQDN"
+
+      assert File.size?(ha_app_cfg), "HA app configuration must exist"
+      ha_app_cfg_fqdn = %x[/bin/awk -- '/ServerName/ {print $2; exit}' #{ha_app_cfg}].chomp
+      assert_equal app_fqdn, ha_app_cfg_fqdn, "HA app configuration's ServerName must be app's FQDN"
+    end
+
     def test_aliases
       exercise_aliases_api do |mode|
         @aliases.each do |server_alias|

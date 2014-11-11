@@ -61,6 +61,10 @@ module OpenShift
               PathUtils.join(@basedir, "#{@container_uuid}_#{@namespace}_0_#{@container_name}.conf")
             end
 
+            def ha_conf_path
+              PathUtils.join(@basedir, "#{@container_uuid}_#{@namespace}_0_#{@container_name}_ha.conf")
+            end
+
             def element_path(path)
               if path == "*"
                 tpath = "*"
@@ -120,6 +124,24 @@ module OpenShift
               end
             end
 
+            def write_base_config(file_name)
+              File.open(file_name, FILE_OPTS, 0644) do |f|
+                # setup binding environment
+                server_name                = @fqdn
+                include_path               = @app_path
+                app_uuid                   = @application_uuid
+                gear_uuid                  = @container_uuid
+                app_namespace              = @namespace
+                ssl_certificate_file       = @ssl_cert_path
+                ssl_certificate_chain_file = @ssl_chain_path
+                ssl_key_file               = @ssl_key_path
+
+                buffer = ERB.new(File.read(@template_http)).result(binding) << "\n"
+                buffer << ERB.new(File.read(@template_https)).result(binding) << "\n"
+                f.write(buffer)
+              end
+            end
+
             def connect(*elements)
               with_lock_and_reload do
 
@@ -128,21 +150,14 @@ module OpenShift
 
                 # The base config won't exist until the first connection is created
                 unless File.size?(conf_path)
-                  File.open(conf_path, FILE_OPTS, 0644) do |f|
-                    # setup binding environment
-                    server_name                = @fqdn
-                    include_path               = @app_path
-                    app_uuid                   = @application_uuid
-                    gear_uuid                  = @container_uuid
-                    app_namespace              = @namespace
-                    ssl_certificate_file       = @ssl_cert_path
-                    ssl_certificate_chain_file = @ssl_chain_path
-                    ssl_key_file               = @ssl_key_path
+                  write_base_config(conf_path)
+                end
 
-                    buffer = ERB.new(File.read(@template_http)).result(binding) << "\n"
-                    buffer << ERB.new(File.read(@template_https)).result(binding) << "\n"
-                    f.write(buffer)
-                  end
+                # Secondary haproxy gear: if the @fqdn is the app dns, then it won't start with
+                # @container_name (as that should be the gear's uuid). If the ha conf file
+                # doesn't exist, create it
+                if !@fqdn.start_with?(@container_name) and !File.size?(ha_conf_path)
+                  write_base_config(ha_conf_path)
                 end
 
                 # Process target_update option by loading the old values
