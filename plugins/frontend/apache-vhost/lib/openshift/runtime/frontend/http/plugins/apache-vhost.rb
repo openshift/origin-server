@@ -235,31 +235,15 @@ module OpenShift
 
             def idle
               with_lock_and_reload do
-                NodeLogger.logger.info("BZ1161165(idle): About to open and write idler conf: #{idle_path}")
                 File.open(idle_path, FILE_OPTS, 0644 ) do |f|
-                  NodeLogger.logger.info("BZ1161165(idle): Writing #{File.absolute_path(f)}")
                   f.write("RewriteRule ^/(.*)$ /var/www/html/restorer.php/#{@container_uuid}/$1 [NS,L]\n")
-                  NodeLogger.logger.info("BZ1161165(idle): Wrote #{File.absolute_path(f)}")
-                end
-                if File.exist?(idle_path)
-                  NodeLogger.logger.info("BZ1161165(idle): exists=true (#{idle_path})")
-                  NodeLogger.logger.info("BZ1161165(idle): size=#{File.size(idle_path)} (#{idle_path})")
-                else
-                  NodeLogger.logger.info("BZ1161165(idle): exists=false (#{idle_path})")
                 end
               end
             end
 
             def unidle
               with_lock_and_reload do
-                NodeLogger.logger.info("BZ1161165(unidle): truncating idler conf: #{idle_path}")
                 truncate(idle_path)
-                if File.exist?(idle_path)
-                  NodeLogger.logger.info("BZ1161165(unidle): exists=true (#{idle_path})")
-                  NodeLogger.logger.info("BZ1161165(unidle): size=#{File.size(idle_path)} (#{idle_path})")
-                else
-                  NodeLogger.logger.info("BZ1161165(unidle): exists=false (#{idle_path})")
-                end
               end
             end
 
