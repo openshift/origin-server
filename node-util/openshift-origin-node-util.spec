@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.30.9
+Version: 1.30.10
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -203,6 +203,9 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 1.30.10-1
+- bump node-util spec for build on new selinux-policy (admiller@redhat.com)
+
 * Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.30.8-1
 - Merge pull request #5945 from a13m/aggressive-oom-kill-stg
   (dmcphers+openshiftbot@redhat.com)
