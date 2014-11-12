@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.11.1
+Version: 0.11.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -111,6 +111,10 @@ mv httpd/openshift-vhost-logconf.include %{buildroot}/etc/httpd/conf.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 0.11.2-1
+- Revert "Add logging about idling/unidling in vhost plugin"
+  (agoldste@redhat.com)
+
 * Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 0.11.1-1
 - Merge pull request #5935 from jwhonce/bug/1161263
   (dmcphers+openshiftbot@redhat.com)
