@@ -8,7 +8,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.31.1
+Version: 1.31.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -109,6 +109,12 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 1.31.2-1
+- Merge pull request #5950 from sztsian/bz1162474-keep
+  (dmcphers+openshiftbot@redhat.com)
+- bz1162474 if app_name different with app.name of uuid, throw out an warning
+  (zsun@fedoraproject.org)
+
 * Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.31.1-1
 - bump_minor_versions for sprint 53 (admiller@redhat.com)
 
