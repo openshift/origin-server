@@ -94,6 +94,12 @@ files_tmp_file(openshift_cron_tmp_t)
 
 ########################################
 #
+# added per https://bugzilla.redhat.com/show_bug.cgi?id=1155925
+#
+prelink_transition_domain_attribute(openshift_initrc_t)
+
+########################################
+#
 # Template to create openshift_t and openshift_app_t
 #
 openshift_service_domain_template(openshift)
