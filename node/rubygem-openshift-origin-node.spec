@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.32.2
+Version: 1.32.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,11 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 1.32.3-1
+- Merge pull request #5954 from ncdc/bug/1161072-vhost-multi-ha-app-dns
+  (dmcphers+openshiftbot@redhat.com)
+- Register app dns vhost for secondary haproxy gears (agoldste@redhat.com)
+
 * Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 1.32.2-1
 - Merge pull request #5910 from a13m/aggressive-oom-kill
   (dmcphers+openshiftbot@redhat.com)
