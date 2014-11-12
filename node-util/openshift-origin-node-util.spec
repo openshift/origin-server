@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.30.7
+Version: 1.30.8
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -203,6 +203,15 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.30.8-1
+- Merge pull request #5945 from a13m/aggressive-oom-kill-stg
+  (dmcphers+openshiftbot@redhat.com)
+- Fix unit test for oom_plugin (agrimm@redhat.com)
+- Don't call unidle prematurely from GearStatePlugin (agoldste@redhat.com)
+- Fix calls to config (jhonce@redhat.com)
+- Kill out-of-memory gears more aggressively to reduce downtime
+  (agrimm@redhat.com)
+
 * Thu Nov 06 2014 Adam Miller <admiller@redhat.com> 1.30.7-1
 - Bug 1160752 - Make Watchman frontend cleanup period configurable
   (jhonce@redhat.com)
