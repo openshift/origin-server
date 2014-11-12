@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.10.5
+Version: 0.10.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -109,6 +109,13 @@ mv httpd/openshift-vhost-logconf.include %{buildroot}/etc/httpd/conf.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 0.10.6-1
+- Revert "Add logging about idling/unidling in vhost plugin"
+  (agoldste@redhat.com)
+- Bug 1161263 - Support class method truncate() (jhonce@redhat.com)
+- Add logging about idling/unidling in vhost plugin (agoldste@redhat.com)
+- File.join -> PathUtils.join (agoldste@redhat.com)
+
 * Thu Nov 06 2014 Adam Miller <admiller@redhat.com> 0.10.5-1
 - Bug 1160752 - Make apache-vhost more atomic (jhonce@redhat.com)
 
