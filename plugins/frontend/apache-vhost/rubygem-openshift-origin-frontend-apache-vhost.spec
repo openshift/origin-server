@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.11.2
+Version: 0.11.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -111,6 +111,11 @@ mv httpd/openshift-vhost-logconf.include %{buildroot}/etc/httpd/conf.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 0.11.3-1
+- Merge pull request #5954 from ncdc/bug/1161072-vhost-multi-ha-app-dns
+  (dmcphers+openshiftbot@redhat.com)
+- Register app dns vhost for secondary haproxy gears (agoldste@redhat.com)
+
 * Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 0.11.2-1
 - Revert "Add logging about idling/unidling in vhost plugin"
   (agoldste@redhat.com)
