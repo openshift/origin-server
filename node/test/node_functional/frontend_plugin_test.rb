@@ -52,6 +52,7 @@ class FrontendPluginTest < OpenShift::NodeBareTestCase
 
   def test_delete
     FileUtils.touch(File.join(@testdir, 'test_0_dir.conf'), mtime: (Time.now - 7200))
+    FileUtils.touch(File.join(@testdir, 'test_0_dir_ha.conf'), mtime: (Time.now - 7200))
     conf_dir = File.join(@testdir, 'test_dir')
     FileUtils.mkdir_p(conf_dir)
     FileUtils.touch(File.join(conf_dir, 'test_file'))

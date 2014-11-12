@@ -54,11 +54,17 @@ class FrontendPlugin < OpenShift::Runtime::WatchmanPlugin
 
       @logger.info %Q(watchman frontend plugin cleaned up #{conf_file})
       File.delete(conf_file)
+
+      reload_needed = true
+
+      # skip deleting the gear_dir if this is the _ha.conf file,
+      # as deletion will be handled by the regular .conf file.
+      next if conf_file.end_with?('_ha.conf')
+
       gear_dir = conf_file.gsub('_0_', '_')
       gear_dir = gear_dir.gsub('.conf', '')
 
       FileUtils.rm_r(gear_dir)
-      reload_needed = true
     end
 
     if reload_needed
