@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.31.2
+Version: 1.31.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -203,6 +203,11 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 1.31.3-1
+- Merge pull request #5954 from ncdc/bug/1161072-vhost-multi-ha-app-dns
+  (dmcphers+openshiftbot@redhat.com)
+- Register app dns vhost for secondary haproxy gears (agoldste@redhat.com)
+
 * Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 1.31.2-1
 - Merge pull request #5910 from a13m/aggressive-oom-kill
   (dmcphers+openshiftbot@redhat.com)
