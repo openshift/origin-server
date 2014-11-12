@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.32.1
+Version: 1.32.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,11 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 1.32.2-1
+- Merge pull request #5910 from a13m/aggressive-oom-kill
+  (dmcphers+openshiftbot@redhat.com)
+- Fix unit test for oom_plugin (agrimm@redhat.com)
+
 * Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.32.1-1
 - Fix formatting (dmcphers@redhat.com)
 - Bug 1160494 - Protect Ops stop_gear from cartridge errors (jhonce@redhat.com)
