@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.31.1
+Version: 1.31.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -203,6 +203,14 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 1.31.2-1
+- Merge pull request #5910 from a13m/aggressive-oom-kill
+  (dmcphers+openshiftbot@redhat.com)
+- Fix unit test for oom_plugin (agrimm@redhat.com)
+- Don't call unidle prematurely from GearStatePlugin (agoldste@redhat.com)
+- Kill out-of-memory gears more aggressively to reduce downtime
+  (agrimm@redhat.com)
+
 * Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.31.1-1
 - Fix calls to config (jhonce@redhat.com)
 - Bug 1162096 - Fix oo-admin-gear destroygear (jhonce@redhat.com)
