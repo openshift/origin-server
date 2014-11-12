@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.30.10
+Version: 1.30.11
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -203,6 +203,11 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 1.30.11-1
+- Merge pull request #5955 from jwhonce/stage
+  (dmcphers+openshiftbot@redhat.com)
+- node-util: "conflicting TE rule" for openshift.pp (lmeyer@redhat.com)
+
 * Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 1.30.10-1
 - bump node-util spec for build on new selinux-policy (admiller@redhat.com)
 
