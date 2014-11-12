@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.32.1
+Version: 1.32.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 1.32.2-1
+- Analytics additions (dmcphers@redhat.com)
+
 * Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.32.1-1
 - Fix race condition in team creation (decarr@redhat.com)
 - Bug 1158737 - exposes the "ha" attribute on the "application" rest endpoint
