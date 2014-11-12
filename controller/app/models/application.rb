@@ -205,7 +205,7 @@ class Application
       ha: opts[:available],
       builder_id: opts[:builder_id],
       user_agent: opts[:user_agent],
-      init_git_url: opts[:initial_git_url],
+      init_git_url: opts[:initial_git_url]
     )
     app.config.each do |k, default|
       v = opts[k.to_sym]
