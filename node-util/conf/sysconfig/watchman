@@ -27,3 +27,9 @@
 
 # Watchman debug - prints debug messages like memory usage
 #WATCHMAN_DEBUG=true
+
+# Watchman event logging configuration
+#LOG_FILE=/var/log/openshift/node/watchman.log
+#LOG_LEVEL=INFO
+#TRACE_LOG_FILE=/var/log/openshift/node/watchman-trace.log
+#TRACE_LOG_LEVEL=ERROR
