@@ -55,8 +55,12 @@ Default: 5 seconds
 Wait at least this number of seconds since last check before looking for gears under OOM.
 Default: 0 seconds
 .TP
+.B  FRONTEND_CLEANUP_PERIOD
+Wait at least this number of seconds since last check before cleaning up frontend http configuration files.
+Default: 172800 seconds
+.TP
 .B  WATCHMAN_DEBUG
-Boolean value to suggest printing debug messages in log. 
+Boolean value to suggest printing debug messages in log.
 e.g. printing memory usage after invocation of each plugin (logged in /var/log/messages)
 Default: false
 .SH FILES
@@ -77,7 +81,7 @@ element
 Exceptions from oo-watchman are logged here
 .TP
 .FN /var/log/watchman.output
-STDOUT and STDERR from watchman and plugins are logged here
+STDOUT and STDERR from openshift-watchman are logged here
 .TP
 .FN /var/log/messages
 Watchman initiated changes in gear state or status is logged
