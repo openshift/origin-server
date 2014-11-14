@@ -140,6 +140,8 @@ an OpenShift cartrige.
 %package recommended-jbosseap
 Summary:   Recommended user dependencies for JBossEAP OpenShift Cartridges
 BuildArch: noarch
+Requires:  java-1.8.0-openjdk
+Requires:  java-1.8.0-openjdk-devel
 
 %description recommended-jbosseap
 This package pulls in other packages that a user
@@ -169,6 +171,8 @@ an OpenShift cartrige.
 %package recommended-jbossews
 Summary:   Recommended user dependencies for JBossEWS OpenShift Cartridges
 BuildArch: noarch
+Requires:  java-1.8.0-openjdk
+Requires:  java-1.8.0-openjdk-devel
 
 %description recommended-jbossews
 This package pulls in other packages that a user

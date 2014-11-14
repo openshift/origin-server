@@ -9,6 +9,11 @@ Feature: Cartridge Lifecycle JBossEAP Verification Tests
     When 1 jbosseap-6 applications are created
     Then the applications should display default content on first attempt
 
+    Given an existing jbosseap-6 application
+    And the application uses Java 8
+    Then the application should be accessible
+    And JAVA_HOME will be set to OpenJDK 8
+
   #Scenario: Multiartifact 
     Given an existing jbosseap-6 application
     And JAVA_OPTS_EXT is available

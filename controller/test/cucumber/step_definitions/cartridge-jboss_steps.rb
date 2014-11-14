@@ -243,3 +243,17 @@ Then /^the (.*?) config will( not)? contain a property with the value (.*?)$/ do
   end
 end
 
+When /^the application uses Java 8$/ do
+  Dir.chdir(@app.repo) do
+    # rename the java7 marker file to java8
+    run("git mv .openshift/markers/java7 .openshift/markers/java8")
+    run("git commit -m 'Test change'")
+    run("git push >> " + @app.get_log("git_push") + " 2>&1")
+  end
+end
+
+Then /^JAVA_HOME will be set to OpenJDK 8$/ do
+  @app.ssh_command("'env | grep ^JAVA_HOME | grep /etc/alternatives/java_sdk_1.8.0 && ls -l /etc/alternatives/java_sdk_1.8.0 | grep java-1.8.0-openjdk'")
+  $?.exitstatus.should eq 0
+end
+

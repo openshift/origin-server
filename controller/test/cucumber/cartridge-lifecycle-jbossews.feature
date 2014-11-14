@@ -8,6 +8,10 @@ Feature: Cartridge Lifecycle JBossEWS Verification Tests
     Given the libra client tools
     When 1 <cart_name> applications are created
     Then the applications should be accessible
+    Given an existing <cart_name> application
+    And the application uses Java 8
+    Then the application should be accessible
+    And JAVA_HOME will be set to OpenJDK 8
 
 #  Scenario: Application Modification
     Given an existing <cart_name> application
