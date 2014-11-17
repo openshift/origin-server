@@ -9,27 +9,31 @@ module OpenShift
     def initialize
       Rails.logger.debug("Listening for routing events")
       @dest = Rails.application.config.routing_activemq[:destination]
+      @login = Rails.application.config.routing_activemq[:username]
+      @passcode = Rails.application.config.routing_activemq[:password]
+      @hosts = Rails.application.config.routing_activemq[:hosts]
       if Rails.application.config.routing_activemq[:debug]
         @conn = Class.new(Object) do
           def publish(dest, msg)
             Rails.logger.debug("Destination #{dest} gets message:\n#{msg}")
           end
         end.new
-      else
-        @conn = Stomp::Connection.open({
-          :hosts => Rails.application.config.routing_activemq[:hosts].map do |host|
-            host.merge({
-              :login => Rails.application.config.routing_activemq[:username],
-              :passcode => Rails.application.config.routing_activemq[:password],
-            })
-          end,
-          :reliable => true,
-        })
       end
     end
 
     def send_msg(msg)
+      # Reinitializing connection to avoid a missing message in a failover
+      # scenario https://bugzilla.redhat.com/show_bug.cgi?id=1128857
+      @conn = Stomp::Connection.open({
+        :hosts => @hosts.map do |host|
+          host.merge({
+            :login => @login,
+            :passcode => @passcode,
+          })
+        end,
+      })
       @conn.publish @dest, msg
+      @conn.disconnect
     end
 
     def notify_ssl_cert_add(app, fqdn, ssl_cert, pvt_key, passphrase)
