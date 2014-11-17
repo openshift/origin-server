@@ -1,30 +1,27 @@
-#!/bin/bash -ue
+#!/bin/bash -eu
 
-cart_version=$1
-curr=$2
-next=$3
+postgresql_version="$1"
+curr="$2"
+next="$3"
 
-# Allow upgrade to pass when the $OPENSHIFT_POSTGRESQL_DIR was deleted by user.
-if [ -f "${OPENSHIFT_POSTGRESQL_DIR}data/pg_hba.conf" ]; then
+if [[ "$next" == "0.3.15" ]]; then
+  # Allow upgrade to pass when the $OPENSHIFT_POSTGRESQL_DIR was deleted by user.
+  if [ -f "${OPENSHIFT_POSTGRESQL_DIR}data/pg_hba.conf" ]; then
 
-  if ! grep "0.0.0.0/0" $OPENSHIFT_POSTGRESQL_DIR/data/pg_hba.conf; then
-    echo "host    all         all           0.0.0.0/0             md5" >> $OPENSHIFT_POSTGRESQL_DIR/data/pg_hba.conf
-  fi
+    if ! grep "0.0.0.0/0" $OPENSHIFT_POSTGRESQL_DIR/data/pg_hba.conf; then
+      echo "host    all         all           0.0.0.0/0             md5" >> $OPENSHIFT_POSTGRESQL_DIR/data/pg_hba.conf
+    fi
 
-  if [[ $next == "0.3.15" ]]; then
     sed -ie "s#host\s\+all\s\+postgres\s\+0.0.0.0/8\s\+reject#host    all         postgres      0.0.0.0/0             reject#" $OPENSHIFT_POSTGRESQL_DIR/data/pg_hba.conf
     sed -ie "s#host\s\+all\s\+all\s\+::1/128\s\+md5#host    all         all           ::/0                  md5#" $OPENSHIFT_POSTGRESQL_DIR/data/pg_hba.conf
   fi
-
 fi
 
-# The LD_LIBRARY_PATH is now handled by the Node itself
-# and constructed using LD_LIBRARY_PATH_ELEMENT. This will
-# remove the existing LD_LIBRARY_PATH so the Node one can
-# take the precedence.
-#
-
-if [[ $next == "0.3.9" ]]; then
+if [[ "$next" == "0.3.9" ]]; then
+  # The LD_LIBRARY_PATH is now handled by the Node itself
+  # and constructed using LD_LIBRARY_PATH_ELEMENT. This will
+  # remove the existing LD_LIBRARY_PATH so the Node one can
+  # take the precedence.
   if [ -f ${OPENSHIFT_POSTGRESQL_DIR}env/LD_LIBRARY_PATH ]; then
     rm -f ${OPENSHIFT_POSTGRESQL_DIR}env/LD_LIBRARY_PATH
   fi

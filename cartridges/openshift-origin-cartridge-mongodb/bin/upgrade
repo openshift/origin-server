@@ -1,13 +1,5 @@
-#!/bin/bash -e
+#!/bin/bash -eu
 
-source "${OPENSHIFT_MONGODB_DIR}/lib/mongodb_context"
-source $OPENSHIFT_CARTRIDGE_SDK_BASH
-
-mongo_version=$1
-curr=$2
-next=$3
-
-# Fix the missing $OPENSHIFT_MONGODB_(LD_LIBRARY)PATH_ELEMENT variables
-if [ -z "${OPENSHIFT_MONGODB_PATH_ELEMENT}" ] || [ -z "${OPENSHIFT_MONGODB_LD_LIBRARY_PATH_ELEMENT}" ]; then
-  update_configuration
-fi
+mongo_version="$1"
+curr="$2"
+next="$3"
