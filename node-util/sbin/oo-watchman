@@ -195,18 +195,24 @@ module OpenShift
       # @param [Config] config elements from node.conf
       # @return [NodeLogger] Properly configured NodeLogger for Watchman to use
       def logger(config)
+        logfile  = ENV['LOG_FILE'] || '/var/log/openshift/node/watchman.log'
+        loglevel = ENV['LOG_LEVEL'] ? Logger::Severity.const_get(ENV['LOG_LEVEL'].upcase) : Logger::INFO
+
+        trace_logfile  = ENV['TRACE_LOG_FILE'] || '/var/log/openshift/node/watchman-trace.log'
+        trace_loglevel = ENV['TRACE_LOG_LEVEL'] ? Logger::Severity.const_get(ENV['TRACE_LOG_LEVEL'].upcase) : Logger::ERROR
+
         logger_profiles = {
             standard: {
-                file_config:   'WATCHMAN_CGROUPS_LOG_FILE',
-                level_config:  'WATCHMAN_CGROUPS_LOG_LEVEL',
-                default_file:  PathUtils.join(File::SEPARATOR, %w{var log openshift node cgroups.log}),
-                default_level: Logger::INFO
+                file_config:   'WATCHMAN_LOG_FILE',
+                level_config:  'WATCHMAN_LOG_LEVEL',
+                default_file:  logfile,
+                default_level: loglevel
             },
             trace:    {
-                file_config:   'WATCHMAN_CGROUPS_TRACE_LOG_FILE',
-                level_config:  'WATCHMAN_CGROUPS_TRACE_LOG_LEVEL',
-                default_file:  PathUtils.join(File::SEPARATOR, %w{var log openshift node cgroups-trace.log}),
-                default_level: Logger::ERROR
+                file_config:   'WATCHMAN_TRACE_LOG_FILE',
+                level_config:  'WATCHMAN_TRACE_LOG_LEVEL',
+                default_file:  trace_logfile,
+                default_level: trace_loglevel
             }
         }
 

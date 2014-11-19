@@ -107,7 +107,7 @@ class { 'openshift_origin' :
 
   # RPM sources
   install_method    => 'yum',
-  repos_base        => 'https://mirror.openshift.com/pub/origin-server/nightly/rhel-6',
+  repos_base        => 'https://mirror.openshift.com/pub/origin-server/release/4/rhel-6',
   jenkins_repo_base => 'http://pkg.jenkins-ci.org/redhat',
   optional_repo     => 'http://download.fedoraproject.org/pub/epel/6/$basearch',
 
@@ -165,7 +165,7 @@ class { 'openshift_origin' :
 
   # RPM Sources
   install_method    => 'yum',
-  repos_base        => 'https://mirror.openshift.com/pub/origin-server/nightly/rhel-6',
+  repos_base        => 'https://mirror.openshift.com/pub/origin-server/release/4/rhel-6',
   jenkins_repo_base => 'http://pkg.jenkins-ci.org/redhat',
   optional_repo     => 'http://download.fedoraproject.org/pub/epel/6/$basearch',
 
@@ -227,7 +227,7 @@ class { 'openshift_origin' :
 
   # RPM Sources
   install_method    => 'yum',
-  repos_base        => 'https://mirror.openshift.com/pub/origin-server/nightly/rhel-6',
+  repos_base        => 'https://mirror.openshift.com/pub/origin-server/release/4/rhel-6',
   jenkins_repo_base => 'http://pkg.jenkins-ci.org/redhat',
   optional_repo     => 'http://download.fedoraproject.org/pub/epel/6/$basearch',
 
