@@ -428,6 +428,7 @@ class Command
 
     def get_user(user_id)
       puts "Getting user: \"#{user_id}\""
+      user_id = user_id.split(",")[0] if user_id.include? ","
       user_id = user_id.split("=")[1] if user_id.include? "="
       base = @ldap_config["Get-User"]["Base"]
       filter = Net::LDAP::Filter.construct(@ldap_config["Get-User"]["Filter"].gsub("<user_id>", user_id))
