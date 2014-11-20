@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.32.3
+Version: 1.32.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Nov 20 2014 Adam Miller <admiller@redhat.com> 1.32.4-1
+- Option to enable/disable broker stats (rpenta@redhat.com)
+
 * Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 1.32.3-1
 - BZ1158704 - Broker fails to create HA DNS entry for HA app
   (calfonso@redhat.com)
