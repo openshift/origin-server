@@ -158,7 +158,7 @@ module OpenShift
               expected_exitstatus: 0)
         rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
           if ssh_like? url
-            msg = "CLIENT_ERROR: Source code repository could not be cloned: '#{url}'. Please verify the repository is correct and try a non-SSH URL such as HTTP."
+            msg = "CLIENT_ERROR: Source code repository could not be cloned: '#{url}'. Git clone using SSH requires the OpenShift server to authenticate to the repository. Please verify the repository is correct, and try a non-SSH URL such as HTTPS."
           else
             msg = "CLIENT_ERROR: Source code repository could not be cloned: '#{url}'. Please verify the repository is correct and contact support."
           end
