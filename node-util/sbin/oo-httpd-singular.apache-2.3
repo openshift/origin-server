@@ -33,7 +33,7 @@ require 'tempfile'
 require 'json'
 require 'openshift-origin-node/utils/shell_exec'
 
-HTTPD_SYSTEM="apachectl"
+HTTPD_SYSTEM="/usr/sbin/apachectl"
 HTTPD_CMDS=["graceful"]
 HTTPD_PRE_CMDS=["configtest"]
 LOCKFILE=File.join(Dir::tmpdir,"httpd_singular.lock")
