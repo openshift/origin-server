@@ -27,5 +27,6 @@ Broker::Application.configure do
     :username => conf.get("ACTIVEMQ_USERNAME", "routinginfo"),
     :password => conf.get("ACTIVEMQ_PASSWORD", "routinginfopasswd"),
     :debug => conf.get_bool("ACTIVEMQ_DEBUG", "false"),
+    :mcollective_conf => conf.get("MCOLLECTIVE_CONFIG"),
   }
 end
