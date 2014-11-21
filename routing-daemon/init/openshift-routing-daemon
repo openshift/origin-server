@@ -1,6 +1,6 @@
 #!/usr/bin/env oo-ruby
 #
-# openshift-routing-daemon  Starts the routing daemon for OpenShift 
+# openshift-routing-daemon  Starts the routing daemon for OpenShift
 #
 # chkconfig:       345 89 11
 # processname:     openshift-routing-daemon
@@ -50,32 +50,58 @@ rescue Timeout::Error
   exit! 1
 end
 
+def check_start
+  # Wait for daemon to finish initilization
+  sleep 3
+  if daemon_running?
+    puts 'OK'
+    exit 0
+  else
+    puts 'FAIL'
+    exit 1
+  end
+end
+
 case ARGV[0]
   when 'stop'
-    puts 'Stopping openshift-routing-daemon'
-    locked  do
-      Daemons.run_proc(Options[:script], Options)
+    if daemon_running?
+      locked  do
+        puts 'Stopping openshift-routing-daemon'
+        Daemons.run_proc(Options[:script], Options)
+      end
+    else
+      puts 'openshift-routing-daemon is not running'
     end
   when 'start'
-    puts 'Starting openshift-routing-daemon'
-    locked  do
-      Daemons.run_proc(Options[:script], Options) do
-	OpenShift::RoutingDaemon.new.listen
+    if daemon_running?
+      puts 'openshift-routing-daemon is already running'
+    else
+      puts 'Starting openshift-routing-daemon'
+      locked  do
+        Daemons.run_proc(Options[:script], Options) do
+          OpenShift::RoutingDaemon.new.listen
+        end
+        check_start
       end
     end
   when 'restart'
-    puts 'Stopping openshift-routing-daemon'
     locked do
-      loop do
+      if daemon_running?
+        puts 'Stopping openshift-routing-daemon'
+        loop do
         Daemons.run(Options[:script], Options.merge(ARGV: ['stop']))
         break unless daemon_running?
         sleep 1
         $stdout.write '.'
+        end
+      else
+        puts 'openshift-routing-daemon is not running'
       end
       puts 'Starting openshift-routing-daemon'
       Daemons.run_proc(Options[:script], Options.merge(ARGV: ['start'])) do
 	OpenShift::RoutingDaemon.new.listen
       end
+      check_start
     end
   when 'status'
     if daemon_running?
