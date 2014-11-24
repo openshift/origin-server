@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.32.0
+Version: 1.32.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -203,6 +203,16 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Mon Nov 24 2014 Adam Miller <admiller@redhat.com> 1.32.1-1
+- bump_minor_versions for sprint 54 (admiller@redhat.com)
+- Use absolute path to apachectl (agrimm@redhat.com)
+- Merge pull request #5767 from sztsian/bz1132299
+  (dmcphers+openshiftbot@redhat.com)
+- bz1132299 throw runtime error if oo-admin-cartridge failed to install a
+  cartridge (sztsian@gmail.com)
+- Bug 1163910 - Rename watchman log files (jhonce@redhat.com)
+- Bug 1163068 - Update oo-watchman man page (jhonce@redhat.com)
+
 * Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 1.31.3-1
 - Merge pull request #5954 from ncdc/bug/1161072-vhost-multi-ha-app-dns
   (dmcphers+openshiftbot@redhat.com)
