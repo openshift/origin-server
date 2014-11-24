@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.33.0
+Version: 1.33.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,12 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Nov 24 2014 Adam Miller <admiller@redhat.com> 1.33.1-1
+- bump_minor_versions for sprint 54 (admiller@redhat.com)
+- Bug 1163964: Clarify message when ssh repository url fails
+  (jliggitt@redhat.com)
+- Bug 1163910 - Rename watchman log files (jhonce@redhat.com)
+
 * Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 1.32.3-1
 - Merge pull request #5954 from ncdc/bug/1161072-vhost-multi-ha-app-dns
   (dmcphers+openshiftbot@redhat.com)
