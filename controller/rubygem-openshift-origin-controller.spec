@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.33.0
+Version: 1.33.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Nov 24 2014 Adam Miller <admiller@redhat.com> 1.33.1-1
+- bump_minor_versions for sprint 54 (admiller@redhat.com)
+- Add cucumber tests for Unified Push Server cartridge (vvitek@redhat.com)
+
 * Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 1.32.3-1
 - BZ1158704 - Broker fails to create HA DNS entry for HA app
   (calfonso@redhat.com)
