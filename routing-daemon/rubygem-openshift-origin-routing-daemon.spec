@@ -11,7 +11,7 @@
 
 Summary:       OpenShift daemon for routing integration
 Name:          rubygem-%{gem_name}
-Version: 0.21.0
+Version: 0.21.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -88,6 +88,17 @@ cp -a init/* %{buildroot}/etc/rc.d/init.d/
 %attr(0755,-,-) %{_var}/log/openshift
 
 %changelog
+* Mon Nov 24 2014 Adam Miller <admiller@redhat.com> 0.21.1-1
+- bump_minor_versions for sprint 54 (admiller@redhat.com)
+- Merge pull request #5973 from calfonso/bz1166518
+  (dmcphers+openshiftbot@redhat.com)
+- BZ1166518 - rubygem-openshift-origin-common should be installed...
+  (calfonso@redhat.com)
+- BZ1166600 - routing-daemon will add duplicated route (calfonso@redhat.com)
+- BZ1158773 - openshift-routing-daemon always return success even...
+  (calfonso@redhat.com)
+- BZ1165606 - enable activemq ssl connections for routing (calfonso@redhat.com)
+
 * Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 0.20.2-1
 - BZ#1159392 - Add HTTPS configuration for all applications with NGINX
   (calfonso@redhat.com)
