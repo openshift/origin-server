@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.11.3
+Version: 0.12.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
