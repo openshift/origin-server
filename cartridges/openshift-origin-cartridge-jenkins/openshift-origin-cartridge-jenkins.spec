@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.26.1
+Version: 1.26.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -50,6 +50,11 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Nov 24 2014 Adam Miller <admiller@redhat.com> 1.26.2-1
+- Merge pull request #5949 from VojtechVitek/upgrade_scrips
+  (dmcphers+openshiftbot@redhat.com)
+- Clean up & unify upgrade scripts (vvitek@redhat.com)
+
 * Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.26.1-1
 - Merge pull request #5931 from bparees/clear_jenkins_upgrade
   (dmcphers+openshiftbot@redhat.com)
