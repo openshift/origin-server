@@ -9,7 +9,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.29.1
+Version: 1.29.2
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -109,6 +109,11 @@ done
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Mon Nov 24 2014 Adam Miller <admiller@redhat.com> 1.29.2-1
+- Merge pull request #5949 from VojtechVitek/upgrade_scrips
+  (dmcphers+openshiftbot@redhat.com)
+- Clean up & unify upgrade scripts (vvitek@redhat.com)
+
 * Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.29.1-1
 - bump_minor_versions for sprint 53 (admiller@redhat.com)
 - Version bump for the sprint 52 (mfojtik@redhat.com)
