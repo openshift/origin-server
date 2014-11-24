@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.12.0
+Version: 0.12.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -111,6 +111,9 @@ mv httpd/openshift-vhost-logconf.include %{buildroot}/etc/httpd/conf.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Mon Nov 24 2014 Adam Miller <admiller@redhat.com> 0.12.1-1
+- bump_minor_versions for sprint 54 (admiller@redhat.com)
+
 * Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 0.11.3-1
 - Merge pull request #5954 from ncdc/bug/1161072-vhost-multi-ha-app-dns
   (dmcphers+openshiftbot@redhat.com)
