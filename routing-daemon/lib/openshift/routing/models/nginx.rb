@@ -102,7 +102,7 @@ module OpenShift
 
           if line =~ /\A\s*proxy_pass\s*http:\/\/(\S+)\s*;\s*\Z/
             raise LBModelException.new "Error parsing server.conf" unless route_name && path
-            pool_names.push $1
+            pool_names.push $1 unless pool_names.include? $1
             routes.push [route_name, path]
             route_name = nil
             path = nil
@@ -159,7 +159,7 @@ module OpenShift
 
           # Filter out the entries we want to delete.
           unless delete_route_names.include?(route_name)
-            pool_names.push $1
+            pool_names.push $1 unless pool_names.include? $1
             routes.push [route_name, path]
           end
           route_name = nil
