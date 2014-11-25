@@ -40,14 +40,15 @@ module OpenShift
       @password = @cfg['ACTIVEMQ_PASSWORD'] || 'routinginfopasswd'
       @port = (@cfg['ACTIVEMQ_PORT'] || 61613).to_i
       @hosts = (@cfg['ACTIVEMQ_HOST'] || 'activemq.example.com').split(',').map do |hp|
-        hp.split(":").instance_eval do |h,p,ssl|
+        chunks = hp.split(":")
+        h = chunks[0]
+        p = chunks.size > 1 ? chunks[1] : @port
           {
             :host => h,
             # Originally, ACTIVEMQ_HOST allowed specifying only one host, with
             # the port specified separately in ACTIVEMQ_PORT.
-            :port => p || @cfg['ACTIVEMQ_PORT'] || '61613',
-          }
-        end
+            :port => p
+      }
       end
       @plugin_prefix = "plugin.activemq.pool."
       pools = @cfg["#{@plugin_prefix}size"]
