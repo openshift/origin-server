@@ -105,6 +105,8 @@ Broker::Application.configure do
     :default_region_name => conf.get("DEFAULT_REGION_NAME", ""),
     :allow_region_selection => conf.get_bool("ALLOW_REGION_SELECTION", 'true'),
     :normalize_username_method => conf.get("NORMALIZE_USERNAME_METHOD", "noop"),
+    :use_predictable_gear_uuids => conf.get_bool("USE_PREDICTABLE_GEAR_UUIDS", false),
+    :limit_app_name_chars => conf.get("LIMIT_APP_NAME_CHARS", -1).to_i,
   }
 
   config.auth = {

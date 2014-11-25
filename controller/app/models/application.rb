@@ -115,6 +115,7 @@ class Application
     format:   {with: APP_NAME_REGEX, message: "Application name must contain only alphanumeric characters (a-z, A-Z, or 0-9)."},
     length:   {maximum: APP_NAME_MAX_LENGTH, minimum: 0, message: "Application name must be a minimum of 1 and maximum of #{APP_NAME_MAX_LENGTH} characters."}
   validate :extended_validator
+  validate :name_plus_domain
 
   # Returns a map of field to error code for validation failures
   # * 105: Invalid application name
@@ -176,6 +177,14 @@ class Application
     notify_observers(:validate_application)
   end
 
+  def name_plus_domain
+    return if persisted? # only check at creation - old apps are grandfathered
+    charlimit = Rails.application.config.openshift[:limit_app_name_chars]
+    if charlimit > 0 && (name + domain.namespace).length > charlimit
+      errors.add :name,
+        "Name '#{name}' and domain namespace '#{domain.namespace}' cannot add up to more than #{charlimit} characters."
+    end
+  end
   ##
   # Helper for test cases to create the {Application}
   #
