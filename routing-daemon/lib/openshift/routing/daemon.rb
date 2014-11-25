@@ -241,8 +241,6 @@ module OpenShift
     def handle event
       begin
         case event[:action]
-        when :create_application
-          create_application event[:app_name], event[:namespace]
         when :delete_application
           delete_application event[:app_name], event[:namespace]
         when :add_public_endpoint
@@ -348,6 +346,7 @@ module OpenShift
 
     def add_endpoint app_name, namespace, gear_host, gear_port, types
       pool_name = generate_pool_name app_name, namespace
+      create_application app_name, namespace if @lb_controller.pools[pool_name].nil?
       unless (types & @endpoint_types).empty?
         @logger.info "Adding new member #{gear_host}:#{gear_port} to pool #{pool_name}"
         @lb_controller.pools[pool_name].add_member gear_host, gear_port.to_i
