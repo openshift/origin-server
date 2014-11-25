@@ -255,28 +255,47 @@ module OpenShift
     end
 
     def get_pool_certificates pool_name
-      cert_fname_regex = Regexp.new("\\Acert_#{pool_name}_(.*)\\.conf\\Z")
-
-      certs = []
-      Dir.entries(@confdir).each do |entry|
-        certs.push URI.unescape($1) if entry =~ cert_fname_regex
+      pool_certs = []
+      aliases = get_pool_aliases pool_name
+      aliases.each do |alias_str|
+        fname = "#{@confdir}/alias_#{URI.escape(pool_name)}_#{URI.escape(alias_str)}.conf"
+        text = File.read(fname)
+        pool_certs << alias_str if text.scan(/^.*(ssl_certificate)$/).count > 0
       end
-      certs
     end
 
     def add_ssl pool_name, alias_str, ssl_cert, private_key
-      frontend_alias_cert_template = ERB.new(FRONTEND_ALIAS_SSL)
       certfname = "#{@confdir}/#{URI.escape(alias_str)}.crt"
       keyfname = "#{@confdir}/#{URI.escape(alias_str)}.key"
-      fname = "#{@confdir}/cert_#{URI.escape(pool_name)}_#{URI.escape(alias_str)}.conf"
+      fname = "#{@confdir}/alias_#{URI.escape(pool_name)}_#{URI.escape(alias_str)}.conf"
 
       File.write(certfname, ssl_cert)
       File.write(keyfname, private_key)
-      File.write(fname, frontend_alias_cert_template.result(binding))
+      begin
+        text = File.read(fname)
+        new_text = text.gsub(/^.*#ssl_certificate_template$/, "ssl_certificate #{certfname};")
+        new_text = new_text.gsub(/^.*#ssl_certificate_key_template$/, "ssl_certificate_key #{keyfname};")
+        @logger.debug("#{new_text}")
+        @logger.debug("Adding SSL configuration for alias #{alias_str} for pool #{pool_name}")
+        File.open(fname, "w") {|file| file.puts new_text }
+      rescue Errno::ENOENT
+        # Nothing to do; if server.conf doesn't exist, then that means
+        # there are no routes, so we should just return the empty array.
+      end
     end
 
     def remove_ssl pool_name, alias_str
-      File.unlink("#{@confdir}/cert_#{URI.escape(pool_name)}_#{URI.escape(alias_str)}.conf")
+      fname = "#{@confdir}/alias_#{URI.escape(pool_name)}_#{URI.escape(alias_str)}.conf"
+      begin
+        text = File.read(fname)
+        new_text = text.gsub(/^.*ssl_certificate_key\s*.*key;$/, "  #ssl_certificate_key_template")
+        new_text = new_text.gsub(/^.*ssl_certificate\s*.*crt;$/, "  #ssl_certificate_template")
+        @logger.debug("Removing SSL configuration for alias #{alias_str} for pool #{pool_name}")
+        File.open(fname, "w") {|file| file.puts new_text }
+      rescue Errno::ENOENT
+        # Nothing to do; if server.conf doesn't exist, then that means
+        # there are no routes, so we should just return the empty array.
+      end
       File.unlink("#{@confdir}/#{URI.escape(alias_str)}.crt")
       File.unlink("#{@confdir}/#{URI.escape(alias_str)}.key")
     end
@@ -320,6 +339,8 @@ server {
 
 server {
   listen <%= @ssl_port %> ssl;
+  #ssl_certificate_template
+  #ssl_certificate_key_template
   server_name <%= alias_str %>;
   location / {
     proxy_pass http://<%= pool_name %>;
@@ -329,9 +350,10 @@ server {
 }
 
     FRONTEND_SERVER = %q{
+<% if @ssl_cert and @ssl_key %>
 ssl_certificate <%= @ssl_cert %>;
 ssl_certificate_key <%= @ssl_key %>;
-
+<% end %>
 server {
   listen <%= @http_port %>;
   <%= locations %>
@@ -360,19 +382,6 @@ match statusok {
     proxy_pass http://<%= pool_name %>;
     <%= @health_check %>
   }
-}
-
-    FRONTEND_ALIAS_SSL = %q{
-server {
-  listen <%= @ssl_port %> ssl;
-  server_name <%= alias_str %>;
-  ssl_certificate <%= certfname %>;
-  ssl_certificate_key <%= keyfname %>;
-  location / {
-    proxy_pass http://<%= pool_name %>;
-    <%= @health_check %>
-  }
-}
 }
 
   end
