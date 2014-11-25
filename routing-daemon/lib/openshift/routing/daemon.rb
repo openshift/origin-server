@@ -181,14 +181,17 @@ module OpenShift
         "host" => "localhost" # Does not need to be the actual hostname.
       }
 
-      client_hash = {
+      @client_hash = {
         :hosts => @hosts,
         :reliable => true,
         :connect_headers => client_hdrs
       }
+      connect
+    end
 
+    def connect
       @logger.info "Connecting to ActiveMQ..."
-      @aq = Stomp::Connection.new client_hash
+      @aq = Stomp::Connection.new @client_hash
 
       @uuid = @aq.uuid()
 
@@ -233,6 +236,10 @@ module OpenShift
             @aq.ack msgid, {'subscription' => @uuid}
           end
         rescue Timeout::Error
+        rescue Stomp::Error::NoCurrentConnection
+          # The connection to activemq has gone away, attempt a reconnect
+          @logger.debug 'Connection to ActiveMQ is gone, attempting a reconnect'
+          connect
         ensure
           update if Time.now - @last_update >= @update_interval
         end
