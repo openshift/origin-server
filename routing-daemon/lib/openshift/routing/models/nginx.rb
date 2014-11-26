@@ -374,6 +374,22 @@ match statusok {
 }
 <% end %>
 
+server {
+  listen <%= @http_port %> default_server;
+  server_name _;
+  location / {
+    return 404;
+  }
+}
+
+server {
+  listen <%= @ssl_port %> ssl default_server;
+  server_name _;
+  location / {
+    return 404;
+  }
+}
+
 }
 
     FRONTEND = %q{
