@@ -295,7 +295,9 @@ Requires:  php-intl
 Requires:  php-mbstring
 Requires:  php-mcrypt
 Requires:  php-pdo
-Requires:  php-pecl-apc
+# Make sure we don't obsolete APC with APCu
+Requires:  php-pecl-apc < 4
+Conflicts: php-pecl-apcu
 Requires:  php-pecl-imagick
 Requires:  php-pecl-memcache
 Requires:  php-pecl-xdebug
