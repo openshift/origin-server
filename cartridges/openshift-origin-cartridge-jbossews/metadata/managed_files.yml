@@ -17,4 +17,4 @@ dependency_dirs:
 build_dependency_dirs:
 - ~/.m2
 snapshot_exclusions:
-- standalone/tmp
+- tmp
