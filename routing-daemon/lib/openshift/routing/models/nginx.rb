@@ -81,45 +81,7 @@ module OpenShift
     alias_method :get_active_route_names, :get_route_names
 
     def create_routes pool_names, routes
-      fname = "#{@confdir}/server.conf"
-
-      location_template        = ERB.new(FRONTEND)
-      frontend_server_template = ERB.new(FRONTEND_SERVER)
-
-      route_name = nil
-      path = nil
-      begin
-        File.open(fname).each_line do |line|
-          if line =~ /\A\s*#\s*route_name\s*=\s*(\S+)\s*\Z/
-            route_name = $1
-            next
-          end
-
-          if line =~ /\A\s*location\s*(\S+)\s*{\s*\Z/
-            path = $1
-            next
-          end
-
-          if line =~ /\A\s*proxy_pass\s*http:\/\/(\S+)\s*;\s*\Z/
-            raise LBModelException.new "Error parsing server.conf" unless route_name && path
-            pool_names.push $1 unless pool_names.include? $1
-            routes.push [route_name, path]
-            route_name = nil
-            path = nil
-          end
-        end
-      rescue Errno::ENOENT
-        # Nothing to do; if server.conf doesn't exist, then that means
-        # there are no routes, so we should just return the empty array.
-      end
-
-      locations = pool_names.zip(routes).map do |pool_name, (route_name, path)|
-        location_template.result(binding)
-      end.join
-
-      server = frontend_server_template.result(binding)
-
-      File.write(fname, server)
+      # no-op 
     end
 
     def attach_routes route_names, virtual_server_names
@@ -131,51 +93,7 @@ module OpenShift
     end
 
     def delete_routes delete_pool_names, delete_route_names
-      fname = "#{@confdir}/server.conf"
-
-      location_template        = ERB.new(FRONTEND)
-      frontend_server_template = ERB.new(FRONTEND_SERVER)
-
-      ### Read in old configuration.
-
-      pool_names = []
-      routes = []
-
-      route_name = nil
-      path = nil
-      File.open(fname).each_line do |line|
-        if line =~ /\A\s*#\s*route_name\s*=\s*(\S+)\s*\Z/
-          route_name = $1
-          next
-        end
-
-        if line =~ /\A\s*location\s*(\S+)\s*{\s*\Z/
-          path = $1
-          next
-        end
-
-        if line =~ /\A\s*proxy_pass\s*http:\/\/(\S+)\s*;\s*\Z/
-          raise LBModelException.new "Error parsing server.conf" unless route_name && path
-
-          # Filter out the entries we want to delete.
-          unless delete_route_names.include?(route_name)
-            pool_names.push $1 unless pool_names.include? $1
-            routes.push [route_name, path]
-          end
-          route_name = nil
-          path = nil
-        end
-      end
-
-      ### Write out the old configuration.
-
-      locations = pool_names.zip(routes).map do |pool_name, (route_name, path)|
-        location_template.result(binding)
-      end.join
-
-      server = frontend_server_template.result(binding)
-
-      File.write(fname, server)
+      # no-op
     end
 
     def get_monitor_names
@@ -296,8 +214,10 @@ module OpenShift
         # Nothing to do; if server.conf doesn't exist, then that means
         # there are no routes, so we should just return the empty array.
       end
-      File.unlink("#{@confdir}/#{URI.escape(alias_str)}.crt")
-      File.unlink("#{@confdir}/#{URI.escape(alias_str)}.key")
+      crt = "#{@confdir}/#{URI.escape(alias_str)}.crt"
+      key = "#{@confdir}/#{URI.escape(alias_str)}.key"
+      File.unlink(crt) if File.exist?(crt)
+      File.unlink(key) if FIle.exist?(key)
     end
 
     def update
@@ -310,6 +230,14 @@ module OpenShift
       @logger.info 'Initializing nginx model...'
 
       read_config cfgfile
+
+      fname = "#{@confdir}/server.conf"
+      unless File.exist?(fname)
+        frontend_server_template = ERB.new(FRONTEND_SERVER)
+        server = frontend_server_template.result(binding)
+
+        File.write(fname, server)
+      end
     end
 
     # ERB Templates
@@ -354,20 +282,7 @@ server {
 ssl_certificate <%= @ssl_cert %>;
 ssl_certificate_key <%= @ssl_key %>;
 <% end %>
-server {
-  listen <%= @http_port %>;
-  <%= locations %>
-}
-<% if @nginx_plus %>
-match statusok {
-  status <%= @health_check_match_status %>;
-}
-<% end %>
 
-server {
-  listen <%= @ssl_port %> ssl;
-  <%= locations %>
-}
 <% if @nginx_plus %>
 match statusok {
   status <%= @health_check_match_status %>;
