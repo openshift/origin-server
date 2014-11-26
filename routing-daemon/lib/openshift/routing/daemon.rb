@@ -35,7 +35,7 @@ module OpenShift
                       else
                         raise StandardError.new "Invalid LOGLEVEL value: #{@loglevel}"
                       end
-
+      @ha_dns_prefix = @cfg['HA_DNS_PREFIX'] || 'ha-'
       @user = @cfg['ACTIVEMQ_USER'] || 'routinginfo'
       @password = @cfg['ACTIVEMQ_PASSWORD'] || 'routinginfopasswd'
       @port = (@cfg['ACTIVEMQ_PORT'] || 61613).to_i
@@ -321,7 +321,7 @@ module OpenShift
       @logger.info "Creating new routing rule #{route_name} for route #{route} to pool #{pool_name}"
       @lb_controller.create_route pool_name, route_name, route
 
-      alias_str = "ha-#{app_name}-#{namespace}.#{@cloud_domain}"
+      alias_str = "#{@ha_dns_prefix}#{app_name}-#{namespace}.#{@cloud_domain}"
       @logger.info "Adding new alias #{alias_str} to pool #{pool_name}"
       @lb_controller.pools[pool_name].add_alias alias_str
     end

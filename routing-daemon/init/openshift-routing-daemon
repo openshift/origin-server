@@ -17,14 +17,6 @@ require 'timeout'
 require 'openshift-origin-common/utils/path_utils'
 require 'openshift/routing/daemon'
 
-
-# load any custom configuration elements for Watchman
-path = "/etc/sysconfig/watchman"
-if File.exists? path
-  config = ParseConfig.new path
-  config.get_params.each { |k| ENV[k] = config[k] }
-end
-
 Options = {
     :backtrace => true,
     :ontop => false,
