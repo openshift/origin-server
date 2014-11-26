@@ -694,16 +694,7 @@ def check_system_httpd_configs
       has_framework = false
 
       carts = Dir.glob(File.join(u.dir, '*')).select { |p|
-        not File.symlink?(p)
-      }.map { |p|
-        File.basename(p)
-      }.map { |p|
-        cpath = nil
-        cp = File.join($CONF.get('CARTRIDGE_BASE_PATH'), p)
-        cpath = cp if File.exists?(cp)
-        cpath
-      }.select { |p|
-        not p.nil?
+        File.directory?(p) and not File.symlink?(p)
       }.each { |p|
         ['metadata', 'info'].each { |mp|
           mfile = File.join(p, mp, 'manifest.yml')
