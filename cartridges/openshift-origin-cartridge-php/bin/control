@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -eu
 
 source ${OPENSHIFT_PHP_DIR}usr/lib/php_config
 

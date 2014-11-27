@@ -1,9 +1,6 @@
-#!/bin/bash
+#!/bin/bash -eu
 
 # Adds a gear to the haproxy configuration.
-
-# Exit on any errors
-set -e
 
 list=
 kvargs=$(echo "${@:4}" | tr -d "\n" )

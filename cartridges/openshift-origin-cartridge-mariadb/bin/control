@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -eu
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source "${OPENSHIFT_MARIADB_DIR}/lib/mysql_context"
