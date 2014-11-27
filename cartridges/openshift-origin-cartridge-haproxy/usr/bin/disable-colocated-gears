@@ -1,10 +1,9 @@
-#!/bin/bash
+#!/bin/bash -eu
 # Script to disable the local serving gears after either at least
 # one remote gear is visible to haproxy or 30 seconds have passed.
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
-set -x
 rm -f /tmp/disable_local*
 exec &> /tmp/disable_local.$$
 

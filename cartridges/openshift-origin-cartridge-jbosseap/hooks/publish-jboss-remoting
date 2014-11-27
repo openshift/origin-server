@@ -1,9 +1,6 @@
-#!/bin/bash
+#!/bin/bash -eu
 
 # Start the application httpd instance
-
-# Exit on any errors
-set -e
 
 function print_help {
     echo "Usage: $0 app-name namespace uuid"

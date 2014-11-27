@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -eu
 
 case "$1" in
   -v|--version)
@@ -7,9 +7,8 @@ esac
 
 # Parse arguments
 source "${OPENSHIFT_NODEJS_DIR}/lib/util"
+set +u
 parse_args $@
-
-# Don't set -u until after the above arg parsing is complete
 set -u
 
 # Copy the version specific files to nodejs directory

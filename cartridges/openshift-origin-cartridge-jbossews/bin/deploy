@@ -1,6 +1,4 @@
-#!/bin/bash
-set -e
-set -x
+#!/bin/bash -eu
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source ${OPENSHIFT_JBOSSEWS_DIR}/bin/util
