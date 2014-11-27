@@ -1,4 +1,4 @@
-#!/bin/bash -ue
+#!/bin/bash -eu
 
 rm -f $OPENSHIFT_HOMEDIR/.psqlrc
 rm -f $OPENSHIFT_HOMEDIR/.pgpass

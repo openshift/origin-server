@@ -1,4 +1,5 @@
-#!/bin/bash -e
+#!/bin/bash -eu
+
 source "${OPENSHIFT_MONGODB_DIR}/lib/mongodb_context"
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 export STOPTIMEOUT=20

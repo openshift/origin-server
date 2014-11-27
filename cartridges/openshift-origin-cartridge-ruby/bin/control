@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -eu
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source "${OPENSHIFT_RUBY_DIR}/lib/util"

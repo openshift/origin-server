@@ -1,4 +1,4 @@
-#!/bin/bash -ue
+#!/bin/bash -eu
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source "${OPENSHIFT_MYSQL_DIR}/lib/mysql_context"

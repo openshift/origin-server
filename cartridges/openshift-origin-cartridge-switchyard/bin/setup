@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -eu
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
@@ -7,4 +7,3 @@ then
       client_error "SwitchYard is only supported for JBoss AS/EAP"
       exit 152
 fi
-
