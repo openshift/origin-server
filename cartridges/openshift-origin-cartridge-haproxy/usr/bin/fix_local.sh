@@ -4,7 +4,14 @@
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
-set -x
+while getopts 'd' OPTION
+do
+    case $OPTION in
+        d) set -x
+        ;;
+    esac
+done
+
 rm -f /tmp/fix_local*
 exec &> /tmp/fix_local.$$
 
