@@ -39,18 +39,7 @@ for binding in "${!local_bindings[@]}"; do
 done | sort -d -k1 1>&2
 
 # Report scaling information
-gear_registry_locations=(
-  "./haproxy-1.4/conf/gear-registry.db"
-  "./haproxy/conf/gear-registry.db"
-)
-
-for candidate_registry in "${gear_registry_locations[@]}"; do
-  if [ -f "$candidate_registry" ]; then
-    gear_registry=$candidate_registry
-    break
-  fi
-done
-
-if [ ! -z "$gear_registry" ]; then
-  cat "$gear_registry" | while read line; do echo "$line" | awk -F"@" '{ printf "SCALE%s\n", $1; }' ; done
+gear_registry='./gear-registry/gear-registry.json'
+if [[ -f "$gear_registry" ]]; then
+  oo-ruby -r json -e "(JSON.parse(IO.read('$gear_registry'))['web'] rescue {}).keys.each {|gear_uuid| puts \"SCALE#{gear_uuid}\"}"
 fi
