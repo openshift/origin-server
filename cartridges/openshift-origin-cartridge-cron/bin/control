@@ -1,4 +1,5 @@
-#!/bin/bash -e
+#!/bin/bash -eu
+
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 function _are_cronjobs_enabled() {

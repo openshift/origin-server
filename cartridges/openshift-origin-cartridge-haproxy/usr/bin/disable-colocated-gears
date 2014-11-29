@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -eu
 # Script to disable the local serving gears after either at least
 # one remote gear is visible to haproxy or 30 seconds have passed.
 

@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -eu
 
 # Mock cartridge for testing and verifying node platform code. This is
 # not an example of how to write a well-formed cartridge.

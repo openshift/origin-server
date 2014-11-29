@@ -1,4 +1,5 @@
-#!/bin/bash -e
+#!/bin/bash -eu
+
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 export STOPTIMEOUT=20
@@ -67,7 +68,7 @@ function _start_haproxy_ctld() {
 }
 
 function _launch_haproxy_bg() {
-    [ -n "$1" ]  &&  zopts="-sf $1"
+    [ -n "${1:-}" ]  &&  zopts="-sf $1"
     ping_server_gears
     _load_user_configs
     LOGPIPE=${OPENSHIFT_HOMEDIR}/app-root/runtime/logshifter-haproxy
@@ -80,7 +81,7 @@ function _launch_haproxy_bg() {
 
 function _load_user_configs() {
     haproxy_cfg=$OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg
-    if [ ! -z "${OPENSHIFT_HAPROXY_HTTPCHK_URI}" ]; then
+    if [ ! -z "${OPENSHIFT_HAPROXY_HTTPCHK_URI:-}" ]; then
         (
         flock 200
         cp -f "$haproxy_cfg" /tmp/haproxy.cfg.$$
@@ -89,7 +90,7 @@ function _load_user_configs() {
         rm -f /tmp/haproxy.cfg.$$
         ) 200>${haproxy_cfg}.lock
     fi
-    if [ ! -z "${OPENSHIFT_HAPROXY_HTTPCHK_EXPECT_RSTATUS}" ]; then
+    if [ ! -z "${OPENSHIFT_HAPROXY_HTTPCHK_EXPECT_RSTATUS:-}" ]; then
         (
         flock 200
         cp -f "$haproxy_cfg" /tmp/haproxy.cfg.$$

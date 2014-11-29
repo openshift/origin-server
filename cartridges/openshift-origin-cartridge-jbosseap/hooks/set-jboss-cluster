@@ -1,7 +1,4 @@
-#!/bin/bash
-
-# Exit on any errors
-set -e
+#!/bin/bash -eu
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 

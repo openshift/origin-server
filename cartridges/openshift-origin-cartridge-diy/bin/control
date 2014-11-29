@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/bash -eu
+
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 function run_hook() {
