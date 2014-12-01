@@ -19,6 +19,8 @@ require 'rubygems'
 require 'logger'
 require 'parseconfig'
 
+DEFAULT_CONF = '/etc/openshift/routing-daemon.conf'
+
 # Initialize the controller lazily, so we initialize it exactly zero
 # times if we never use it and exactly one time if we do use it.
 class LazyLBController
@@ -78,7 +80,7 @@ class LazyLBController
   end
 end
 
-$cfgfile = '/etc/openshift/routing-daemon.conf'
+$cfgfile = DEFAULT_CONF
 if (pos = ARGV.find_index('--config'))
   ARGV.delete_at(pos)
   $cfgfile = ARGV.delete_at(pos)
@@ -100,7 +102,61 @@ argvs = ARGV.inject([[]]) do |args,arg|
 end.select {|argv| not argv.empty?}
 
 if argvs.empty? || ARGV.include?('--help') || ARGV.include?('-h')
-  puts "Usage: #{$0} {list-pools|add-pool <name> [<monitor-name>]|delete-pool <name>|list-routes|list-aliases|list-pool-aliases <pool>|add-alias <pool> <name>|delete-alias <pool> <name>|add-route <pool> <name> <path>|delete-route <pool> <route_name>|list-monitors|create-monitor <name> <path> <up-code>|delete-monitor <name>|list-pool-members <pool>|add-pool-member <pool> <host>:<port>|delete-pool-member <pool> <host>:<port>}"
+  puts <<USAGE
+== Synopsis
+
+oo-admin-ctl-routing: Modify the configuration of the external load-balancer.
+
+This tool requests information from or performs configuration updates to the
+external load-balancer configured in #{DEFAULT_CONF}.
+
+== Usage
+
+oo-admin-ctl-routing COMMAND ; COMMAND ; ...
+
+Available commands:
+
+list-pools
+  List all pools.
+add-pool <name> [<monitor-name>]
+  Create a new pool named <name>, optionally with the specified monitor.
+delete-pool <name>
+  Delete the pool named <name>.
+list-routes
+  List all routes for all pools.
+list-aliases
+  List all aliases for all pools.
+list-pool-aliases <pool>
+  List all aliases for the specified pool.
+add-alias <pool> <name>
+  Add an alias with domain <name> for the specified pool.
+delete-alias <pool> <name>
+  Delete the alias <name> for the specified pool.
+add-route <pool> <name> <path>
+  Add a route with the specified name that maps <path> to <pool>.
+delete-route <pool> <route_name>
+  Delete the specified route from the specified pool.
+list-monitors
+  List all monitors.
+create-monitor <name> <path> <up-code>
+  Create a new monitor with the specified name that queries <path>
+  and expects to receive <up-code> to indicate that the pool is up.
+delete-monitor <name>
+  Delete the specified monitor.
+list-pool-members <pool>
+  List all members of the specified pool.
+add-pool-member <pool> <host>:<port>
+  Add the given member to the specified pool.
+delete-pool-member <pool> <host>:<port>
+  Delete the specified member from the specified pool.
+
+Example:
+
+  oo-admin-ctl-routing list-pools ; list-aliases
+
+Note: Your shell may require you to escape semicolons in order to pass them
+as arguments to the oo-admin-ctl-routing command.
+USAGE
   exit 0
 end
 
