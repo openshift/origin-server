@@ -5,7 +5,7 @@
 
 Summary:       User dependencies for OpenShift Cartridges
 Name:          openshift-origin-cartridge-dependencies
-Version: 1.27.1
+Version: 1.27.2
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -522,6 +522,9 @@ an OpenShift cartrige.
 %files optional-ruby
 
 %changelog
+* Mon Dec 01 2014 Adam Miller <admiller@redhat.com> 1.27.2-1
+- Make sure APC doesn't get obsoleted by APCu (vvitek@redhat.com)
+
 * Thu Sep 18 2014 Adam Miller <admiller@redhat.com> 1.27.1-1
 - bump_minor_versions for sprint 51 (admiller@redhat.com)
 
