@@ -100,7 +100,7 @@ argvs = ARGV.inject([[]]) do |args,arg|
 end.select {|argv| not argv.empty?}
 
 if argvs.empty? || ARGV.include?('--help') || ARGV.include?('-h')
-  puts "Usage: #{$0} {list-pools|add-pool <name> [<monitor-name>]|delete-pool <name>|list-routes|add-alias <pool> <name>|delete-alias <pool> <name>|add-route <pool> <name> <path>|delete-route <pool> <route_name>|list-monitors|create-monitor <name> <path> <up-code>|delete-monitor <name>|list-pool-members <pool>|add-pool-member <pool> <host>:<port>|delete-pool-member <pool> <host>:<port>}"
+  puts "Usage: #{$0} {list-pools|add-pool <name> [<monitor-name>]|delete-pool <name>|list-routes|list-pool-aliases <pool>|add-alias <pool> <name>|delete-alias <pool> <name>|add-route <pool> <name> <path>|delete-route <pool> <route_name>|list-monitors|create-monitor <name> <path> <up-code>|delete-monitor <name>|list-pool-members <pool>|add-pool-member <pool> <host>:<port>|delete-pool-member <pool> <host>:<port>}"
   exit 0
 end
 
