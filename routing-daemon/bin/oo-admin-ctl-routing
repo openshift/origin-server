@@ -99,10 +99,16 @@ argvs = ARGV.inject([[]]) do |args,arg|
   args
 end.select {|argv| not argv.empty?}
 
+if argvs.empty? || ARGV.include?('--help') || ARGV.include?('-h')
+  puts "Usage: #{$0} {list-pools|add-pool <name> [<monitor-name>]|delete-pool <name>|list-routes|add-alias <pool> <name>|delete-alias <pool> <name>|add-route <pool> <name> <path>|delete-route <pool> <route_name>|list-monitors|create-monitor <name> <path> <up-code>|delete-monitor <name>list-pool-members <pool>|add-pool-member <pool> <host>:<port>|delete-pool-member <pool> <host>:<port>}"
+  exit 0
+end
+
 exitval = 0
 argvs.each do |argv|
   begin
-    case argv.shift
+    arg = argv.shift
+    case arg
     when 'get-job-status'
       raise ArgumentError.new 'Requires a job id.' unless 1 == argv.count
       begin
@@ -214,7 +220,7 @@ argvs.each do |argv|
       lb.pools[argv[0]].delete_alias argv[1]
 
     else
-      raise ArgumentError.new "Usage: #{$0} {list-pools|add-pool <name> [<monitor-name>]|delete-pool <name>|list-routes|add-alias <pool> <name>|delete-alias <pool> <name>|add-route <pool> <name> <path>|delete-route <pool> <route_name>|list-monitors|create-monitor <name> <path> <up-code>|delete-monitor <name>list-pool-members <pool>|add-pool-member <pool> <host>:<port>|delete-pool-member <pool> <host>:<port>}"
+      raise ArgumentError.new "Unrecognized argument: #{arg}.\nUse #{$0} --help for usage."
     end
 
   rescue => e
