@@ -100,7 +100,7 @@ argvs = ARGV.inject([[]]) do |args,arg|
 end.select {|argv| not argv.empty?}
 
 if argvs.empty? || ARGV.include?('--help') || ARGV.include?('-h')
-  puts "Usage: #{$0} {list-pools|add-pool <name> [<monitor-name>]|delete-pool <name>|list-routes|list-pool-aliases <pool>|add-alias <pool> <name>|delete-alias <pool> <name>|add-route <pool> <name> <path>|delete-route <pool> <route_name>|list-monitors|create-monitor <name> <path> <up-code>|delete-monitor <name>|list-pool-members <pool>|add-pool-member <pool> <host>:<port>|delete-pool-member <pool> <host>:<port>}"
+  puts "Usage: #{$0} {list-pools|add-pool <name> [<monitor-name>]|delete-pool <name>|list-routes|list-aliases|list-pool-aliases <pool>|add-alias <pool> <name>|delete-alias <pool> <name>|add-route <pool> <name> <path>|delete-route <pool> <route_name>|list-monitors|create-monitor <name> <path> <up-code>|delete-monitor <name>|list-pool-members <pool>|add-pool-member <pool> <host>:<port>|delete-pool-member <pool> <host>:<port>}"
   exit 0
 end
 
@@ -202,6 +202,17 @@ argvs.each do |argv|
       raise ArgumentError.new "Requires a name and host:port." unless 2 == argv.length
       puts "Deleting pool member #{argv[0]} from pool #{argv[1]}."
       lb.pools[argv[0]].delete_member *argv[1].split(':')
+
+    when 'list-aliases'
+      puts "Listing aliases for all pools."
+      found_aliases = false
+      lb.pools.each do |k,v|
+        v.get_aliases.each do |a|
+          puts "Pool #{k} has alias #{a}."
+          found_aliases = true
+        end
+      end
+      puts 'No aliases found.' unless found_aliases
 
     when 'list-pool-aliases'
       raise ArgumentError.new "Requires an alias name." unless 1 == argv.length
