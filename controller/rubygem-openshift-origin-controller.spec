@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.33.1
+Version: 1.33.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,16 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Dec 01 2014 Adam Miller <admiller@redhat.com> 1.33.2-1
+- Merge pull request #5947 from sosiouxme/predictable-gear-uuids
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5971 from nak3/patch01 (dmcphers+openshiftbot@redhat.com)
+- controller: option LIMIT_APP_NAME_CHARS (lmeyer@redhat.com)
+- controller: make gear UUIDs predictable (lmeyer@redhat.com)
+- controller: whitespace fixes (lmeyer@redhat.com)
+- Default configuration parameter to set Private SSL certificates allowed
+  (nakayamakenjiro@gmail.com)
+
 * Mon Nov 24 2014 Adam Miller <admiller@redhat.com> 1.33.1-1
 - bump_minor_versions for sprint 54 (admiller@redhat.com)
 - Add cucumber tests for Unified Push Server cartridge (vvitek@redhat.com)
