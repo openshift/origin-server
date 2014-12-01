@@ -163,7 +163,12 @@ argvs.each do |argv|
     when 'list-monitors'
       raise ArgumentError.new "Requires no arguments." unless argv.empty?
       puts 'Listing monitors.'
-      puts lb.monitors.join "\n"
+      monitors = lb.monitors
+      if monitors.nil? or monitors.empty?
+        puts 'No monitors found.'
+      else
+        puts monitors.join "\n"
+      end
       # TODO: Extend the LoadBalancerController class with a method that
       # provides additional information about monitors.
 
