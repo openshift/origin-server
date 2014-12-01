@@ -476,7 +476,7 @@ class CloudUser
   end
 
   #updates user's plan_id
-  def update_plan(plan_id, plan_quantity=1)
+  def update_plan(plan_id, plan_quantity=1, check_plan_compatibility=true)
     Lock.run_in_user_lock(self) do
       self.plan_id = plan_id
       self.plan_quantity = plan_quantity
