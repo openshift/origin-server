@@ -217,7 +217,7 @@ module OpenShift
       crt = "#{@confdir}/#{URI.escape(alias_str)}.crt"
       key = "#{@confdir}/#{URI.escape(alias_str)}.key"
       File.unlink(crt) if File.exist?(crt)
-      File.unlink(key) if FIle.exist?(key)
+      File.unlink(key) if File.exist?(key)
     end
 
     def update
