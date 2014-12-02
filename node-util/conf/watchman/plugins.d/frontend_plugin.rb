@@ -67,6 +67,22 @@ class FrontendPlugin < OpenShift::Runtime::WatchmanPlugin
       FileUtils.rm_r(gear_dir)
     end
 
+    # Cleanup the empty conf gear directories. For e.g. directories for scalable
+    # application's db gears.
+    Dir.glob(PathUtils.join(conf_dir, '*')).each do |entry|
+      next unless File.directory?(entry)
+      next unless Dir["#{entry}/*"].empty?
+
+      # Verify name is of the form we expect for these directories i.e. gearuuid_domain_gearuuid
+      dir_name = File.basename(entry)
+      next if /(.*)_(.*)_(.*)/ !~ dir_name
+      dir_name_parts = dir_name.split('_')
+      next if dir_name_parts[0] != dir_name_parts[2]
+
+      FileUtils.rm_r(entry)
+      @logger.info %Q(watchman frontend plugin cleaned up #{entry})
+    end
+
     if reload_needed
       ::OpenShift::Runtime::Frontend::Http::Plugins::reload_httpd
     end
