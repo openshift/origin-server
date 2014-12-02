@@ -11,7 +11,7 @@
 
 Summary:       OpenShift daemon for routing integration
 Name:          rubygem-%{gem_name}
-Version: 0.21.2
+Version: 0.21.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -88,6 +88,16 @@ cp -a init/* %{buildroot}/etc/rc.d/init.d/
 %attr(0755,-,-) %{_var}/log/openshift
 
 %changelog
+* Tue Dec 02 2014 Adam Miller <admiller@redhat.com> 0.21.3-1
+- Merge pull request #5992 from Miciah/bug-1169424-some-oo-admin-ctl-routing-
+  tool-issues (dmcphers+openshiftbot@redhat.com)
+- oo-admin-ctl-routing: Better usage output (miciah.masters@gmail.com)
+- oo-admin-ctl-routing: Add list-aliases (miciah.masters@gmail.com)
+- oo-admin-ctl-routing: Add list-pool-aliases usage (miciah.masters@gmail.com)
+- oo-admin-ctl-routing: Fix list-monitors (miciah.masters@gmail.com)
+- oo-admin-ctl-routing usage info: Add missing "|" (miciah.masters@gmail.com)
+- oo-admin-ctl-routing: Print usage with no args (miciah.masters@gmail.com)
+
 * Mon Dec 01 2014 Adam Miller <admiller@redhat.com> 0.21.2-1
 - routing-daemon: Fix deletion of SSL cert key (miciah.masters@gmail.com)
 - BZ1168034 - nginx configuration is broken when multiple applications..
