@@ -2,15 +2,17 @@
 Name: jbossas
 Cartridge-Short-Name: JBOSSAS
 Display-Name: JBoss Application Server 7
-Description: The leading open source Java EE6 application server for enterprise Java applications. Popular development frameworks include CDI, DeltaSpike and Spring.
+Description: The leading open source Java EE6 application server for enterprise Java
+  applications. Popular development frameworks include CDI, DeltaSpike and Spring.
 Version: '7'
 License: LGPL
 License-Url: http://www.gnu.org/copyleft/lesser.txt
 Vendor: Red Hat
-Cartridge-Version: 0.0.21
+Cartridge-Version: 0.0.22
 Compatible-Versions:
 - 0.0.19
 - 0.0.20
+- 0.0.21
 Cartridge-Vendor: redhat
 Categories:
 - service
