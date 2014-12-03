@@ -10,7 +10,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.32.1
+Version: 1.32.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -168,6 +168,10 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Dec 03 2014 Adam Miller <admiller@redhat.com> 1.32.2-1
+- Bug 1170021 - quota warning not displayed after cartridge add in the web
+  console (jforrest@redhat.com)
+
 * Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.32.1-1
 - Merge pull request #5913 from liggitt/site_extended_fixes
   (dmcphers+openshiftbot@redhat.com)
