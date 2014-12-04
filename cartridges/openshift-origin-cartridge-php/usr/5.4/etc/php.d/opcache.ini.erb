@@ -1,5 +1,5 @@
 ; Enable Zend OPcache extension module
-<%= (ENV['OPENSHIFT_PHP_ZEND_ENABLED'] == "true") ? "" : ";" %>zend_extension=/opt/rh/php54/root/usr/lib64/php/modules/opcache.so
+<%= (ENV['OPENSHIFT_PHP_OPCACHE_ENABLED'] == "true") ? "" : ";" %>zend_extension=/opt/rh/php54/root/usr/lib64/php/modules/opcache.so
 
 ; Determines if Zend OPCache is enabled
 opcache.enable=1
@@ -8,7 +8,7 @@ opcache.enable=1
 ;opcache.enable_cli=0
 
 ; The OPcache shared memory storage size.
-opcache.memory_consumption=128
+opcache.memory_consumption=<%= (ENV['OPENSHIFT_PHP_OPCACHE_SHM_SIZE'] =~ /^[0-9]+[MG]$/) ? ENV['OPENSHIFT_PHP_OPCACHE_SHM_SIZE'] : ((ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i/8).to_i.to_s+"M") %>
 
 ; The amount of memory for interned strings in Mbytes.
 opcache.interned_strings_buffer=8
@@ -67,7 +67,7 @@ opcache.blacklist_filename=/opt/rh/php54/root/etc/php.d/opcache*.blacklist
 
 ; Allows exclusion of large files from being cached. By default all files
 ; are cached.
-;opcache.max_file_size=0
+;opcache.max_file_size=1M
 
 ; Check the cache checksum each N requests.
 ; The default value of "0" means that the checks are disabled.
