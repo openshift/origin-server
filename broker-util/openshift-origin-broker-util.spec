@@ -79,6 +79,7 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %attr(0750,-,-) %{_sbindir}/oo-register-dns
 %attr(0750,-,-) %{_sbindir}/oo-stats
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-team
+%attr(0750,-,-) %{_sbindir}/oo-plot-broker-stats
 
 %{?scl:%scl_root}%{ruby_libdir}/app_info.rb
 
