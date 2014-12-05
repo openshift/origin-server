@@ -300,6 +300,8 @@ Requires:  php-pecl-apc < 4
 Conflicts: php-pecl-apcu
 Requires:  php-pecl-imagick
 Requires:  php-pecl-memcache
+# Make sure not to install OPCache for PHP 5.3, as we're using APC opcode cache exclusively instead
+Conflicts: php-pecl-opcache
 Requires:  php-pecl-xdebug
 Requires:  php-process
 Requires:  php-soap
@@ -320,6 +322,7 @@ Conflicts: php54-php-pecl-apcu
 Requires:  php54-php-pecl-imagick
 Requires:  php54-php-pecl-memcache
 Requires:  php54-php-pecl-xdebug
+Requires:  php54-php-pecl-zendopcache
 Requires:  php54-php-process
 Requires:  php54-php-soap
 Requires:  php54-php-xml
