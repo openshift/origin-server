@@ -263,7 +263,7 @@ action "has_gear", :description => "Does this server contain a specified gear?" 
         :prompt         => "Gear uuid",
         :description    => "Gear uuid",
         :type           => :string,
-        :validation     => '^[a-zA-Z0-9]+$',
+        :validation     => '^[-a-zA-Z0-9]+$',
         :optional       => false,
         :maxlength      => 32
 
@@ -343,7 +343,7 @@ action "get_gear_uid", :description => "Returns uid for the given gear uuid" do
         :prompt         => "Gear uuid",
         :description    => "Gear uuid",
         :type           => :string,
-        :validation     => '^[a-zA-Z0-9]+$',
+        :validation     => '^[-a-zA-Z0-9]+$',
         :optional       => false,
         :maxlength      => 32
 
@@ -397,7 +397,7 @@ action "has_app_cartridge", :description => "Does this application contain the s
         :prompt         => "Gear uuid",
         :description    => "Gear uuid",
         :type           => :string,
-        :validation     => '^[a-zA-Z0-9]+$',
+        :validation     => '^[-a-zA-Z0-9]+$',
         :optional       => false,
         :maxlength      => 32
 
@@ -507,7 +507,7 @@ action "upgrade", :description => "upgrade a gear" do
         :prompt         => "Gear uuid",
         :description    => "Gear uuid",
         :type           => :string,
-        :validation     => '^[a-zA-Z0-9]+$',
+        :validation     => '^[-a-zA-Z0-9]+$',
         :optional       => false,
         :maxlength      => 32
 
