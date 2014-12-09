@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.32.2
+Version: 1.32.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -203,6 +203,10 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 1.32.3-1
+- Revert "Bug 1169306: Clean up standalone db gear http conf in watchman."
+  (jhonce@redhat.com)
+
 * Tue Dec 02 2014 Adam Miller <admiller@redhat.com> 1.32.2-1
 - Bug 1169306: Clean up standalone db gear http conf in watchman.
   (mrunalp@gmail.com)
