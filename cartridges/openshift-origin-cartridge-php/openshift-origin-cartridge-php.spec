@@ -3,7 +3,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.30.0
+Version: 1.30.1
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -56,6 +56,16 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 1.30.1-1
+- Merge pull request #6002 from VojtechVitek/enable_zend_opcache
+  (dmcphers+openshiftbot@redhat.com)
+- Make sure to disable OPCache for PHP 5.3 (vvitek@redhat.com)
+- Replace OPENSHIFT_PHP_OPCACHE_MEMORY_CONSUMPTION and tiny changes
+  (nakayamakenjiro@gmail.com)
+- Fixed zend opcache template (nakayamakenjiro@gmail.com)
+- Add zend opcache template to enable it (nakayamakenjiro@gmail.com)
+- bump_minor_versions for sprint 55 (admiller@redhat.com)
+
 * Wed Dec 03 2014 Adam Miller <admiller@redhat.com> 1.29.3-1
 - Cart version bump for Sprint 54 (vvitek@redhat.com)
 
