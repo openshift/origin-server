@@ -78,6 +78,8 @@ class FrontendPlugin < OpenShift::Runtime::WatchmanPlugin
       next if /(.*)_(.*)_(.*)/ !~ dir_name
       dir_name_parts = dir_name.split('_')
       next if dir_name_parts[0] != dir_name_parts[2]
+      # Only remove the directory if the conf file which would have included it is gone.
+      next unless Dir.glob(PathUtils.join(conf_dir, "#{dir_name_parts[0]}_#{dir_name_parts[1]}_*_#{dir_name_parts[2]}.conf")).length == 0
 
       FileUtils.rm_r(entry)
       @logger.info %Q(watchman frontend plugin cleaned up #{entry})
