@@ -11,7 +11,7 @@
 
 Summary:       OpenShift daemon for routing integration
 Name:          rubygem-%{gem_name}
-Version: 0.22.0
+Version: 0.22.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -88,6 +88,9 @@ cp -a init/* %{buildroot}/etc/rc.d/init.d/
 %attr(0755,-,-) %{_var}/log/openshift
 
 %changelog
+* Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 0.22.1-1
+- bump_minor_versions for sprint 55 (admiller@redhat.com)
+
 * Tue Dec 02 2014 Adam Miller <admiller@redhat.com> 0.21.3-1
 - Merge pull request #5992 from Miciah/bug-1169424-some-oo-admin-ctl-routing-
   tool-issues (dmcphers+openshiftbot@redhat.com)
