@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.34.0
+Version: 1.34.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 1.34.1-1
+- Merge pull request #5997 from pravisankar/bug-1163893
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1163893 - Encode artifact url for app deployments (rpenta@redhat.com)
+- bump_minor_versions for sprint 55 (admiller@redhat.com)
+
 * Mon Dec 01 2014 Adam Miller <admiller@redhat.com> 1.33.2-1
 - Merge pull request #5947 from sosiouxme/predictable-gear-uuids
   (dmcphers+openshiftbot@redhat.com)
