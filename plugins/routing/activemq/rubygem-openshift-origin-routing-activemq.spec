@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for publishing routing information on ActiveMQ
 Name:          rubygem-%{gem_name}
-Version: 0.8.0
+Version: 0.8.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -72,6 +72,9 @@ cp conf/openshift-origin-routing-activemq.conf.example %{buildroot}/etc/openshif
 /etc/openshift/plugins.d/openshift-origin-routing-activemq.conf.example
 
 %changelog
+* Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 0.8.1-1
+- bump_minor_versions for sprint 55 (admiller@redhat.com)
+
 * Mon Nov 24 2014 Adam Miller <admiller@redhat.com> 0.7.2-1
 - BZ1165606 - enable activemq ssl connections for routing (calfonso@redhat.com)
 - BZ#1128857 - Fixes failover of activemq hosts during broker publish
