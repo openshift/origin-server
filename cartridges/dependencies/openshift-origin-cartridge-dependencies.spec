@@ -5,7 +5,7 @@
 
 Summary:       User dependencies for OpenShift Cartridges
 Name:          openshift-origin-cartridge-dependencies
-Version: 1.28.0
+Version: 1.28.1
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -527,6 +527,13 @@ an OpenShift cartrige.
 %files optional-ruby
 
 %changelog
+* Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 1.28.1-1
+- Merge pull request #6002 from VojtechVitek/enable_zend_opcache
+  (dmcphers+openshiftbot@redhat.com)
+- Make sure to disable OPCache for PHP 5.3 (vvitek@redhat.com)
+- Fixed zend opcache template (nakayamakenjiro@gmail.com)
+- bump_minor_versions for sprint 55 (admiller@redhat.com)
+
 * Tue Dec 02 2014 Adam Miller <admiller@redhat.com> 1.27.3-1
 - Merge pull request #5994 from VojtechVitek/php54-pecl
   (dmcphers+openshiftbot@redhat.com)
