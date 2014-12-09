@@ -8,7 +8,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.32.1
+Version: 1.32.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -110,6 +110,10 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 1.32.2-1
+- Update spec file (jhonce@redhat.com)
+- Broker - Add script to plot Broker Stats (jhonce@redhat.com)
+
 * Mon Nov 24 2014 Adam Miller <admiller@redhat.com> 1.32.1-1
 - bump_minor_versions for sprint 54 (admiller@redhat.com)
 - Support full DNs in LDAP group members (pep@redhat.com)
