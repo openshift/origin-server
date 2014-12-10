@@ -60,10 +60,20 @@ function _stop_haproxy_ctld() {
 function _start_haproxy_ctld() {
     # Start auto-scaling only on the head-gear
     [ "${OPENSHIFT_GEAR_DNS}" != "${OPENSHIFT_APP_DNS}" ] && return 0
-    disable_as="${OPENSHIFT_REPO_DIR}/.openshift/markers/disable_auto_scaling"
-    [ -f "$disable_as" ]  &&  return 0
+    if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/disable_auto_scaling" ];then
+        print_disable_as_marker_notice
+        return 0
+    fi
     _stop_haproxy_ctld  ||  :
     nohup haproxy_ctld |& /usr/bin/logshifter -tag haproxy_ctld &
+}
+
+function print_disable_as_marker_notice() {
+    echo "NOTE: The 'disable_auto_scaling' marker has been detected in your application."
+    echo "NOTE: Please notice that if this is the first time you are using this marker in this"
+    echo "NOTE: application, you need to restart the HAProxy cartridge or the whole application "
+    echo "NOTE: manually, so the HAProxy cartridge can pick up the changes."
+
 }
 
 function _launch_haproxy_bg() {
@@ -108,6 +118,7 @@ function _start_haproxy_service() {
         wait_to_start
     else
         echo "HAProxy already running" 1>&2
+        [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/disable_auto_scaling" ] && print_disable_as_marker_notice
         wait_to_start
         # support auto reloading of this action hook on git push
         if [ -x "$OPENSHIFT_REPO_DIR/.openshift/action_hooks/haproxy_ctld.rb" ]; then
