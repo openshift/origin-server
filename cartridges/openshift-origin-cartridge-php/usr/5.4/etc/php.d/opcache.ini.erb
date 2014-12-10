@@ -8,7 +8,7 @@ opcache.enable=1
 ;opcache.enable_cli=0
 
 ; The OPcache shared memory storage size.
-opcache.memory_consumption=<%= (ENV['OPENSHIFT_PHP_OPCACHE_MEMORY_CONSUMPTION'] =~ /^[0-9]+[MG]$/) ? ENV['OPENSHIFT_PHP_OPCACHE_MEMORY_CONSUMPTION'] : ((ENV['OPENSHIFT_PHP_OPCACHE_MEMORY_CONSUMPTION'].to_i/8).to_i.to_s+"M") %>
+opcache.memory_consumption=<%= (ENV['OPENSHIFT_PHP_OPCACHE_MEMORY_CONSUMPTION'] =~ /^[0-9]+[MG]$/) ? ENV['OPENSHIFT_PHP_OPCACHE_MEMORY_CONSUMPTION'] : ((ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i/8).to_i.to_s+"M") %>
 
 ; The amount of memory for interned strings in Mbytes.
 opcache.interned_strings_buffer=8
