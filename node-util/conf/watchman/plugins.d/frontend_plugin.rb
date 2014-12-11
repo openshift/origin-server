@@ -53,7 +53,13 @@ class FrontendPlugin < OpenShift::Runtime::WatchmanPlugin
       next if File.mtime(conf_file) > (DateTime.now - Rational(1, 24))
 
       @logger.info %Q(watchman frontend plugin cleaned up #{conf_file})
-      File.delete(conf_file)
+      begin
+        File.delete(conf_file)
+      rescue
+        # skip deleting gear_dir if the file deletion fails for any reason
+        @logger.warn %Q(watchman failed to clean up #{conf_file}: #{e.message}\n#{e.backtrace.join("\n  ")})
+        next
+      end
 
       reload_needed = true
 
@@ -64,7 +70,11 @@ class FrontendPlugin < OpenShift::Runtime::WatchmanPlugin
       gear_dir = conf_file.gsub('_0_', '_')
       gear_dir = gear_dir.gsub('.conf', '')
 
-      FileUtils.rm_r(gear_dir)
+      begin
+        FileUtils.rm_r(gear_dir)
+      rescue => e
+        @logger.warn %Q(watchman failed to clean up #{gear_dir}: #{e.message}\n#{e.backtrace.join("\n  ")})
+      end
     end
 
     # Cleanup the empty conf gear directories. For e.g. directories for scalable
@@ -81,8 +91,12 @@ class FrontendPlugin < OpenShift::Runtime::WatchmanPlugin
       # Only remove the directory if the conf file which would have included it is gone.
       next unless Dir.glob(PathUtils.join(conf_dir, "#{dir_name_parts[0]}_#{dir_name_parts[1]}_*_#{dir_name_parts[2]}.conf")).length == 0
 
-      FileUtils.rm_r(entry)
-      @logger.info %Q(watchman frontend plugin cleaned up #{entry})
+      begin
+        FileUtils.rm_r(entry)
+        @logger.info %Q(watchman frontend plugin cleaned up #{entry})
+      rescue => e
+        @logger.warn %Q(watchman failed to clean up #{entry}: #{e.message}\n#{e.backtrace.join("\n  ")})
+      end
     end
 
     if reload_needed
