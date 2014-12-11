@@ -28,6 +28,11 @@ function enable_modules {
     local module=
     local modvar=
 
+    # Disable Xdebug in production by default, if not already enabled
+    if [[ "${APPLICATION_ENV:-}" != "development" ]]; then
+        OPENSHIFT_PHP_XDEBUG_ENABLED=${OPENSHIFT_PHP_XDEBUG_ENABLED:-false}
+    fi
+
     # Generate OpenShift php.ini
     oo-erb ${phprc} > ${PHPRC}
 

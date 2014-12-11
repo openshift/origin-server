@@ -144,7 +144,7 @@ function build() {
         local composer_lock_msg="\nPlease, consider committing the composer.lock file into your repository:\n"
         composer_lock_msg+=" $ rhc scp ${OPENSHIFT_APP_NAME} download ./ app-root/repo/composer.lock\n"
         composer_lock_msg+=" $ git add composer.lock && git commit -am'Lock specific set of Composer dependencies'\n"
-        if [ "$APPLICATION_ENV" != "development" ]; then
+        if [ "${APPLICATION_ENV:-}" != "development" ]; then
             # Production
             echo -n "Checking composer.json for Composer dependency... "
             if [ -f ${OPENSHIFT_REPO_DIR}composer.json ]; then
