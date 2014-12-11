@@ -94,8 +94,8 @@ class FrontendPlugin < OpenShift::Runtime::WatchmanPlugin
       begin
         FileUtils.rm_r(entry)
         @logger.info %Q(watchman frontend plugin cleaned up #{entry})
-      rescue
-        # ignore
+      rescue => e
+        @logger.warn %Q(watchman failed to clean up #{entry}: #{e.message}\n#{e.backtrace.join("\n  ")})
       end
     end
 
