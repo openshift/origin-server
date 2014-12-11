@@ -20,10 +20,10 @@ require 'date'
 require 'openshift-origin-common/config'
 
 class LastAccessUpdater
-  def initialize(app_root_dir, access_log_files)
+  def initialize(gear_root_dir, access_log_files)
     @log_files = access_log_files
-    @all_apps_info = Hash.new
-    @app_root_dir = app_root_dir
+    @all_gears_info = Hash.new
+    @gear_root_dir = gear_root_dir
     @last_access_data = Hash.new
     @addrs_ignore = Array.new
     @hosts_ignore = ["localhost"]
@@ -40,9 +40,9 @@ class LastAccessUpdater
     }
   end
 
-  # Read a property from app's environment files
-  def read_app_property(gear_uuid, property)
-    file_path = "#{@app_root_dir}/#{gear_uuid}/.env/#{property}"
+  # Read a property from gear's environment files
+  def read_gear_property(gear_uuid, property)
+    file_path = "#{@gear_root_dir}/#{gear_uuid}/.env/#{property}"
     begin
       File.open(file_path) do |file|
         file.each_line do |line|
@@ -60,24 +60,17 @@ class LastAccessUpdater
     end
   end
 
-  def read_app_data(gear_uuid)
-    val = read_app_property(gear_uuid, 'OPENSHIFT_GEAR_DNS')
+  def read_gear_data(gear_uuid)
+    val = read_gear_property(gear_uuid, 'OPENSHIFT_GEAR_DNS')
     if val
-      @all_apps_info[val.downcase] = gear_uuid
+      @all_gears_info[val.downcase] = gear_uuid
     end
   end
 
-  # Create a hash of app dns --> app uuid
-  def load_apps_data
-    # Iterate over all files in root directory
-    Dir["#{@app_root_dir}/*"].each do |file|
-      file_name = File.basename(file)
-
-      # If filename is a length 24-32 uuid, then it is an app
-      if file_name =~ /^[0-9a-f]{24,32}$/
-        read_app_data(file_name)
-      end
-    end
+  # Create a hash of gear dns --> gear uuid
+  def load_gears_data
+    gecos = OpenShift::Config.new.get("GEAR_GECOS")
+    Etc.passwd {|u| read_gear_data(u.name) if u.gecos == gecos }
   end
 
   def add_alias_data
@@ -93,7 +86,7 @@ class LastAccessUpdater
         break if server_name && uuid
       end
       if server_name && uuid
-        @all_apps_info[server_name] = uuid
+        @all_gears_info[server_name] = uuid
       end
     end
 
@@ -103,7 +96,7 @@ class LastAccessUpdater
       Dir["#{gear_conf}/*"].each do |server_alias|
         IO.foreach(server_alias) do |line|
           if line =~ /ServerAlias/
-            @all_apps_info[line.split[1]] = uuid
+            @all_gears_info[line.split[1]] = uuid
             break
           end
         end
@@ -111,9 +104,9 @@ class LastAccessUpdater
     end
   end
 
-  def print_apps_data
-    @all_apps_info.each do |app_dns, gear_uuid|
-      puts "#{app_dns} - #{gear_uuid}"
+  def print_gears_data
+    @all_gears_info.each do |gear_dns, gear_uuid|
+      puts "#{gear_dns} - #{gear_uuid}"
     end
   end
 
@@ -137,8 +130,8 @@ class LastAccessUpdater
           end
           hostname = parts[0].strip
           # puts "#{hostname}-->#{timestamp}"
-          # Virtual host is same as app dns
-          gear_uuid = @all_apps_info[hostname]
+          # Virtual host is same as gear dns
+          gear_uuid = @all_gears_info[hostname]
           if gear_uuid
             count += 1
             # This structure of operations is optimized for getting an
@@ -200,7 +193,7 @@ single_instance do
   logfiles = [ENV["APACHE_ACCESS_LOG"], ENV["NODE_WEB_PROXY_ACCESS_LOG"], ENV["NODE_WEB_PROXY_WEBSOCKETS_LOG"]]
   l = LastAccessUpdater.new(ENV["GEAR_BASE_DIR"], logfiles)
   l.load_addrs_ignore
-  l.load_apps_data
+  l.load_gears_data
   l.add_alias_data
   gears_found_count = l.parse_log
   if gears_found_count==0
