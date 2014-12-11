@@ -1460,14 +1460,7 @@ module OpenShift
           end
 
           args = generate_update_cluster_control_args(updated_entries)
-          begin
-            @cartridge_model.do_control('update-cluster', proxy_cart, args: args)
-          rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
-            logger.info "BZ1025043: Gear #{self.uuid} - got exception running update-cluster for the proxy: #{e.message}"
-            listing, _, _ = Utils.oo_spawn("ls -laZ #{gear_env['OPENSHIFT_PRIMARY_CARTRIDGE_DIR']}/metadata")
-            logger.info "BZ1025043: Gear #{self.uuid} - directory listing of primary cartridge directory:\n#{listing}"
-            raise
-          end
+          @cartridge_model.do_control('update-cluster', proxy_cart, args: args)
         end
 
         def sync_git_repo(ssh_urls, gear_env)
