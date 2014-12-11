@@ -69,15 +69,8 @@ class LastAccessUpdater
 
   # Create a hash of gear dns --> gear uuid
   def load_gears_data
-    # Iterate over all files in root directory
-    Dir["#{@gear_root_dir}/*"].each do |file|
-      file_name = File.basename(file)
-
-      # If filename is a length 24-32 uuid, then it is a gear
-      if file_name =~ /^[0-9a-f]{24,32}$/
-        read_gear_data(file_name)
-      end
-    end
+    gecos = OpenShift::Config.new.get("GEAR_GECOS")
+    Etc.passwd {|u| read_gear_data(u.name) if u.gecos == gecos }
   end
 
   def add_alias_data
