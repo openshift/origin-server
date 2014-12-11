@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.32.3
+Version: 1.32.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -203,6 +203,14 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Thu Dec 11 2014 Adam Miller <admiller@redhat.com> 1.32.4-1
+- Merge pull request #6011 from a13m/bz1171289
+  (dmcphers+openshiftbot@redhat.com)
+- Fix tests for OOMPlugin (agrimm@redhat.com)
+- [TO_STAGE] Bug 1169306 - Clean up standalone db gear http conf in watchman
+  (rpenta@redhat.com)
+- Bug 1171289 - background pkill command in OOMPlugin (agrimm@redhat.com)
+
 * Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 1.32.3-1
 - Revert "Bug 1169306: Clean up standalone db gear http conf in watchman."
   (jhonce@redhat.com)
