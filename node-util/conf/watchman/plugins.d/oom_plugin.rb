@@ -67,6 +67,13 @@ class OomPlugin < OpenShift::Runtime::WatchmanPlugin
     return nil
   end
 
+  def safe_pkill(uuid)
+    # We need to background and detach this pkill command, because it
+    # will usually hang until the memsw limit is bumped.
+    pid = Kernel.spawn("pkill -9 -u #{uuid}")
+    Process.detach(pid)
+  end
+
   # Search for gears under_oom
   # @param [OpenShift::Runtime::WatchmanPluginTemplate::Iteration] iteration timestamps of given events
   # @return void
@@ -110,10 +117,7 @@ class OomPlugin < OpenShift::Runtime::WatchmanPlugin
           # restart a gear already at its memory limit is treacherous.
           increased = (increased * @memsw_multiplier).round(0)
           Syslog.info %Q(#{PLUGIN_NAME}: Increasing memory for gear #{uuid} to #{increased} and killing processes)
-          # We need to background and detach this pkill command, because it
-          # will usually hang until the memsw limit is bumped.
-          pid = Kernel.spawn("pkill -9 -u #{uuid}")
-          Process.detach(pid)
+          safe_pkill(uuid)
           if not try_cgstore(cgroup, MEMSW_LIMIT, increased)
             Syslog.warning %Q(#{PLUGIN_NAME}: Failed to increase memsw limit for gear #{uuid})
           end
