@@ -57,6 +57,7 @@ class FrontendPlugin < OpenShift::Runtime::WatchmanPlugin
         File.delete(conf_file)
       rescue
         # skip deleting gear_dir if the file deletion fails for any reason
+        @logger.warn %Q(watchman failed to clean up #{conf_file}: #{e.message}\n#{e.backtrace.join("\n  ")})
         next
       end
 
@@ -71,8 +72,8 @@ class FrontendPlugin < OpenShift::Runtime::WatchmanPlugin
 
       begin
         FileUtils.rm_r(gear_dir)
-      rescue
-        # ignore
+      rescue => e
+        @logger.warn %Q(watchman failed to clean up #{gear_dir}: #{e.message}\n#{e.backtrace.join("\n  ")})
       end
     end
 
