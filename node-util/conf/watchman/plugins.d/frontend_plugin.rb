@@ -64,7 +64,7 @@ class FrontendPlugin < OpenShift::Runtime::WatchmanPlugin
       gear_dir = conf_file.gsub('_0_', '_')
       gear_dir = gear_dir.gsub('.conf', '')
 
-      FileUtils.rm_r(gear_dir)
+      FileUtils.rm_r(gear_dir) if File.directory?(gear_dir)
     end
 
     # Cleanup the empty conf gear directories. For e.g. directories for scalable
