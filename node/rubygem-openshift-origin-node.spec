@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.33.1
+Version: 1.33.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Dec 11 2014 Adam Miller <admiller@redhat.com> 1.33.2-1
+- Fix tests for OOMPlugin (agrimm@redhat.com)
+
 * Mon Nov 24 2014 Adam Miller <admiller@redhat.com> 1.33.1-1
 - bump_minor_versions for sprint 54 (admiller@redhat.com)
 - Bug 1163964: Clarify message when ssh repository url fails
