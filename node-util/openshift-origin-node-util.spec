@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.32.4
+Version: 1.32.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -203,6 +203,12 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Thu Dec 11 2014 Troy Dawson <tdawson@redhat.com> 1.32.5-1
+- Log another warning for exceptions in file deletion (agrimm@redhat.com)
+- Log warnings for exceptions in file deletion (agrimm@redhat.com)
+- Bug 1173180 - rescue exceptions in frontend file and directory deletion
+  (agrimm@redhat.com)
+
 * Thu Dec 11 2014 Adam Miller <admiller@redhat.com> 1.32.4-1
 - Merge pull request #6011 from a13m/bz1171289
   (dmcphers+openshiftbot@redhat.com)
