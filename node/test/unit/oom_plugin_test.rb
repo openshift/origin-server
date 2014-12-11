@@ -40,9 +40,6 @@ class OomPluginTest < OpenShift::NodeBareTestCase
     @libcgroup_mock = mock('OpenShift::Runtime::Utils::Cgroups::Libcgroup')
     @libcgroup_mock.stubs(:parameters).returns(parameters)
 
-    @appcontainer_mock = mock('OpenShift::Runtime::ApplicationContainer')
-    @appcontainer_mock.stubs(:kill_procs).returns(nil)
-    
   end
 
   def test_no_oom_control
@@ -60,26 +57,51 @@ class OomPluginTest < OpenShift::NodeBareTestCase
   end
 
   def test_oom_control
+    # This tests over a set of four gears where only one is OOM
+    # That gear is tested under three conditions:
+    #   1) under_oom = 1, mem usage == mem limit
+    #   2) under_oom = 1, mem usage < mem limit
+    #   3) under_oom = 0, mem usage < mem limit
+    # Then it is restarted.
     @libcgroup_mock.expects(:fetch).
         with('memory.oom_control').
         returns({'memory.oom_control' =>
+                     {'under_oom'        => '0',
+                      'oom_kill_disable' => '0'}},
+                {'memory.oom_control' =>
                      {'under_oom'        => '1',
+                      'oom_kill_disable' => '0'}},
+                {'memory.oom_control' =>
+                     {'under_oom'        => '1',
+                      'oom_kill_disable' => '0'}},
+                {'memory.oom_control' =>
+                     {'under_oom'        => '0',
                       'oom_kill_disable' => '0'}}).
-        times(@uuids.length)
-    @libcgroup_mock.expects(:fetch).with(OomPlugin::MEMSW_LIMIT).returns({OomPlugin::MEMSW_LIMIT => 1024}).times(@uuids.length)
-    @libcgroup_mock.expects(:fetch).with(OomPlugin::MEMSW_USAGE).returns({OomPlugin::MEMSW_USAGE => 1024}).times(@uuids.length * (OomPlugin::BUMP_RETRIES + 1))
-    @libcgroup_mock.expects(:store).with(OomPlugin::MEMSW_LIMIT, kind_of(Fixnum)).times(@uuids.length * (OomPlugin::BUMP_RETRIES + 1))
-
-    OpenShift::Runtime::ApplicationContainer.stubs(:from_uuid).
-        with(any_of(*@uuids)).
-        returns(@appcontainer_mock)
+        times(@uuids.length + 3)
+    @libcgroup_mock.expects(:fetch).
+        with(OomPlugin::MEMSW_LIMIT).
+        returns({OomPlugin::MEMSW_LIMIT => 1024}).
+        times(1)
+    @libcgroup_mock.expects(:fetch).
+        with(OomPlugin::MEMSW_USAGE).
+        returns({OomPlugin::MEMSW_USAGE => 1024},
+                {OomPlugin::MEMSW_USAGE => 1023}).
+        times(4)
+    @libcgroup_mock.expects(:store).
+        with(OomPlugin::MEMSW_LIMIT, kind_of(Fixnum)).
+        times(4)
 
     OpenShift::Runtime::Utils::Cgroups::Libcgroup.stubs(:new).
         with(any_of(*@uuids)).
         returns(@libcgroup_mock)
 
-    @operation.expects(:call).with(:restart, any_of(*@uuids)).times(@uuids.length)
+    @operation.expects(:call).with(:restart, @uuids[1]).times(1)
 
-    OomPlugin.new(nil, nil, @gears, @operation, 0).apply(nil)
+    oom_plugin = OomPlugin.new(nil, nil, @gears, @operation, 0)
+    # stubbing the pkill call.  Is there a better way to mock this?
+    def oom_plugin.safe_pkill uuid
+      return nil
+    end
+    oom_plugin.apply(nil)
   end
 end
