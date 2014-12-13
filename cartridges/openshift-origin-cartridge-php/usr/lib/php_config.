@@ -51,24 +51,24 @@ function enable_modules {
 
         # Is module disabled via ENV VAR?
         modvar="OPENSHIFT_PHP_${module^^}_ENABLED"
-        if [[ "${!modvar,,}" == "false" ]]; then
-            [ -n "${DEBUG:-}" ] && printf "%14s disabled via %s=false, ignoring %s\n" "$module" "\$OPENSHIFT_PHP_${module^^}_ENABLED" "$file"
+        if [ "${!modvar,,}" == "false" ]; then
+            [ "${DEBUG:-}" = true ] && printf "%14s disabled via %s=false, ignoring %s\n" "$module" "\$OPENSHIFT_PHP_${module^^}_ENABLED" "$file"
             continue
         fi
 
         # Is module already loaded (from the path with higher priority)?
         if [ -n "${modules[$module]:-}" ]; then
-            [ -n "${DEBUG:-}" ] && printf "%14s already enabled, ignoring %s\n" "$module" "$file"
+            [ "${DEBUG:-}" = true ] && printf "%14s already enabled, ignoring %s\n" "$module" "$file"
             continue
         fi
 
         # Save module for later reference and put its configuration into openshift.ini
         modules[$module]=$file
         if [[ $file == *\.erb ]]; then
-            [ -n "${DEBUG:-}" ] && printf "%14s enabled, loading from %s (erb-processed)\n" "$module" "$file"
+            [ "${DEBUG:-}" = true ] && printf "%14s enabled, loading from %s (erb-processed)\n" "$module" "$file"
             oo-erb $file >> ${PHP_INI_SCAN_DIR}/openshift.ini
         else
-            [ -n "${DEBUG:-}" ] && printf "%14s enabled, loading from %s\n" "$module" "$file"
+            [ "${DEBUG:-}" = true ] && printf "%14s enabled, loading from %s\n" "$module" "$file"
             cat $file >> ${PHP_INI_SCAN_DIR}/openshift.ini
         fi
     done
@@ -81,7 +81,7 @@ function enable_modules {
     while read line; do
         # Did we hit a .so library loading error?
         if [[ ! "$line" == *"cannot open shared object file: No such file or directory"* ]]; then
-            [ -n "${DEBUG:-}" ] && printf "Skipping unknown error: %s\n" "$line"
+            [ "${DEBUG:-}" = true ] && printf "Skipping unknown error: %s\n" "$line"
             continue
         fi
 
@@ -94,17 +94,17 @@ function enable_modules {
         # Did we load the module that caused the error? If yes, put it to failed_modules
         if [ -n "${modules[$module]:-}" ]; then
             file="${modules[$module]:-}"
-            [ -n "${DEBUG:-}" ] && printf "%14s to be disabled for PHP Warnings, it failed to be loaded (RPM not installed?)\n" "$module"
+            [ "${DEBUG:-}" = true ] && printf "%14s to be disabled for PHP Warnings, it failed to be loaded (RPM not installed?)\n" "$module"
             failed_modules+=("$module")
         else
-            [ -n "${DEBUG:-}" ] && printf "%14s failed to be disabled, can't remember loading that module\n" "$module"
+            [ "${DEBUG:-}" = true ] && printf "%14s failed to be disabled, can't remember loading that module\n" "$module"
         fi
     done < <(php_context "php -m" 2>&1 1>/dev/null)
 
     # Disable modules that caused the errors at once
     if [ ${#failed_modules[@]} -gt 0 ]; then
         tmpfile=$(mktemp)
-        [ -n "${DEBUG:-}" ] && local IFS=',' && printf "%14s => disabling %s modules in openshift.ini\n" "" "${failed_modules[*]}"
+        [ "${DEBUG:-}" = true ] && local IFS=',' && printf "%14s => disabling %s modules in openshift.ini\n" "" "${failed_modules[*]}"
         local IFS='|'
         sed -r 's/(.*[ =/]('"${failed_modules[*]}"')\.so)/;**DISABLED by OpenShift runtime** \1/g' ${PHP_INI_SCAN_DIR}/openshift.ini > $tmpfile
         cat $tmpfile > ${PHP_INI_SCAN_DIR}/openshift.ini
