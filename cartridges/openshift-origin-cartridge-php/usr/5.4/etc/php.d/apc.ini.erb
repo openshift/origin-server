@@ -18,7 +18,10 @@ apc.enabled=1
 apc.shm_size=<%= (ENV['OPENSHIFT_PHP_APC_SHM_SIZE'] =~ /^[0-9]+[MG]$/) ? ENV['OPENSHIFT_PHP_APC_SHM_SIZE'] : ((ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i/16).to_i.to_s+"M") %>
 
 ; The shared memory size reserved for strings, with M/G suffixe
-apc.shm_strings_buffer=8M
+; WARNING: only enable this buffer if you don't use Zend Opcache
+;
+; OpenShift disabled to fix https://bugzilla.redhat.com/show_bug.cgi?id=1173796. Don't turn this on.
+apc.shm_strings_buffer=0
 
 ; A "hint" about the number of distinct source files that will be included or 
 ; requested on your web server. Set to zero or omit if you are not sure;

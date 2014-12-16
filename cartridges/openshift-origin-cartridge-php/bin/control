@@ -36,20 +36,8 @@ function start() {
     return $?
 }
 
-# Explicitely stop and start instead of reload/restart, until the
-# https://bugzilla.redhat.com/show_bug.cgi?id=1173796 is fixed (segfault)
-function bug_1173796() {
-    # PHP 5.4 + Zend OPCache enabled?
-    if [[ "$OPENSHIFT_PHP_VERSION" == "5.4" && -n "$(php_context 'php -m' | grep -i opcache)" ]]; then
-        stop
-        start
-        exit $?
-    fi
-}
-
 function reload() {
     echo "Reloading PHP ${OPENSHIFT_PHP_VERSION} cartridge (Apache+mod_php)"
-    bug_1173796
     pre_start_httpd_config
     httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
     kill -USR1 $httpd_pid && wait_for_pid_file $HTTPD_PID_FILE
@@ -58,7 +46,6 @@ function reload() {
 
 function restart() {
     echo "Restarting PHP ${OPENSHIFT_PHP_VERSION} cartridge (Apache+mod_php)"
-    bug_1173796
     ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     if [ -f "$HTTPD_PID_FILE" ]; then
         pre_start_httpd_config
