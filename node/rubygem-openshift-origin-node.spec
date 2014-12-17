@@ -233,6 +233,8 @@ fi
 %attr(0750,-,-) /usr/sbin/*
 %attr(0755,-,-) /usr/bin/*
 %attr(0750,-,-) %{_var}/log/openshift/node
+%attr(0640,-,-) %ghost %{_var}/log/openshift/node/platform.log
+%attr(0640,-,-) %ghost %{_var}/log/openshift/node/platform-trace.log
 /usr/libexec/openshift/lib/quota_attrs.sh
 /usr/libexec/openshift/lib/archive_git_submodules.sh
 %dir %attr(0755,-,-) %{openshift_lib}/cartridge_sdk
