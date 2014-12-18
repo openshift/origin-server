@@ -33,6 +33,7 @@ Feature: Cartridge Lifecycle JBossAS Verification Tests
     When I snapshot the application
     Then the application should be accessible
     When a new environment variable key=OPENSHIFT_DUMMY value="\"value with spaces\"" is added
+    When a new environment variable key=OPENSHIFT_DUMMY2 value="value with' 'simple quotes" is added
     And a new file is added and pushed to the client-created application repo
     And the application is changed
     Then it should be updated successfully
