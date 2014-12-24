@@ -39,7 +39,6 @@ Requires:      %{?scl:%scl_prefix}rubygem(uglifier)
 Requires:      %{?scl:%scl_prefix}rubygem(syslog-logger)
 
 %if 0%{?fedora}%{?rhel} <= 6
-BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
 BuildRequires:  v8314
 %endif

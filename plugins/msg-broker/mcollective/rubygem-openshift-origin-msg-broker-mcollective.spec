@@ -29,7 +29,6 @@ Requires:      selinux-policy-targeted
 Requires:      policycoreutils-python
 Requires:      openshift-origin-msg-common
 %if 0%{?fedora}%{?rhel} <= 6
-BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
 %endif
 %if 0%{?fedora} >= 19
