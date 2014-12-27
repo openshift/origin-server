@@ -7,6 +7,7 @@
 %global gem_name openshift-origin-container-libvirt
 %global rubyabi 1.9.1
 %define  debug_package %{nil}
+%define _unpackaged_files_terminate_build 0 
 
 Summary:       OpenShift plugin for LibVirt-LXC based containers
 Name:          rubygem-%{gem_name}
