@@ -37,5 +37,8 @@ cp -r profile/* %{buildroot}/etc/tune-profiles/openshift-node/
 /usr/sbin/tuned-admin profile default
 
 %changelog
+* Mon Jan 05 2015 Scott Dodson <sdodson@redhat.com> 0.1.0-1
+- new package built with tito
+
 * Mon Jan 05 2015 Scott Dodson <sdodson@redhat.com> - 0.1-1
 - Initial packaging
