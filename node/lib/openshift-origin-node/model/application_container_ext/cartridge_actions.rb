@@ -1004,6 +1004,9 @@ module OpenShift
             end
 
             result[:status] = RESULT_SUCCESS
+          rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
+            result[:status] = RESULT_FAILURE
+            result[:errors] << "Error activating gear: #{e.message}\n#{e.stdout}\n#{e.stderr}\n"
           rescue Exception => e
             result[:status] = RESULT_FAILURE
             result[:errors] << "Error activating gear: #{e.message}"
