@@ -215,8 +215,12 @@ sed -i -e '/NON-RUNTIME BEGIN/,/NON-RUNTIME END/d' %{buildroot}%{brokerdir}/Gemf
 %dir %attr(0750,-,-) %{brokerdir}/httpd/conf.d
 %{brokerdir}
 %{htmldir}/broker
+# these are conf files, but we do not usually want users to edit them:
+%config %{brokerdir}/httpd/broker.conf
+%config %{brokerdir}/httpd/httpd.conf
 %config %{brokerdir}/config/environments/production.rb
 %config %{brokerdir}/config/environments/development.rb
+# these confs are likely to require user editing; updates should not overwrite edits:
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000002_openshift_origin_broker_proxy.conf
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000002_openshift_origin_broker_servername.conf
 %config(noreplace) %{_sysconfdir}/openshift/broker.conf
