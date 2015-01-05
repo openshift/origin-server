@@ -1319,6 +1319,22 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     assert_equal 'success', result[:status]
   end
 
+  def test_shell_execution_error
+    deployment_id    = 'abcd1234'
+    activate_options = {deployment_id: deployment_id}
+
+    @container.expects(:deployment_exists?).with(deployment_id).returns(true)
+    @container.expects(:get_deployment_datetime_for_deployment_id).
+        with(deployment_id).
+        raises(::OpenShift::Runtime::Utils::ShellExecutionException.new('unit test', -100, 'stdout', 'stderr'))
+
+    results = @container.activate_local_gear(activate_options)
+
+    assert_equal('failure', results[:status])
+    assert_equal(1, results[:errors].size)
+    assert_match(/stdout\nstderr/, results[:errors][0])
+  end
+
   def test_activate_local_gear_deployment_doesnt_exist
     deployment_id = 'abcd1234'
     activate_options = {deployment_id: deployment_id}
