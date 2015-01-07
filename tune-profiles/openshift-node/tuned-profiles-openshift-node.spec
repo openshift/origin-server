@@ -1,5 +1,5 @@
 Name:     tuned-profiles-openshift-node
-Version:  0.1.0
+Version:  0.1.1
 Release:  1%{?dist}
 Summary:  tuned profile for openshift node hosts
 
@@ -37,6 +37,9 @@ cp -r profile/* %{buildroot}/etc/tune-profiles/openshift-node/
 /usr/sbin/tuned-admin profile default
 
 %changelog
+* Wed Jan 07 2015 Adam Miller <admiller@redhat.com> 0.1.1-1
+- new package built with tito
+
 * Mon Jan 05 2015 Scott Dodson <sdodson@redhat.com> 0.1.0-1
 - new package built with tito
 
