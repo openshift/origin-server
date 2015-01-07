@@ -32,7 +32,7 @@ fi
 
 if force_clean_build_enabled_for_latest_deployment; then
   echo "force_clean_build marker found; removing Maven dependencies."
-  rm -rf ${OPENSHIFT_HOMEDIR}.m2/* ${OPENSHIFT_HOMEDIR}.m2/.[^.]*
+  find ${OPENSHIFT_HOMEDIR}.m2/* -maxdepth 0 -name 'settings.xml' -prune -o -exec rm -rf '{}' ';'
 fi
 
 # Calculate build heap size
