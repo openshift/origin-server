@@ -1,0 +1,16 @@
+# ktune sysctl settings for OpenShift Enterprise nodes
+#
+#  This will increase kernel semaphores to accommodate more httpds:
+kernel.sem = 250  32000 32  4096
+# This increases the ephemeral port range to accommodate application proxies:
+net.ipv4.ip_local_port_range = 15000 35530
+# This increases the connection-tracking table size
+net.netfilter.nf_conntrack_max = 1048576
+net.ipv4.ip_forward = 1
+net.ipv4.conf.all.route_localnet = 1
+kernel.msgmnb = 65536
+kernel.msgmax = 65536
+# prevents short requests from exhausting connection table BZ#1085115
+net.ipv4.tcp_tw_reuse = 1
+# allow for processes with a lot of threads (JBOSS)
+kernel.pid_max=131072
