@@ -239,7 +239,7 @@ function build() {
       if force_clean_build_enabled_for_latest_deployment
       then
           echo "Force-clean build is enabled. Removing Maven dependencies." 1>&2
-          rm -rf ${OPENSHIFT_HOMEDIR}.m2/* ${OPENSHIFT_HOMEDIR}.m2/.[^.]*
+          find ${OPENSHIFT_HOMEDIR}.m2/* -maxdepth 0 -name 'settings.xml' -prune -o -exec rm -rf '{}' ';'
       fi
 
       if [ -f ${OPENSHIFT_REPO_DIR}pom.xml ] && ! marker_present skip_maven_build
