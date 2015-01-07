@@ -65,12 +65,24 @@ replacement_conf_files=(
   "context.xml"
 )
 
+# Due to how bash handles quotes within variables, we need to write the entire
+# sed command out to a file and then run it, rather than running the sed
+# command directly from within the script, passing the variables as arguments
+# See http://mywiki.wooledge.org/BashFAQ/050
 for conf_file in "${replacement_conf_files[@]}"; do
   if [ -f ${OPENSHIFT_REPO_DIR}/.openshift/config/${conf_file} ]
   then
+    cat <<EOF > /tmp/${conf_file}.sh
     sed ${sed_replace_env} ${OPENSHIFT_REPO_DIR}/.openshift/config/${conf_file} > ${OPENSHIFT_JBOSSEWS_DIR}/conf/${conf_file}
-  else 
-    sed ${sed_replace_env} template/.openshift/config/${conf_file} > ${OPENSHIFT_JBOSSEWS_DIR}/conf/${conf_file}    
+EOF
+    . /tmp/${conf_file}.sh
+    rm /tmp/${conf_file}.sh
+  else
+    cat <<EOF > /tmp/${conf_file}.sh
+    echo "sed ${sed_replace_env} template/.openshift/config/${conf_file} > ${OPENSHIFT_JBOSSEWS_DIR}/conf/${conf_file}"
+EOF
+    . /tmp/${conf_file}.sh
+    rm /tmp/${conf_file}.sh
   fi
 done
 
