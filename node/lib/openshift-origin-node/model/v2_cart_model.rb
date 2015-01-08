@@ -1061,7 +1061,6 @@ module OpenShift
       # This is only called when a cartridge is removed from a cartridge not a gear delete
       def disconnect_frontend(cartridge)
         gear_env       = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
-        app_dns        = gear_env["OPENSHIFT_APP_DNS"].to_s.downcase
 
         mappings = []
         cartridge.endpoints.each do |endpoint|
@@ -1074,15 +1073,6 @@ module OpenShift
         unless mappings.empty?
           fe_server =  FrontendHttpServer.new(@container)
           fe_server.disconnect(*mappings)
-          if cartridge.web_proxy?
-            gear_fqdn = fe_server.fqdn
-            if gear_fqdn != app_dns
-              # secondary web-proxy gear
-              fe_server.set_fqdn(app_dns)
-              fe_server.disconnect(*mappings)
-              fe_server.set_fqdn(gear_fqdn)
-            end
-          end
         end
       end
 
@@ -1127,17 +1117,9 @@ module OpenShift
               logger.info("Connecting frontend mapping for #{@container.uuid}/#{cartridge.name}: "\
                       "[#{mapping.frontend}] => [#{backend_uri}] with options: #{mapping.options}")
               reported_urls = frontend.connect(mapping.frontend, backend_uri, options)
-              if cartridge.web_proxy?
-                gear_fqdn = frontend.fqdn
-                if gear_fqdn != app_dns
-                  # secondary web-proxy gear
-                  frontend.set_fqdn(app_dns)
-                  new_options = options.dup
-                  # target_update will misfire because fqdn has changed
-                  new_options.delete("target_update")
-                  reported_urls += frontend.connect(mapping.frontend, backend_uri, new_options)
-                  frontend.set_fqdn(gear_fqdn)
-                end
+              if cartridge.web_proxy? && frontend.fqdn != app_dns
+                # secondary web-proxy gear should have app DNS routed too
+                frontend.add_alias(app_dns)
               end
               if reported_urls
                 reported_urls.each do |url|
