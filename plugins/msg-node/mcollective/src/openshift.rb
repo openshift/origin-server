@@ -113,7 +113,6 @@ module MCollective
 
 
       def echo_action
-        validate :msg, String
         reply[:msg] = request[:msg]
       end
 
@@ -267,10 +266,6 @@ module MCollective
       # Upgrade between versions
       #
       def upgrade_action
-        validate :uuid, /^[a-zA-Z0-9]+$/
-        validate :app_uuid, /^[a-zA-Z0-9]+$/
-        validate :version, /^.+$/
-        validate :namespace, /^.+$/
         uuid                     = request[:uuid]
         application_uuid         = request[:app_uuid]
         namespace                = request[:namespace]
@@ -1066,7 +1061,6 @@ module MCollective
       # Set the district for a node
       #
       def set_district_action
-        validate :uuid, /^[a-zA-Z0-9]+$/
         uuid      = request[:uuid].to_s if request[:uuid]
         active    = request[:active]
         first_uid = request[:first_uid]
@@ -1149,7 +1143,6 @@ module MCollective
       # Returns whether a gear is on a server
       #
       def has_gear_action
-        validate :uuid, /^[a-zA-Z0-9]+$/
 
         uuid             = request[:uuid].to_s
         reply[:output]   = File.exist? PathUtils.join(@@config.get('GEAR_BASE_DIR'), uuid)
@@ -1160,8 +1153,6 @@ module MCollective
       # Returns whether an embedded app is on a server
       #
       def has_embedded_app_action
-        validate :uuid, /^[a-zA-Z0-9]+$/
-        validate :embedded_type, /^.+$/
         uuid             = request[:uuid].to_s if request[:uuid]
         embedded_type    = request[:embedded_type]
         reply[:output]   = File.exist? PathUtils.join(@@config.get('GEAR_BASE_DIR'), uuid, embedded_type)
@@ -1172,7 +1163,6 @@ module MCollective
       # Returns the entire set of env variables for a given gear uuid
       #
       def get_gear_envs_action
-        validate :uuid, /^[a-zA-Z0-9]+$/
         uuid             = request[:uuid].to_s if request[:uuid]
         dir              = OpenShift::Runtime::ApplicationContainer.from_uuid(uuid).container_dir
         env_hash         = OpenShift::Runtime::Utils::Environ.for_gear(dir)
@@ -1226,8 +1216,6 @@ module MCollective
       # Returns the uid for a given uuid
       #
       def get_gear_uid_action
-        validate :gear_uuid, /^[a-zA-Z0-9]+$/
-
         gear_uuid        = request[:gear_uuid].to_s if request[:gear_uuid]
         container        = OpenShift::Runtime::ApplicationContainer.from_uuid(gear_uuid)
         reply[:output]   = container.uid
@@ -1254,10 +1242,6 @@ module MCollective
       # Returns whether the cartridge is present on a gear
       #
       def has_app_cartridge_action
-        validate :app_uuid, /^[a-zA-Z0-9]+$/
-        validate :gear_uuid, /^[a-zA-Z0-9]+$/
-        validate :cartridge, /\A[a-zA-Z0-9\.\-\/_]+\z/
-
         gear_uuid = request[:gear_uuid].to_s if request[:gear_uuid]
         cart_name = request[:cartridge]
 
