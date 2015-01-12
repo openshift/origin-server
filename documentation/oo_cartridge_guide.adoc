@@ -1199,6 +1199,17 @@ else
 fi
 ....
 
+=== Rails 4.0
+
+In case of creating application with Rails 4.0 or higher, one thing need to be kept in mind.
+
+==== Rack version
+
+When using the Rails 4.0 or higher, user has to use the rack 1.5.2 version in his Gemfile, in order to start the Passenger.
+....
+gem 'rack',  '~> 1.5.2'
+....
+
 === Environment Variables
 The `ruby` cartridge provides several environment variables to reference for ease of use:
 
