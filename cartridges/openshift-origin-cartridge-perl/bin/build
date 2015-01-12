@@ -13,6 +13,7 @@ fi
 LINUX_DISTRO=$(</etc/redhat-release)
 RED_HAT_DISTRO_NAME="Red Hat"
 MIRROR="--mirror http://search.cpan.org/CPAN"
+EXCLUDED_PRAGMAS=("perl" "strict" "warnings" "constant" "open" "lib" "vars" "base" "utf8")
 
 if [[ "$LINUX_DISTRO" =~ $RED_HAT_DISTRO_NAME* && $OPENSHIFT_GEAR_DNS =~ .*\.rhcloud\.com$ ]]
 then
@@ -44,6 +45,11 @@ then
 
   for f in $(( echo "$DEPS" | xargs /usr/lib/rpm/perl.req | awk '{ print $1 }' | sed 's/^perl(\(.*\))$/\1/'; cat ${CPAN_PATH} 2>/dev/null ) | sort -u | grep . )
   do
+    # Skipping well-known perl pragmas
+    for element in ${EXCLUDED_PRAGMAS[@]}; do
+      [[ $element == $f ]] && continue
+    done
+
     # Skip checking if module is available locally or installed in system
     # if module is listed in CPAN_PATH
     #
