@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.33.1
+Version: 1.34.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -285,6 +285,16 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Jan 13 2015 Adam Miller <admiller@redhat.com>
+- Merge pull request #6027 from sosiouxme/bz1155677-secondaryha-fqdn
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1178188 - Enhance logging ApplicationContainer#activate_local_gear
+  failures (jhonce@redhat.com)
+- node: fix secondary haproxy app fqdn (lmeyer@redhat.com)
+- Revert "we do not want %%ghost-ed log files" (lmeyer@redhat.com)
+- Removing debug logging added as a part of #4059 for bug 1025043
+  (j.hadvig@gmail.com)
+
 * Mon Nov 24 2014 Adam Miller <admiller@redhat.com> 1.33.1-1
 - bump_minor_versions for sprint 54 (admiller@redhat.com)
 - Bug 1163964: Clarify message when ssh repository url fails
