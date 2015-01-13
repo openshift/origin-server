@@ -29,7 +29,6 @@ BuildRequires: systemd-units
 %endif
 
 %if 0%{?fedora}%{?rhel} <= 6
-BuildRequires: nodejs010-build
 BuildRequires: scl-utils-build
 %else
 BuildRequires: nodejs-devel

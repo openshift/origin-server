@@ -25,7 +25,6 @@ Requires:      rubygem(openshift-origin-common)
 Requires:      openshift-origin-broker
 Requires:      %{?scl:%scl_prefix}rubygem-fog >= 1.7.0
 %if 0%{?fedora}%{?rhel} <= 6
-BuildRequires: ruby193-build
 BuildRequires: scl-utils-build
 %endif
 %if 0%{?fedora} >= 19

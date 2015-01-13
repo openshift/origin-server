@@ -24,7 +24,6 @@ Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem(json)
 Requires:      rubygem(openshift-origin-common)
 %if 0%{?fedora}%{?rhel} <= 6
-BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
 %endif
 %if 0%{?fedora} >= 19

@@ -27,7 +27,6 @@ Requires:      rubygem(openshift-origin-node)
 Requires:      rubygem(openshift-origin-frontend-apachedb)
 Requires:      openshift-origin-node-proxy
 %if 0%{?fedora}%{?rhel} <= 6
-BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
 %endif
 %if 0%{?fedora} >= 19

@@ -53,7 +53,6 @@ Requires:      gcc-c++
 %endif
 
 %if 0%{?fedora}%{?rhel} <= 6
-BuildRequires:  ruby193-build
 BuildRequires:  scl-utils-build
 %endif
 BuildRequires: %{?scl:%scl_prefix}rubygem-rails
