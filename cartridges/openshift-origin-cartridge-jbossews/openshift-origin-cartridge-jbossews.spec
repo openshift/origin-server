@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 1.31.1
+Version: 1.31.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,6 +78,15 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jan 13 2015 Adam Miller <admiller@redhat.com> 1.31.2-1
+- Bug 1180399: Build fails if the default settings.xml is missing
+  (j.hadvig@gmail.com)
+- Merge pull request #6035 from jhadvig/BZ1176970
+  (dmcphers+openshiftbot@redhat.com)
+- BUG 1176970: Delete all dependencies except settings.xml (j.hadvig@gmail.com)
+- Bug 1175489: Updating sed logic and escaping env vars (j.hadvig@gmail.com)
+- Bug 1175489: Wrong grep regexp in jbossews (j.hadvig@gmail.com)
+
 * Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 1.31.1-1
 - bump_minor_versions for sprint 55 (admiller@redhat.com)
 
