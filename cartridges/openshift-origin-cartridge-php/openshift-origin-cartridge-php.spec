@@ -3,7 +3,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.30.1
+Version: 1.30.2
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -56,6 +56,18 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Tue Jan 13 2015 Adam Miller <admiller@redhat.com> 1.30.2-1
+- Change the style more readable (nakayamakenjiro@gmail.com)
+- Fix of bz1176491 (nakayamakenjiro@gmail.com)
+- Fix bug 1173796 (vvitek@redhat.com)
+- Change PHP 5.4 APC+OPCache memory comsumption formula (vvitek@redhat.com)
+- Remove extra unused file (vvitek@redhat.com)
+- Fix bug 1173796 (vvitek@redhat.com)
+- Refactor PHP enable_modules to support Zend Extensions (vvitek@redhat.com)
+- Move Xdebug enabling/disabling logic to enable_modules (vvitek@redhat.com)
+- Remove duplicate call to pre_start_httpd_config (vvitek@redhat.com)
+- Fix PHP 5.4 Zend OPCache default gear memory consumption (vvitek@redhat.com)
+
 * Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 1.30.1-1
 - Merge pull request #6002 from VojtechVitek/enable_zend_opcache
   (dmcphers+openshiftbot@redhat.com)
