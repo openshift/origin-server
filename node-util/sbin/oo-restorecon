@@ -38,10 +38,16 @@ if ARGV.empty? and options[:all] == false
 end
 
 def restore_con(dir, label, verbose = False)
-    puts "restorecon -R #{dir}" if verbose
-    %x[restorecon -R #{dir} ]
+    puts "restorecon -R -v #{dir}" if verbose
+    result = %x[restorecon -R -v #{dir} ]
+    unless result.empty? && verbose
+        puts result if verbose
+    end
     puts "chcon -l #{label} -R #{dir}*" if verbose
-    %x[chcon -l #{label} -R #{dir}* ]
+    result = %x[chcon -l #{label} -R #{dir}* ]
+    unless result.empty? && verbose
+        puts result if verbose
+    end
 end
 
 SelinuxContext = OpenShift::Runtime::Utils::SelinuxContext
