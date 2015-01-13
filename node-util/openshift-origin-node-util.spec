@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.33.1
+Version: 1.33.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -203,6 +203,17 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Tue Jan 13 2015 Adam Miller <admiller@redhat.com> 1.33.2-1
+- Merge pull request #6018 from sosiouxme/bz1172548-oo-last-access
+  (dmcphers+openshiftbot@redhat.com)
+- oo-last-access: fix gear UUID detection (lmeyer@redhat.com)
+- oo-last-access: rename "app" to "gear" (lmeyer@redhat.com)
+- restorer.php: allow predictable UUIDs to be restored too (lmeyer@redhat.com)
+- Bug 1172323 - Only remove unreferenced empty directories from the frontend
+  configuration (rpenta@redhat.com)
+- Revert "Bug 1169306: Clean up standalone db gear http conf in watchman."
+  (admiller@redhat.com)
+
 * Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 1.33.1-1
 - bump_minor_versions for sprint 55 (admiller@redhat.com)
 
