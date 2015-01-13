@@ -47,7 +47,7 @@ then
   do
     # Skipping well-known perl pragmas
     for element in ${EXCLUDED_PRAGMAS[@]}; do
-      [[ $element == $f ]] && continue
+      [[ $element == $f ]] && continue 2
     done
 
     # Skip checking if module is available locally or installed in system
