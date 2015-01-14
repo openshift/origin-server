@@ -21,11 +21,8 @@ Version-Overrides:
 License: The PHP License, version 3.0
 License-Url: http://www.php.net/license/3_0.txt
 Vendor: php.net
-Cartridge-Version: 0.0.23
-Compatible-Versions:
-- 0.0.20
-- 0.0.21
-- 0.0.22
+Cartridge-Version: 0.0.24
+Compatible-Versions: []
 Cartridge-Vendor: redhat
 Categories:
 - service
