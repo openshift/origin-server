@@ -7,7 +7,7 @@ target_dir=$2
 set -xe;
 
 pushd ${OPENSHIFT_TMP_DIR} > /dev/null
-    git clone $git_dir git_cache
+    git clone -b ${OPENSHIFT_DEPLOYMENT_BRANCH} --single-branch $git_dir git_cache
 
     pushd git_cache > /dev/null
         prefix_length=`expr length $PWD`
