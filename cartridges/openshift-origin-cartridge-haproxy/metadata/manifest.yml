@@ -10,9 +10,10 @@ Version: '1.4'
 License: GPLv2+
 License-Url: http://www.gnu.org/licenses/gpl-2.0.html
 Vendor: http://haproxy.1wt.eu/
-Cartridge-Version: 0.0.22
+Cartridge-Version: 0.0.23
 Compatible-Versions:
 - 0.0.21
+- 0.0.22
 Cartridge-Vendor: redhat
 Categories:
 - web_proxy
