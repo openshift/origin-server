@@ -1,6 +1,6 @@
 module OpenShift
   class DataStore
-    def self.db(read_preference=:secondary, session_name='default')
+    def self.db(read_preference=:secondary_preferred, session_name='default')
       config = Mongoid::Config.sessions[session_name]
       hosts = config['hosts']
       ssl = config['options']['ssl']
