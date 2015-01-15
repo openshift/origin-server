@@ -66,6 +66,12 @@ work_mem = 3MB
 effective_cache_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 40 : (ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i * 0.55).to_i %>MB
 
 #------------------------------------------------------------------------------
+# PREAPRED TRANSACTIONS
+#------------------------------------------------------------------------------
+<% if ENV['OPENSHIFT_POSTGRESQL_MAX_PREPARED_TRANSACTIONS'] && ENV['OPENSHIFT_POSTGRESQL_MAX_PREPARED_TRANSACTIONS'].to_i > 0 %>
+max_prepared_transactions = <%= ENV['OPENSHIFT_POSTGRESQL_MAX_PREPARED_TRANSACTIONS'] || 0 %>
+
+#------------------------------------------------------------------------------
 # CLIENT CONNECTION DEFAULTS
 #------------------------------------------------------------------------------
 # - Locale and Formatting -
