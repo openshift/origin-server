@@ -2269,7 +2269,7 @@ module OpenShift
       end
 
       if $?.exitstatus != 0
-        raise OpenShift::NodeException.new("Error moving app '#{app.name}',platform '#{platform}', gear '#{gear.uuid}' from #{source_container.id} to #{destination_container.id}", 143)
+        raise OpenShift::NodeException.new("Error moving app '#{app.name}', platform '#{platform}', gear '#{gear.uuid}' from #{source_container.id} to #{destination_container.id}", 143)
       end
 
       log_debug "DEBUG: Moving system components for app '#{app.name}', gear '#{gear.uuid}' to #{destination_container.id}"
