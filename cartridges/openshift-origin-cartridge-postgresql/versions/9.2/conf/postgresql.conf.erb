@@ -70,6 +70,9 @@ effective_cache_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS']
 #------------------------------------------------------------------------------
 <% if ENV['OPENSHIFT_POSTGRESQL_MAX_PREPARED_TRANSACTIONS'] && ENV['OPENSHIFT_POSTGRESQL_MAX_PREPARED_TRANSACTIONS'].to_i > 0 %>
 max_prepared_transactions = <%= ENV['OPENSHIFT_POSTGRESQL_MAX_PREPARED_TRANSACTIONS'] || 0 %>
+<% else %>
+max_prepared_transactions = 0
+<% end %>
 
 #------------------------------------------------------------------------------
 # CLIENT CONNECTION DEFAULTS
