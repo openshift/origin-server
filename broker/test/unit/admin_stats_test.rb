@@ -9,7 +9,8 @@ class AdminStatsTest < ActiveSupport::TestCase
     super
     @stats = Admin::Stats::Maker.new
     @dist_uuid = "1234"
-    @node_details = faux_node_entry("test", @dist_uuid, "true").merge({
+    @region_id = '12345'
+    @node_details = faux_node_entry("test", @dist_uuid, "true", @region_id).merge({
       max_active_gears: 10,
       gears_started_count: 7,
       gears_idle_count: 10,
@@ -21,6 +22,7 @@ class AdminStatsTest < ActiveSupport::TestCase
       gears_usage_pct: 230,
       gears_active_usage_pct: 100,
     })
+
     @node_name = "test-node.example.com"
     @short_name = "test-node"
     # mcollective returns two nodes, one districted, one not
@@ -35,14 +37,32 @@ class AdminStatsTest < ActiveSupport::TestCase
       "missing.example.com" => @node_details,
     }).merge({
       'available_capacity' => 3,
-      'available_uids' => [1,2,3,4,5],
+      'available_uids'     => [1,2,3,4,5],
     })
-    admin_stats_stubber(@nodes_hash, faux_db_with([@district]))
+
+    @region_hash = {
+      'name'          => 'region-test-1',
+      '_id'           => '12345',
+    }
+
+    admin_stats_stubber(@nodes_hash, faux_db_with([@district], [@region_hash]))
   end
 
   def teardown
     super
     admin_stats_unstubber
+  end
+
+  test "fetch and return a region" do
+    region = @stats.get_region_entries
+    assert_equal @region_hash['_id'], region.keys[0]
+    assert_equal @region_hash['name'], region[@region_hash['_id']]['name']
+  end
+
+  test "fetch servers by region" do
+    region = @stats.servers_by_region(@district)
+    assert_equal @region_hash['_id'], region.keys[0]
+    assert_equal 2, region[@region_hash['_id']].size
   end
 
   test "fetch and return list of node details" do
@@ -79,7 +99,7 @@ class AdminStatsTest < ActiveSupport::TestCase
     # add inactive node to the district
     @nodes_hash["inactive.example.com"] = @node_details.merge(district_active: "false")
     @district['available_capacity'] = 1000  # plenty of district capacity
-    admin_stats_stubber(@nodes_hash, faux_db_with([@district]))
+    admin_stats_stubber(@nodes_hash, faux_db_with([@district], [@region_hash]))
     sum_hash = @stats.summarize_districts(@stats.get_district_entries, @stats.get_node_entries)
     assert_equal 20, sum_hash[@dist_uuid][:available_active_gears]
     assert_equal 10, sum_hash[@dist_uuid][:effective_available_gears],
