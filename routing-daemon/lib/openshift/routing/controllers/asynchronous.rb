@@ -163,12 +163,7 @@ module OpenShift
     # Although we try to ensure that a given operation is not submitted to the
     # load balancer before the load balancer has completed all operations on
     # which the first operation depends, we do not necessarily handle
-    # out-of-order events.  For example, if a pool is created and deleted and
-    # then a route is added, the create-route operation may be submitted before
-    # or after the delete-pool operation is performed.  (The create-route
-    # operation will, in any case, be submitted to the load balancer _after_ the
-    # create-pool operation is submitted.)
-    #
+    # out-of-order events.  
     # Because we only ever make a new Operation block on existing Operation
     # objects, deadlocks are not possible.
 
@@ -315,7 +310,6 @@ module OpenShift
 
       # :delete_pool blocks
       # if the corresponding pool is being created,
-      # if the corresponding route is being deleted,
       # if members are being added to the pool,
       # if members are being deleted from the pool,
       # if an alias is being added to the pool, or
@@ -328,55 +322,14 @@ module OpenShift
       # will block on the :create_pool event that is blocking on the
       # previous :delete_pool event.
       #
-      # Along similar lines, checking for :delete_route and
-      # :delete_pool_member is sufficient; it is not necessary to check
-      # for :create_route and :add_pool_member.
+      # Along similar lines checking for :delete_pool_member is sufficient; it
+      # is not necessary to check :add_pool_member.
       #
       # The pool is not depended upon on by any other objects besides
-      # routes, pool members, and pool aliases.
-      queue_op Operation.new(:delete_pool, [pool_name]), @ops.select {|op| [:delete_route, :delete_pool_member, :delete_pool_alias, :create_pool].include?(op.type) && op.operands[0] == pool_name}
+      # pool members and pool aliases.
+      queue_op Operation.new(:delete_pool, [pool_name]), @ops.select {|op| [:delete_pool_member, :delete_pool_alias, :create_pool].include?(op.type) && op.operands[0] == pool_name}
 
       pools.delete pool_name
-    end
-
-    def create_route pool_name, route_name, path
-      raise LBControllerException.new "Pool not found: #{pool_name}" unless pools.include? pool_name
-
-      raise LBControllerException.new "Route already exists: #{route_name}" if routes.include? route_name
-
-      # :create_route blocks
-      # if the corresponding pool is being created.
-      #
-      # For reasoning similar to that described above for :delete_pool,
-      # it is sufficient to check just for :create_pool.
-      queue_op Operation.new(:create_route, [pool_name, route_name, path]), @ops.select {|op| op.type == :create_pool && op.operands[0] == pool_name}
-
-      # :attach_route blocks on the :create_route operation we just queued.
-      queue_op Operation.new(:attach_route, [route_name, @virtual_server_name]), @ops.select {|op| op.type == :create_route && op.operands[1] == route_name} if @virtual_server_name
-
-      routes.push route_name
-    end
-
-    def delete_route pool_name, route_name
-      raise LBControllerException.new "Pool not found: #{pool_name}" unless pools.include? pool_name
-
-      raise LBControllerException.new "Route not found: #{route_name}" unless routes.include? route_name
-
-      # :detach_route blocks
-      # if the route is being attached, or
-      # if the route is being detached
-      #   (which can be the case if the same route is being created, attached, detached, deleted, created, attached, and detached).
-      queue_op Operation.new(:detach_route, [route_name, @virtual_server_name]), @ops.select {|op| [:attach_route, :detach_route].include?(op.type) && op.operands[0] == route_name} if @virtual_server_name
-
-      # :delete_route blocks
-      # if the route is being detached,
-      # if the route is being created,
-      # if the corresponding pool is being created, or
-      # if the route is being deleted
-      #   (which can be the case if the same pool and route are being created, deleted, created, and deleted again).
-      queue_op Operation.new(:delete_route, [pool_name, route_name]), @ops.select {|op| (op.type == :detach_route && op.operands[0] == route_name) || (op.type == :create_pool && op.operands[0] == pool_name) || (op.type == :create_route && op.operands[0] == pool_name && op.operands[1] == route_name)}
-
-      routes.delete route_name
     end
 
     def create_monitor monitor_name, path, up_code, type, interval, timeout
@@ -507,14 +460,6 @@ module OpenShift
       end
     end
 
-    # If a route is already created or is being created in the load balancer, it will be in routes.
-    def routes
-      @routes ||= begin
-        @logger.info "Requesting list of routing rules from load balancer..."
-        @lb_model.get_active_route_names
-      end
-    end
-
     # If a monitor is already created or is being created in the load balancer, it will be in monitors.
     def monitors
       @monitors ||= begin
@@ -541,7 +486,7 @@ module OpenShift
       # completion), it will be in @ops.
       @ops = []
 
-      # Leave @pools, @routes, and @monitors nil for now and let the
+      # Leave @pools and @monitors nil for now and let the
       # methods of the same respective names initialize them lazily.
     end
   end

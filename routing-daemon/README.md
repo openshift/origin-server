@@ -44,19 +44,27 @@ Using F5 BIG-IP LTM
 -------------------
 
 Edit `/etc/openshift/routing-daemon.conf` to set the appropriate values for
-`BIGIP_HOST`, `BIGIP_USERNAME`, `BIGIP_PASSWORD`, and `BIGIP_MONITOR` to match
-your F5 BIG-IP LTM configuration.
+`BIGIP_HOST`, `BIGIP_USERNAME`, `BIGIP_PASSWORD`, `BIGIP_MONITOR`,
+`BIGIP_SSHKEY`, `VIRTUAL_SERVER`, and `VIRTUAL_HTTPS_SERVER` to match your F5
+BIG-IP LTM configuration.
 
-F5 BIG-IP must be configured with a virtual server that has been assigned at
-least one VIP.  The daemon will automatically create pools and associated
-local-traffic policy rules, add these profiles to the virtual server, add
-members to the pools, delete members from the pools, and delete empty pools and
-unused policy rules when appropriate.  Your virtual server must be named
-"ose-vlan". The daemon will name the pools after applications following the
-template "/Common/ose-#{app_name}-#{namespace}" and create policy rules that
-redirect "/#{app_name}" to pools comprising the gears of the named application.
-The policy rules bypass applications' HAProxy instances and instead route to the
-gears via the node's port-proxy.
+F5 BIG-IP LTM must be configured with two virtual servers, one for HTTP traffic
+and one for HTTPS traffic. Each virtual server needs to be assigned at least
+one VIP. A default client-ssl profile must also be configured as the default
+SNI client-ssl profile. Although the naming of the default client-ssl profile
+is unimportant, it does need to be added to the HTTPS virtual server. The LTM
+admin user's 'Terminal Access' must be set to 'Advanced shell' so that remote
+bash commands may be executed. Additionally, for the remote key management
+commands to execute, the `BIGIP_SSHKEY` public key must be added to the LTM
+admin's `.ssh/authorized_keys` file. The daemon will automatically create pools
+and associated local-traffic policy rules, add these profiles to the virtual
+servers, add members to the pools, delete members from the pools, and delete
+empty pools and unused policy rules when appropriate. Once the LTM virtual
+servers have been created, update `VIRTUAL_SERVER` and `VIRTUAL_HTTPS_SERVER`
+in `/etc/openshift/routing-daemon.conf` to match the names you've used. The
+daemon will name the pools after applications following the template
+"/Common/ose-#{app_name}-#{namespace}" and create policy rules to forward
+requests to pools comprising the gears of the named application.
 
 Using LBaaS
 -----------

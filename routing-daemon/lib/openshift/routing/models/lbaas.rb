@@ -72,7 +72,12 @@ module OpenShift
       end
     end
 
-    # Returns [String] of pool names.
+    def get_pool_certificates pool_name
+      @logger.debug "get pool certificates #{pool_name}"
+      [] # Return an array of String representing certificates.
+    end
+
+   # Returns [String] of pool names.
     def get_pool_names
       JSON.parse(get("http://#{@host}/loadbalancers/tenant/#{@tenant}/pools"))['tenantpools']['pools']
     end
@@ -99,67 +104,6 @@ module OpenShift
     # Returns [String] of job ids.
     def delete_pool pool_name
       response = RestClient.delete("http://#{@host}/loadbalancers/tenant/#{@tenant}/pools/#{pool_name}",
-                                   :content_type => :json,
-                                   :accept => :json,
-                                   :'X-Auth-Token' => @keystone_token)
-      raise LBModelException.new "Expected HTTP 202 but got #{response.code} instead" unless response.code == 202
-
-      parse_jobids response
-    end
-
-    # Returns [String] of route names.
-    def get_route_names
-      JSON.parse(get("http://#{@host}/loadbalancers/tenant/#{@tenant}/policies"))['policy'].map {|p| p['name']}
-    end
-
-    alias_method :get_active_route_names, :get_route_names
-
-    # Returns [String] of job ids.
-    def create_route pool_name, route_name, path
-      response = put("http://#{@host}/loadbalancers/tenant/#{@tenant}/policies/#{route_name}",
-                     {
-                       :policy => {
-                         :name => route_name,
-                         :rule => "{
-    when HTTP_REQUEST {
-        if { [HTTP::uri] starts_with \"#{path}\" } {
-            pool #{pool_name}
-            event disable
-        }
-    }
-}"
-                       }
-                     }.to_json)
-      raise LBModelException.new "Expected HTTP 202 but got #{response.code} instead" unless response.code == 202
-
-      parse_jobids response
-    end
-
-    def attach_routes route_names, virtual_server_names
-      # LBaaS supports adding multiple routes at once, but only to one virtual
-      # server at a time.
-      (virtual_server_names.zip route_names).group_by {|v,r| v}.map do |v,r|
-        response = post("http://#{@host}/loadbalancers/tenant/#{@tenant}/vips/#{v}/policies",
-                        { :policies => r.map {|v,r| {:name => r}} }.to_json)
-        raise LBModelException.new "Expected HTTP 202 but got #{response.code} instead" unless response.code == 202
-  
-        parse_jobids response
-      end.flatten 1
-    end
-
-    def detach_route route_name, virtual_server_name
-      response = RestClient.delete("http://#{@host}/loadbalancers/tenant/#{@tenant}/vips/#{virtual_server_name}/policies/#{route_name}",
-                                   :content_type => :json,
-                                   :accept => :json,
-                                   :'X-Auth-Token' => @keystone_token)
-      raise LBModelException.new "Expected HTTP 202 but got #{response.code} instead" unless response.code == 202
-
-      parse_jobids response
-    end
-
-    # Returns [String] of job ids.
-    def delete_route pool_name, route_name
-      response = RestClient.delete("http://#{@host}/loadbalancers/tenant/#{@tenant}/policies/#{route_name}",
                                    :content_type => :json,
                                    :accept => :json,
                                    :'X-Auth-Token' => @keystone_token)
@@ -256,7 +200,7 @@ module OpenShift
 
     def add_ssl pool_name, alias_str, ssl_cert, private_key
       # no-opp
-    end 
+    end
 
     def remove_ssl pool_name, alias_str
       # no-op

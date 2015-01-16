@@ -59,43 +59,6 @@ module OpenShift
       File.unlink(*pool_names.map {|n| "#{@confdir}/#{n}.conf"})
     end
 
-    # Although it would be much easier to manage the frontend configuration by
-    # using one .conf file per route (the way we use one file per alias, or the
-    # way we manage the backend configuration by having one file per pool),
-    # nginx does not allow multiple server {} clauses for the same virtual
-    # server, which means we cannot split the configuration into separate files.
-
-    def get_route_names
-      routes = []
-      begin
-        File.open("#{@confdir}/server.conf").each_line do |line|
-          routes.push $1 if line =~ /\A\s*#\s*route_name\s*=\s*(\S+)\s*\Z/
-        end
-      rescue Errno::ENOENT
-        # Nothing to do; if server.conf doesn't exist, then that means
-        # there are no routes, so we should just return the empty array.
-      end
-      routes
-    end
-
-    alias_method :get_active_route_names, :get_route_names
-
-    def create_routes pool_names, routes
-      # no-op 
-    end
-
-    def attach_routes route_names, virtual_server_names
-      # no-op
-    end
-
-    def detach_routes route_names, virtual_server_names
-      # no-op
-    end
-
-    def delete_routes delete_pool_names, delete_route_names
-      # no-op
-    end
-
     def get_monitor_names
     end
 
@@ -197,8 +160,7 @@ module OpenShift
         @logger.debug("Adding SSL configuration for alias #{alias_str} for pool #{pool_name}")
         File.open(fname, "w") {|file| file.puts new_text }
       rescue Errno::ENOENT
-        # Nothing to do; if server.conf doesn't exist, then that means
-        # there are no routes, so we should just return the empty array.
+        # Nothing to do;
       end
     end
 
@@ -211,8 +173,7 @@ module OpenShift
         @logger.debug("Removing SSL configuration for alias #{alias_str} for pool #{pool_name}")
         File.open(fname, "w") {|file| file.puts new_text }
       rescue Errno::ENOENT
-        # Nothing to do; if server.conf doesn't exist, then that means
-        # there are no routes, so we should just return the empty array.
+        # Nothing to do;
       end
       crt = "#{@confdir}/#{URI.escape(alias_str)}.crt"
       key = "#{@confdir}/#{URI.escape(alias_str)}.key"
@@ -305,14 +266,6 @@ server {
   }
 }
 
-}
-
-    FRONTEND = %q{
-  # route_name=<%= route_name %>
-  location <%= path %> {
-    proxy_pass http://<%= pool_name %>;
-    <%= @health_check %>
-  }
 }
 
   end

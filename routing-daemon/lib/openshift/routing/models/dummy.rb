@@ -25,36 +25,6 @@ module OpenShift
       [] # If using AsyncLoadBalancerController, return an array of jobids.
     end
 
-    def get_route_names
-      @logger.debug "get route names"
-      [] # Return an array of String representing routes.
-    end
-
-    def get_active_route_names
-      @logger.debug "get active route names"
-      [] # Return an array of String representing routes.
-    end
-
-    def create_route pool_name, route_name, path
-      @logger.debug "create route #{route_name} from path #{path} to pool #{pool_name}"
-      [] # If using AsyncLoadBalancerController, return an array of jobids.
-    end
-
-    def attach_route route_name, virtual_server_name
-      @logger.debug "attach route #{route_name} to virtual server #{virtual_server_name}"
-      [] # If using AsyncLoadBalancerController, return an array of jobids.
-    end
-
-    def detach_route route_name, virtual_server_name
-      @logger.debug "detach route #{route_name} from virtual server #{virtual_server_name}"
-      [] # If using AsyncLoadBalancerController, return an array of jobids.
-    end
-
-    def delete_route pool_name, route_name
-      @logger.debug "delete route #{route_name} associated with pool #{pool_name}"
-      [] # If using AsyncLoadBalancerController, return an array of jobids.
-    end
-
     def get_monitor_names
       @logger.debug "get monitor names"
       [] # Return an array of String representing monitors.
@@ -68,6 +38,11 @@ module OpenShift
     def delete_monitor monitor_name
       @logger.debug "delete monitor #{monitor_name}"
       [] # If using AsyncLoadBalancerController, return an array of jobids.
+    end
+
+    def get_pool_certificates pool_name
+      @logger.debug "get pool certificates #{pool_name}"
+      [] # Return an array of String representing certificates.
     end
 
     def get_pool_members pool_name
