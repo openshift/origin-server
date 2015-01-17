@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 1.31.2
+Version: 1.31.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,6 +78,9 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jan 16 2015 Adam Miller <admiller@redhat.com> 1.31.3-1
+- Bumping cartridge versions (j.hadvig@gmail.com)
+
 * Tue Jan 13 2015 Adam Miller <admiller@redhat.com> 1.31.2-1
 - Bug 1180399: Build fails if the default settings.xml is missing
   (j.hadvig@gmail.com)
