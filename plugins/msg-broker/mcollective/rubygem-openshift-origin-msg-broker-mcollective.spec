@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.31.1
+Version: 1.31.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Fri Jan 16 2015 Adam Miller <admiller@redhat.com> 1.31.2-1
+- typo: missing white space in mcollective_application_container_proxy.rb
+  (mmahut@redhat.com)
+
 * Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.31.1-1
 - bump_minor_versions for sprint 53 (admiller@redhat.com)
 
