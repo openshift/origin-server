@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.30.2
+Version: 1.30.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -109,6 +109,9 @@ fi
 
 
 %changelog
+* Fri Jan 16 2015 Adam Miller <admiller@redhat.com> 1.30.3-1
+- Bumping cartridge versions (j.hadvig@gmail.com)
+
 * Tue Jan 13 2015 Adam Miller <admiller@redhat.com> 1.30.2-1
 - Bug 1180399: Build fails if the default settings.xml is missing
   (j.hadvig@gmail.com)
