@@ -78,7 +78,6 @@ module OpenShift
       @endpoint_types = (@cfg['ENDPOINT_TYPES'] || 'load_balancer').split(',')
       @cloud_domain = (@cfg['CLOUD_DOMAIN'] || 'example.com')
       @pool_name_format = @cfg['POOL_NAME'] || 'pool_ose_%a_%n_80'
-      @route_name_format = @cfg['ROUTE_NAME'] || 'route_ose_%a_%n'
       @monitor_name_format = @cfg['MONITOR_NAME']
       @monitor_path_format = @cfg['MONITOR_PATH']
       @monitor_up_code = @cfg['MONITOR_UP_CODE'] || '1'
@@ -285,10 +284,6 @@ module OpenShift
       @pool_name_format.gsub(/%./, '%a' => app_name, '%n' => namespace)
     end
 
-    def generate_route_name app_name, namespace
-      @route_name_format.gsub(/%./, '%a' => app_name, '%n' => namespace)
-    end
-
     def generate_monitor_name app_name, namespace
       return nil unless @monitor_name_format
 
@@ -316,11 +311,6 @@ module OpenShift
       @logger.info "Creating new pool: #{pool_name}"
       @lb_controller.create_pool pool_name, monitor_name
 
-      route_name = generate_route_name app_name, namespace
-      route = '/' + app_name
-      @logger.info "Creating new routing rule #{route_name} for route #{route} to pool #{pool_name}"
-      @lb_controller.create_route pool_name, route_name, route
-
       alias_str = "#{@ha_dns_prefix}#{app_name}-#{namespace}.#{@cloud_domain}"
       @logger.info "Adding new alias #{alias_str} to pool #{pool_name}"
       @lb_controller.pools[pool_name].add_alias alias_str
@@ -329,25 +319,19 @@ module OpenShift
     def delete_application app_name, namespace
       pool_name = generate_pool_name app_name, namespace
       unless @lb_controller.pools[pool_name].nil?
-        begin
-          route_name = generate_route_name app_name, namespace
-          @logger.info "Deleting routing rule: #{route_name}"
-          @lb_controller.delete_route pool_name, route_name
-        ensure
-          @logger.info "Deleting pool: #{pool_name}"
-          @lb_controller.delete_pool pool_name
+        @logger.info "Deleting pool: #{pool_name}"
+        @lb_controller.delete_pool pool_name
 
-          # Check that the monitor is specific to the application (as indicated by
-          # having the application's name and namespace in the monitor's name).
-          if @monitor_name_format && @monitor_name_format.match(/%a/) && @monitor_name_format.match(/%n/)
-            monitor_name = generate_monitor_name app_name, namespace
-            unless monitor_name.nil? or monitor_name.empty? or monitor_path.nil? or monitor_path.empty?
-              @logger.info "Deleting unused monitor: #{monitor_name}"
-              # We pass pool_name to delete_monitor because some backends need the
-              # name of the pool so that they will block the delete_monitor
-              # operation until any corresponding delete_pool operation completes.
-              @lb_controller.delete_monitor monitor_name, pool_name
-            end
+        # Check that the monitor is specific to the application (as indicated by
+        # having the application's name and namespace in the monitor's name).
+        if @monitor_name_format && @monitor_name_format.match(/%a/) && @monitor_name_format.match(/%n/)
+          monitor_name = generate_monitor_name app_name, namespace
+          unless monitor_name.nil? or monitor_name.empty? or monitor_path.nil? or monitor_path.empty?
+            @logger.info "Deleting unused monitor: #{monitor_name}"
+            # We pass pool_name to delete_monitor because some backends need the
+            # name of the pool so that they will block the delete_monitor
+            # operation until any corresponding delete_pool operation completes.
+            @lb_controller.delete_monitor monitor_name, pool_name
           end
         end
       end

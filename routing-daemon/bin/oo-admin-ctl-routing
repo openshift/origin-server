@@ -122,8 +122,6 @@ add-pool <name> [<monitor-name>]
   Create a new pool named <name>, optionally with the specified monitor.
 delete-pool <name>
   Delete the pool named <name>.
-list-routes
-  List all routes for all pools.
 list-aliases
   List all aliases for all pools.
 list-pool-aliases <pool>
@@ -132,10 +130,6 @@ add-alias <pool> <name>
   Add an alias with domain <name> for the specified pool.
 delete-alias <pool> <name>
   Delete the alias <name> for the specified pool.
-add-route <pool> <name> <path>
-  Add a route with the specified name that maps <path> to <pool>.
-delete-route <pool> <route_name>
-  Delete the specified route from the specified pool.
 list-monitors
   List all monitors.
 create-monitor <name> <path> <up-code>
@@ -192,29 +186,6 @@ argvs.each do |argv|
       raise ArgumentError.new "Requires a pool name." unless 1 == argv.count
       puts "Deleting pool #{argv[0]}."
       lb.delete_pool argv[0]
-
-    when 'list-routes'
-      raise ArgumentError.new "Requires no arguments." unless argv.empty?
-      puts 'Listing routes.'
-      puts lb.routes.map { |r|
-        if lb.active_routes.include? r
-          r
-        else
-          r + " (inactive)"
-        end
-      }.join "\n"
-      # TODO: Extend the LoadBalancerController class with a method that
-      # provides additional information about routes.
-
-    when 'add-route'
-      raise ArgumentError.new "Requires a pool name, name, and path." unless 3 == argv.length
-      puts "Adding route #{argv[1]} for path #{argv[2]} to pool #{argv[0]}."
-      lb.create_route *argv
-
-    when 'delete-route'
-      raise ArgumentError.new "Requires a pool name and a route name." unless 2 == argv.length
-      puts "Deleting route #{argv[1]} from pool #{argv[0]}."
-      lb.delete_route *argv
 
     when 'list-monitors'
       raise ArgumentError.new "Requires no arguments." unless argv.empty?

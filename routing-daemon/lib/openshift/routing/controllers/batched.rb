@@ -96,26 +96,6 @@ module OpenShift
       @pools.delete pool_name
     end
 
-    def create_route pool_name, route_name, route_path
-      raise LBControllerException.new "Route already exists: #{route_name}" if routes.include? route_name
-
-      @lb_model.create_route pool_name, route_name, route_path
-      @lb_model.attach_route route_name, @virtual_server_name if @virtual_server_name
-
-      @routes.push route_name
-      @active_routes.push route_name
-    end
-
-    def delete_route pool_name, route_name
-      raise LBControllerException.new "Route not found: #{route_name}" unless routes.include? route_name
-
-      @lb_model.detach_route route_name, @virtual_server_name if @virtual_server_name
-      @lb_model.delete_route pool_name, route_name if active_routes.include? route_name
-
-      @routes.delete route_name
-      @active_routes.delete route_name
-    end
-
     def create_monitor monitor_name, path, up_code, type, interval, timeout
       raise LBControllerException.new "Monitor already exists: #{monitor_name}" if monitors.include? monitor_name
 
@@ -152,8 +132,6 @@ module OpenShift
       @lb_model.authenticate
 
       @pools = Hash[@lb_model.get_pool_names.map {|pool_name| [pool_name, Pool.new(self, @lb_model, pool_name)]}]
-      @routes = @lb_model.get_route_names
-      @active_routes = @lb_model.get_active_route_names
       @monitors = @lb_model.get_monitor_names
 
       @pending_add_member_ops = []

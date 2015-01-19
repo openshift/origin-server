@@ -19,6 +19,9 @@ module OpenShift
       @host = cfg['BIGIP_HOST'] || '127.0.0.1'
       @username = cfg['BIGIP_USERNAME'] || 'admin'
       @password = cfg['BIGIP_PASSWORD'] || 'passwd'
+      @https_vserver = cfg['VIRTUAL_HTTPS_SERVER'] || 'https-ose-vserver'
+      @vserver = cfg['VIRTUAL_SERVER'] || 'ose-vserver'
+      @ssh_private_key = cfg['BIGIP_SSHKEY'] || '/etc/openshift/bigip.key'
     end
 
     # Send a REST request to the given URL and return the response.
@@ -90,60 +93,6 @@ module OpenShift
 
     def delete_pool pool_name
       delete(url: "https://#{@host}/mgmt/tm/ltm/pool/#{pool_name}")
-    end
-
-    def get_route_names
-      (JSON.parse(get(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_application_routes/rules")) || [])['items'].map {|item| item['name']}
-    end
-
-    alias_method :get_active_route_names, :get_route_names
-
-    def create_route pool_name, route_name, path
-      post(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_application_routes/rules",
-           payload: {
-             "kind" => "tm:ltm:policy:rules:rulesstate",
-             "name" => route_name,
-           }.to_json)
-      post(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_application_routes/rules/#{route_name}/conditions",
-           payload: {
-             "kind" => "tm:ltm:policy:rules:actions:conditionsstate",
-             "name" => "0",
-             "caseInsensitive" => true,
-             "external" => true,
-             "httpUri" => true,
-             "index" => 0,
-             "path" => true,
-             "present" => true,
-             "remote" => true,
-             "request" => true,
-             "startsWith" => true,
-             "values" => [path]
-           }.to_json)
-      post(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_application_routes/rules/#{route_name}/actions",
-           payload: {
-             "kind" => "tm:ltm:policy:rules:actions:actionsstate",
-             "name" => "0",
-             "code" => 0,
-             "forward" => true,
-             "pool" => "/Common/#{pool_name}",
-             "port" => 0,
-             "request" => true,
-             "select" => true,
-             "status" => 0,
-             "vlanId" => 0,
-           }.to_json)
-    end
-
-    def attach_routes route_names, virtual_server_names
-      # no-op
-    end
-
-    def detach_routes route_names, virtual_server_names
-      # no-op
-    end
-
-    def delete_route pool_name, route_name
-      delete(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_application_routes/rules/#{route_name}")
     end
 
     def get_monitor_names
@@ -235,11 +184,87 @@ module OpenShift
     end
 
     def add_ssl pool_name, alias_str, ssl_cert, private_key
-      # no-opp
-    end 
+      # The LTM must be configured with a default client SSL profile for
+      # fallback for custom alias SSL to work with SNI.
+      # https://support.f5.com/kb/en-us/solutions/public/13000/400/sol13452.html
+
+      begin
+        # write temp cert and key
+        certfname = Tempfile.new('bigip-ssl-cert')
+        keyfname = Tempfile.new('bigip-ssl-key')
+
+        certfname.write(ssl_cert)
+        certfname.close
+        keyfname.write(private_key)
+        keyfname.close
+
+        # scp cert and to F5 LTM (requires ssh key to be in authorized_keys on the F5 LTM
+        @logger.debug("Copying certificate and key for alias #{alias_str} for pool #{pool_name} to LTM host")
+        result = `scp -i #{@ssh_private_key} #{certfname.path} admin@#{@host}:/var/tmp/#{alias_str}.crt`
+        result = `scp -i #{@ssh_private_key} #{keyfname.path} admin@#{@host}:/var/tmp/#{alias_str}.key`
+
+        @logger.debug("LTM cert to be installed /var/tmp/#{alias_str}.crt")
+        post(url: "https://#{@host}/mgmt/tm/sys/crypto/cert",
+               payload: {
+                 "command" => "install",
+                 "name" => "#{alias_str}-https-cert",
+                 "from-local-file" => "/var/tmp/#{alias_str}.crt"
+               }.to_json)
+
+        @logger.debug("LTM cert to be installed /var/tmp/#{alias_str}.key")
+        post(url: "https://#{@host}/mgmt/tm/sys/crypto/key",
+               payload: {
+                 "command" => "install",
+                 "name" => "#{alias_str}-https-key",
+                 "from-local-file" => "/var/tmp/#{alias_str}.key"
+               }.to_json)
+
+        @logger.debug("LTM creating client-ssl profile for  #{alias_str}")
+        post(url: "https://#{@host}/mgmt/tm/ltm/profile/client-ssl",
+                 payload: {
+                   "name" => "#{alias_str}-ssl-profile",
+                   "cert" => "#{alias_str}-https-cert.crt",
+                   "key" => "#{alias_str}-https-key.key",
+                   "serverName" => "#{alias_str}"
+                 }.to_json)
+
+        @logger.debug("LTM adding #{alias_str}-ssl-profile client-ssl to #{@https_vserver}")
+        post(url: "https://#{@host}/mgmt/tm/ltm/virtual/#{@https_vserver}/profiles",
+                 payload: {
+                   "name" => "#{alias_str}-ssl-profile",
+                   "context" => "clientside",
+                 }.to_json)
+
+        # Requires LTM System->Users->admin terminal setting to be set to advanced (bash)
+        @logger.debug("LTM removing temporary alias certificate. rm -f /var/tmp/#{alias_str}.crt")
+        result = `ssh -i #{@ssh_private_key} admin@#{@host} 'rm -f /var/tmp/#{alias_str}.crt'`
+        @logger.debug("LTM removing temporary alias key. rm -f /var/tmp/#{alias_str}.key")
+        result = `ssh -i #{@ssh_private_key} admin@#{@host} 'rm -f /var/tmp/#{alias_str}.key'`
+      rescue Errno::ENOENT
+        # Nothing to do;
+      ensure
+        certfname.unlink
+        keyfname.unlink
+      end
+    end
 
     def remove_ssl pool_name, alias_str
-      # no-op
+      @logger.debug("LTM removing #{URI.escape(alias_str)}-ssl-profile client-ssl from #{@https_vserver}")
+      delete(url: "https://#{@host}/mgmt/tm/ltm/virtual/#{@https_vserver}/profiles/#{URI.escape(alias_str)}-ssl-profile")
+
+      @logger.debug("LTM deleting removing #{URI.escape(alias_str)}-ssl-profile")
+      delete(url: "https://#{@host}/mgmt/tm/ltm/profile/client-ssl/#{URI.escape(alias_str)}-ssl-profile")
+
+      @logger.debug("LTM removing #{alias_str}-https-key")
+      delete(url: "https://#{@host}/mgmt/tm/sys/file/ssl-key/#{URI.escape(alias_str)}-https-key.key")
+
+      @logger.debug("LTM removing #{alias_str}-https-cert")
+      delete(url: "https://#{@host}/mgmt/tm/sys/file/ssl-cert/#{URI.escape(alias_str)}-https-cert.crt")
+    end
+
+    def get_pool_certificates pool_name
+      pool_certs = []
+      return pool_certs
     end
 
     def initialize logger, cfgfile
@@ -249,26 +274,40 @@ module OpenShift
 
       read_config cfgfile
 
-      # Create the openshift_application_routes an openshift_application_aliases
-      # policies if they do not already exist.  The create_route and
-      # delete_route methods add and delete the application-specific rules to
-      # and from the former, and the add_pool_alias and delete_pool_alias
-      # methods add and delete the application-specific rules to and from the
-      # latter.
-      ["openshift_application_routes","openshift_application_aliases"].each do |policy|
-        begin
-          get(url: "https://#{@host}/mgmt/tm/ltm/policy/#{policy}")
-        rescue RestClient::ResourceNotFound
-          @logger.info "No #{policy} policy exists.  Creating..."
-          post(url: "https://#{@host}/mgmt/tm/ltm/policy",
-               payload: {
-                 "kind" => "tm:ltm:policy:policystate",
-                 "name" => policy,
-                 "controls" => ["forwarding"],
-                 "requires" => ["http"],
-                 "strategy" => "first-match",
-               }.to_json)
-        end
+      # Create the openshift_application_aliases policy if it does not already
+      # exist. The add_pool_alias and delete_pool_alias methods add and delete
+      # the application-specific rules to and from the latter.
+      policy = 'openshift_application_aliases'
+      begin
+        get(url: "https://#{@host}/mgmt/tm/ltm/policy/#{policy}")
+      rescue RestClient::ResourceNotFound
+        @logger.info "No #{policy} policy exists.  Creating..."
+        post(url: "https://#{@host}/mgmt/tm/ltm/policy",
+             payload: {
+               "kind" => "tm:ltm:policy:policystate",
+               "name" => policy,
+               "controls" => ["forwarding"],
+               "requires" => ["http"],
+               "strategy" => "first-match",
+             }.to_json)
+
+        # Create a noop rule for the policy so we can add the policy to the vservers
+        post(url: "https://#{@host}/mgmt/tm/ltm/policy/#{policy}/rules",
+         payload: {
+           "kind" => "tm:ltm:policy:rules:rulesstate",
+           "name" => "default_noop",
+         }.to_json)
+
+        # Now add the policy to the virtual servers
+        post(url: "https://#{@host}/mgmt/tm/ltm/virtual/#{@vserver}/policies",
+             payload: {
+               "name" => policy
+             }.to_json)
+
+        post(url: "https://#{@host}/mgmt/tm/ltm/virtual/#{@https_vserver}/policies",
+             payload: {
+               "name" => policy
+             }.to_json)
       end
     end
 

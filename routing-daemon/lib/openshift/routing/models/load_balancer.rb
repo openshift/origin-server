@@ -33,59 +33,6 @@ module OpenShift
       pool_names.map {|pool_name| delete_pool pool_name}.flatten 1
     end
 
-    def get_route_names
-      []
-    end
-
-    def get_active_route_names
-      []
-    end
-
-    # create_route :: String, String, String -> undefined
-    # Note: At least one of create_route and create_routes must be implemented.
-    def create_route pool_name, route_name, path
-      create_routes [pool_name], [[route_name, path]]
-    end
-
-    # create_routes :: [String], [[String,String]] -> undefined
-    # Each route comprises a name and a path.
-    # Note: At least one of create_route and create_routes must be implemented.
-    def create_routes pool_names, routes
-      (pool_names.zip routes).map {|pool,(route,path)| create_route pool, route, path}.flatten 1
-    end
-
-    # attach_route :: String, String -> undefined
-    # Note: At least one of attach_route and attach_routes must be implemented.
-    def attach_route route_name, virtual_server_name
-      attach_routes [route_name], [virtual_server_name]
-    end
-
-    # attach_routes :: [String], [String] -> undefined
-    # Note: At least one of attach_route and attach_routes must be implemented.
-    def attach_routes route_names, virtual_server_names
-      (route_names.zip virtual_server_names).map {|route_name, virtual_server_name| attach_route route_name, virtual_server_name}.flatten 1
-    end
-
-    def detach_route route_name, virtual_server_name
-      detach_routes [route_name], [virtual_server_name]
-    end
-
-    def detach_routes route_names, virtual_server_names
-      (route_names.zip virtual_server_names).map {|route_name, virtual_server_name| detach_route route_name, virtual_server_name}.flatten 1
-    end
-
-    # delete_route :: String, String -> undefined
-    # Note: At least one of delete_route and delete_routes must be implemented.
-    def delete_route pool_name, route_name
-      delete_routes [pool_name], [route_name]
-    end
-
-    # delete_routes :: [String], [String] -> undefined
-    # Note: At least one of delete_route and delete_routes must be implemented.
-    def delete_routes pool_names, route_names
-      (pool_names.zip route_names).map {|pool,route| delete_route pool, route}.flatten 1
-    end
-
     # get_monitor_names :: [String]
     def get_monitor_names
       []
@@ -97,6 +44,11 @@ module OpenShift
 
     # delete_monitor :: String -> undefined
     def delete_monitor monitor_name
+    end
+
+    def get_pool_certificates pool_name
+      @logger.debug "get pool certificates #{pool_name}"
+      [] # Return an array of String representing certificates.
     end
 
     # get_pool_members :: String -> [String]
@@ -155,7 +107,7 @@ module OpenShift
     def delete_pool_alias pool_name, alias_str
     end
 
-    # add_ssl :: String, String, String, String 
+    # add_ssl :: String, String, String, String
     def add_ssl pool_name, alias_str, ssl_cert, private_key
     end
 
