@@ -22,8 +22,6 @@ require 'openshift-origin-node/utils/cgroups'
 require 'openshift-origin-node/utils/cgroups/libcgroup'
 require 'openshift-origin-node/model/application_container'
 
-OP_TIMEOUT=360
-
 # Provide Watchman with monitoring of CGroups resource killing of gears
 class OomPlugin < OpenShift::Runtime::WatchmanPlugin
   PLUGIN_NAME    = 'OOM Plugin'
@@ -69,6 +67,13 @@ class OomPlugin < OpenShift::Runtime::WatchmanPlugin
     return nil
   end
 
+  def safe_pkill(uuid)
+    # We need to background and detach this pkill command, because it
+    # will usually hang until the memsw limit is bumped.
+    pid = Kernel.spawn("pkill -9 -u #{uuid}")
+    Process.detach(pid)
+  end
+
   # Search for gears under_oom
   # @param [OpenShift::Runtime::WatchmanPluginTemplate::Iteration] iteration timestamps of given events
   # @return void
@@ -107,19 +112,19 @@ class OomPlugin < OpenShift::Runtime::WatchmanPlugin
         # Verify that we are ready to reset to the old limit
         current = try_cgfetch(cgroup, MEMSW_USAGE)[MEMSW_USAGE].to_i
         increased = orig_memsw_limit
-        app = OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
-        while (current >= restore_memsw_limit or current == 0) && retries > 0
+        while (current >= restore_memsw_limit or current == 0 or oom_control['under_oom'] == '1') && retries > 0
           # Increase limit by 10% in order to clean up processes. Trying to
           # restart a gear already at its memory limit is treacherous.
           increased = (increased * @memsw_multiplier).round(0)
           Syslog.info %Q(#{PLUGIN_NAME}: Increasing memory for gear #{uuid} to #{increased} and killing processes)
-          app.kill_procs()
+          safe_pkill(uuid)
           if not try_cgstore(cgroup, MEMSW_LIMIT, increased)
             Syslog.warning %Q(#{PLUGIN_NAME}: Failed to increase memsw limit for gear #{uuid})
           end
           sleep @stop_wait_seconds
           retries -= 1
           current = try_cgfetch(cgroup, MEMSW_USAGE)[MEMSW_USAGE].to_i
+          oom_control = try_cgfetch(cgroup, 'memory.oom_control')['memory.oom_control']
         end
       rescue Exception => e
         Syslog.warning %Q(#{PLUGIN_NAME}: exception in OOM handling: #{e})
