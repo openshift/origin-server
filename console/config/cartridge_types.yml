@@ -1,6 +1,5 @@
 ---
 - :categories:
-  - :blacklist
   - :administration
   :name: 10gen-mms-agent-0.1
 
