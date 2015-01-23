@@ -114,10 +114,17 @@ function update-configuration {
         ;;
 
       2.0)
-        echo -n "${GEM_HOME}/bin:" >$OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_PATH_ELEMENT
-        dirname $(scl enable ruby200 ror40 "which ruby") >>$OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_PATH_ELEMENT
-
         local env_dir="${OPENSHIFT_RUBY_DIR}/env"
+
+        local gem_bin="${GEM_HOME}/bin"
+        local ruby_bin=$(dirname $(scl enable ruby200 ror40 "which ruby"))
+        local bundle_bin=$(dirname $(scl enable ruby200 ror40 "which bundle"))
+        set_env_var 'OPENSHIFT_RUBY_PATH_ELEMENT' "$gem_bin:$ruby_bin:$bundle_bin" $env_dir
+
+        local ruby_gems="${ruby_bin/%bin/share/gems}:${ruby_bin/%bin/local/share/gems}"
+        local bundle_gems="${bundle_bin/%bin/share/gems}:${bundle_bin/%bin/local/share/gems}"
+        set_env_var 'GEM_PATH' "$ruby_gems:$bundle_gems" $env_dir
+
         local ld_path=$(LD_LIBRARY_PATH="" scl enable ruby200 ror40 "printenv LD_LIBRARY_PATH")
         set_env_var 'OPENSHIFT_RUBY_LD_LIBRARY_PATH_ELEMENT' $ld_path $env_dir
 
