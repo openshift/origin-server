@@ -38,6 +38,7 @@ class Admin::Stats::Maker
       # read method comments about the structures they return
       @time['get_node_entries'] = time_msecs { @entry_for_node = get_node_entries }
       @time['get_district_entries'] = time_msecs { @entry_for_district = get_district_entries }
+      @time['get_region_entries'] = time_msecs { @entry_for_region = get_region_entries }
       if @options[:db_stats] # don't gather this data unless requested with --db
         @time['get_db_stats'] = time_msecs do
           @count_all, @count_for_profile, @count_for_user = get_db_stats
@@ -49,10 +50,14 @@ class Admin::Stats::Maker
       @time['summarize_profiles'] = time_msecs do
         @summary_for_profile = summarize_profiles(@summary_for_district, @count_for_profile)
       end
+      @time['summarize_regions'] = time_msecs do
+        @summary_for_region = summarize_regions(@summary_for_district, @entry_for_region, @entry_for_node)
+      end
       @count_all ||= {} # db count may not have occurred
       @count_all['nodes'] = @entry_for_node.size
       @count_all['districts'] = @entry_for_district.size
       @count_all['profiles'] = @summary_for_profile.size
+      @count_all['regions'] = @summary_for_region.size
     ensure
       rpc_opts[:disctimeout] = prev_timeout
     end
@@ -90,6 +95,8 @@ class Admin::Stats::Maker
       'district_summaries_hash' => @summary_for_district,   #hash of name => district summary hashes
       'profile_summaries' => @summary_for_profile.values,   #array of profile summary hashes
       'profile_summaries_hash' => @summary_for_profile,     #hash of name => profile summary hashes
+      'region_summaries' => @summary_for_region.values,
+      'region_summaries_hash' => @summary_for_region,
       # remember, unless --db option is present, the db is not scanned for apps/gears/carts
       # in that case, only data from the nodes and districts are included
       'count_all' => @count_all,                            #overall summary hash
@@ -189,9 +196,31 @@ class Admin::Stats::Maker
         'district_capacity'   => dist['max_capacity'],
         'dist_avail_capacity' => dist['available_capacity'],
         'dist_avail_uids'     => dist['available_uids'].length,
+        'servers_by_region'   => servers_by_region(dist)
       })
     end
     return entry_for_district
+  end
+
+  def servers_by_region(district)
+    result = {}
+    district['servers'].each do |server|
+      unless server['region_id'].nil?
+        (result[server['region_id']] ||= []) << { 'name' => server['name'] }
+      end
+    end unless district['servers'].nil?
+    return result
+  end
+
+  def get_region_entries
+    entry_for_region = {}
+    fields = %w[name]
+    with_each_record(:regions, {}, {:fields => fields }) do |region|
+      entry_for_region[region['_id']] = Admin::Stats::RegionEntry.new.merge({
+        'name' => region['name']
+      })
+    end
+    return entry_for_region
   end
 
   # perform a manual clone such that we don't get BSON entries
@@ -323,6 +352,66 @@ class Admin::Stats::Maker
     return summary_for_district
   end
 
+  def summarize_regions(entry_for_district, entry_for_region, entry_for_node)
+    # these are initial values, will accumulate as we go
+    starter_stats = Hash[%w[
+       nodes_count nodes_active gears_started_count nodes_inactive gears_idle_count
+       gears_stopped_count gears_deploying_count gears_unknown_count gears_total_count
+       gears_active_count avg_active_usage_pct
+       available_active_gears available_active_gears_with_negatives effective_available_gears
+    ].collect {|key| [key, 0]}]
+
+    # hash to store the summaries per region
+    summary_for_region = {}
+    entry_for_region.each do |id,region|
+      summary_for_region[id] = Admin::Stats::RegionSummary.new.
+        merge(region).merge(starter_stats).
+        merge('missing_nodes' => {}, 'nodes' => [])
+    end
+
+    node_to_region = {}
+    entry_for_district.each do |district_id,district|
+      district['servers_by_region'].each do |region_id,servers|
+        servers.each do |server|
+          node_to_region[server['name']] = region_id
+          summary_for_region[region_id]['missing_nodes'][server['name']] = server
+        end
+      end unless district['servers_by_region'].nil?
+    end
+
+    # We will drive this according to the nodes that responded.
+    # There may be some that didn't respond, which won't be included.
+    entry_for_node.each do |id,node|
+      if node_to_region.has_key? id
+        region_id = node_to_region[id]
+        sum = summary_for_region[region_id]
+        sum['nodes'] << node
+        sum['missing_nodes'].delete id  # responded, so not missing
+        sum['nodes_count'] += 1
+        sum[ node['district_active'] ? 'nodes_active' : 'nodes_inactive'] += 1
+        %w[ gears_started_count gears_idle_count gears_stopped_count gears_deploying_count
+          gears_unknown_count gears_total_count gears_active_count
+        ].each {|key| sum[key] += node[key]}
+        # active gears can actually get higher than max; count that as 0 available, not negative
+        available = [0, node['max_active_gears'] - node['gears_active_count']].max
+        sum['available_active_gears'] += available
+        sum['available_active_gears_with_negatives'] += node['max_active_gears'] - node['gears_active_count']
+        sum['effective_available_gears'] += available if node['district_active']
+        sum['avg_active_usage_pct'] += node['gears_active_usage_pct']
+      end
+    end
+
+    summary_for_region.each do |region_id,sum|
+      sum['avg_active_usage_pct'] /= sum['nodes_count'] if sum['nodes_count'] > 0
+      sum['lowest_active_usage_pct'] = sum['nodes'].map{|node| node['gears_active_usage_pct']}.min || 0.0
+      sum['highest_active_usage_pct'] = sum['nodes'].map{|node| node['gears_active_usage_pct']}.max || 0.0
+      # convert 'missing' nodes to array
+      # sum['missing_nodes'] = sum['missing_nodes'].keys
+      sum['gears_active_pct'] = (sum['gears_total_count'] == 0) ? 100.0
+           : 100.0 * sum['gears_active_count'] / sum['gears_total_count']
+    end
+    return summary_for_region
+  end
   def summarize_profiles(summary_for_district, count_for_profile)
     # Returned hash with ProfileSummary values looks like: (a lot like the district summaries)
     # {

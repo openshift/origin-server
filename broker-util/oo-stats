@@ -88,6 +88,11 @@ class OOStats
         %w{name nodes_count dist_avail_capacity gears_active_count
            effective_available_gears lowest_active_usage_pct avg_active_usage_pct
         }.map{|k| k.to_sym},
+     :region_summary =>
+        %w{nodes_count nodes_active gears_total_count
+          gears_active_count available_active_gears effective_available_gears
+          lowest_active_usage_pct highest_active_usage_pct avg_active_usage_pct
+        }.map{|k| k.to_sym},
      :district_summary =>
         %w{profile district_capacity dist_avail_capacity dist_avail_uids
           nodes_count nodes_active gears_total_count
@@ -221,6 +226,18 @@ class OOStats
           unless district[:missing_nodes].empty?
             puts "\nWARNING: the following node(s) in this district DID NOT respond:"
             puts district[:missing_nodes].join ", "
+          end
+          puts "\n\n"
+        end
+      when :region
+        res[:region_summaries].sort_by {|a| a[:name] }.each do |region|
+          outline "Region '#{region[:name]}' summary:"
+          text_legendize region, @columns_for[:region_summary]
+          puts "\nNodes:"
+          text_tableize region[:nodes].sort_by {|a| a[:name]}, @columns_for[:node_table]
+          unless region[:missing_nodes].empty?
+            puts "\nWARNING: the following node(s) in this region DID NOT respond:"
+            puts region[:missing_nodes].collect {|key,val| val["name"]}.join ", "
           end
           puts "\n\n"
         end
@@ -478,7 +495,7 @@ USER
 \t\tso the data can be consumed without needing Admin::Stats loaded.
 \t\tWith this option, results will keep the subclasses that Admin::Stats gives them.
 KEEP
-    opts.on('-l','--level LEVEL', [:profile, :district, :node], <<LEVEL) { |l| options[:level] = l }
+    opts.on('-l','--level LEVEL', [:profile, :district, :node, :region], <<LEVEL) { |l| options[:level] = l }
 For text format, print statistical summary at this level:
 \tprofile: profile and district summary statistics (default)
 \tdistrict: district summary and node statistics
