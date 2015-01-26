@@ -186,7 +186,7 @@ class Admin::Stats::Maker
     #   "6e5d3ccc0bb1456399687c0be51676f8" => ...
     # }
 
-    fields = %w[uuid name gear_size servers max_capacity available_capacity available_uids servers]
+    fields = %w[uuid name gear_size servers max_capacity available_capacity available_uids]
     with_each_record(:districts, {}, {:fields => fields }) do |dist|
       entry_for_district[dist['uuid'].to_s] = Admin::Stats::DistrictEntry.new.merge({
         'profile'             => dist['gear_size'],
