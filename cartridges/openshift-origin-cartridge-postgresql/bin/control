@@ -48,7 +48,7 @@ function wait_for_postgres_availability {
 function start {
   if ! _is_running; then
     echo "Starting Postgres cartridge"
-    oo-erb conf/postgresql.conf.erb.hidden > data/postgresql.conf
+    oo-erb ${OPENSHIFT_POSTGRESQL_DIR}/conf/postgresql.conf.erb.hidden > data/postgresql.conf
 
     postgresql_context "nohup postgres |& /usr/bin/logshifter -tag postgresql &"
     wait_for_postgres_availability || error "Could not start Postgres" 70

@@ -85,3 +85,9 @@ default_text_search_config = 'pg_catalog.english'
 # Logging
 
 log_line_prefix = '%t '
+
+<% if ENV['OPENSHIFT_POSTGRESQL_CONFIG'] %>
+<% ENV['OPENSHIFT_POSTGRESQL_CONFIG'].split(';').each do |elem| %>
+<%= elem %>
+<% end %>
+<% end %>
