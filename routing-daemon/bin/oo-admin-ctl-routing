@@ -260,6 +260,7 @@ argvs.each do |argv|
     when 'delete-alias'
       raise ArgumentError.new "Requires a pool name and an alias." unless 2 == argv.length
       puts "Deleting alias #{argv[0]} from pool #{argv[1]}."
+      lb.pools[argv[0]].remove_ssl argv[1]
       lb.pools[argv[0]].delete_alias argv[1]
 
     else

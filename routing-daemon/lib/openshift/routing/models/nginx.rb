@@ -132,7 +132,8 @@ module OpenShift
     end
 
     def delete_pool_alias pool_name, alias_str
-      File.unlink("#{@confdir}/alias_#{URI.escape(pool_name)}_#{URI.escape(alias_str)}.conf")
+      fname = "#{@confdir}/alias_#{URI.escape(pool_name)}_#{URI.escape(alias_str)}.conf"
+      File.unlink(fname) if File.exist?(fname)
     end
 
     def get_pool_certificates pool_name
