@@ -69,6 +69,7 @@ module OpenShift
 
       GEAR_TO_GEAR_SSH = "/usr/bin/ssh -q -o 'BatchMode=yes' -o 'StrictHostKeyChecking=no' -i $OPENSHIFT_APP_SSH_KEY "
       DEFAULT_SKEL_DIR = PathUtils.join(OpenShift::Config::CONF_DIR,"skel")
+      DEFAULT_START_PRIORITY = 100
       $OpenShift_ApplicationContainer_SSH_KEY_MUTEX = Mutex.new
 
       attr_reader :uuid, :application_uuid, :state, :container_name, :application_name, :namespace, :container_dir,
@@ -657,6 +658,25 @@ module OpenShift
 
       def stop_lock?
         @cartridge_model.stop_lock?
+      end
+
+      def start_priority_file
+        return PathUtils.join(@container_dir, '.start_priority')
+      end
+
+      def start_priority
+        if @start_priority.nil? && File.exists?(start_priority_file)
+          @start_priority = File.open(start_priority_file).read.to_i rescue nil
+        end
+        @start_priority ||= DEFAULT_START_PRIORITY
+        return @start_priority
+      end
+
+      def start_priority=(prio)
+        File.open(start_priority_file, File::CREAT|File::TRUNC|File::WRONLY, 0644) do |sp|
+          sp.write(prio)
+        end
+        @start_priority = prio.to_i
       end
 
       #
