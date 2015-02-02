@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.33.3
+Version: 1.33.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -203,6 +203,10 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Mon Feb 02 2015 Adam Miller <admiller@redhat.com> 1.33.4-1
+- Fix tests for OOMPlugin (agrimm@redhat.com)
+- Bug 1171289 - background pkill command in OOMPlugin (agrimm@redhat.com)
+
 * Fri Jan 16 2015 Adam Miller <admiller@redhat.com> 1.33.3-1
 - Merge pull request #6017 from a13m/bz1173180-m
   (dmcphers+openshiftbot@redhat.com)
