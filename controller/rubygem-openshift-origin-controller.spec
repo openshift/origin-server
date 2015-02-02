@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.34.2
+Version: 1.34.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Feb 02 2015 Adam Miller <admiller@redhat.com> 1.34.3-1
+- Removing duplicate servers strings from fields. (kwoodson@redhat.com)
+- Add region level reporting to oo-stats (cewong@redhat.com)
+
 * Tue Jan 13 2015 Adam Miller <admiller@redhat.com> 1.34.2-1
 - Bug 1175489: Wrong grep regexp in jbossews (j.hadvig@gmail.com)
 
