@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.34.1
+Version: 1.34.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -285,6 +285,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Feb 02 2015 Adam Miller <admiller@redhat.com> 1.34.2-1
+- Fix tests for OOMPlugin (agrimm@redhat.com)
+
 * Tue Jan 13 2015 Adam Miller <admiller@redhat.com> 1.34.1-1
 - bump spec to fix tags (admiller@redhat.com)
 - Merge pull request #6027 from sosiouxme/bz1155677-secondaryha-fqdn
