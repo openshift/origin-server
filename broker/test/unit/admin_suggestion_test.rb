@@ -18,6 +18,11 @@ class AdminSuggestionTest < ActiveSupport::TestCase
     @conf = Rails.application.config.openshift
     @real_profiles, @conf[:gear_sizes] = @conf[:gear_sizes], %w[prof1 prof2 prof3 prof4]
 
+    @region_hash = {
+      'name'          => 'region-test-1',
+      '_id'           => '12345',
+    }
+
     # testable capacity conf values
     @params = {
       active_gear_pct: {
@@ -67,7 +72,7 @@ class AdminSuggestionTest < ActiveSupport::TestCase
     # like tests to break if something about Admin::Stats
     # shifts out from underneath this code, so this veers
     # somewhat in the direction of integration testing.
-    admin_stats_stubber(@nodes_hash, faux_db_with(@districts))
+    admin_stats_stubber(@nodes_hash, faux_db_with(@districts, [@region_hash]))
     stats = Admin::Stats::Maker.new(opts)
     stats.gather_statistics
     stats.results
@@ -162,7 +167,7 @@ class AdminSuggestionTest < ActiveSupport::TestCase
 
   test "drive suggestion errors" do
     boring_install_2x4per
-    admin_stats_stubber(@nodes_hash, faux_db_with(@districts))
+    admin_stats_stubber(@nodes_hash, faux_db_with(@districts, [@region_hash]))
     p = S::Params.new()
     p.stubs(:mcollective_timeout).raises(StandardError.new)
     sugs = nil
