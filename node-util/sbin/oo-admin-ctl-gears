@@ -153,6 +153,12 @@ module OpenShift
         failures.empty? ? 0 : 254
       end
 
+      def list(honor_lock = true)
+        gears(honor_lock).each do |gear|
+          puts "#{gear.uuid} #{gear.start_priority}"
+        end
+      end
+
       def start(honor_lock = true)
         results = Parallel.map(gears(honor_lock), @options) do |gear|
           gear_action(gear, "Starting gear #{gear.uuid} ... ") { |g| g.start_gear }
@@ -161,7 +167,7 @@ module OpenShift
       end
 
       def stop(honor_lock = true, force = false, init_owned = false)
-        results = Parallel.map(gears(honor_lock), @options) do |gear|
+        results = Parallel.map(gears(honor_lock, true), @options) do |gear|
           opt = {user_initiated: false}
           opt.merge!(@forced_options) if force
           opt.merge!({init_owned: true}) if init_owned
@@ -232,10 +238,10 @@ module OpenShift
         end
       end
 
-      def gears(honor_lock = true)
+      def gears(honor_lock = true, reversed = false)
         Enumerator.new do |yielder|
           if @uuids.nil?
-            ApplicationContainer.all(nil, false).each do |gear|
+            ApplicationContainer.all(nil, false).sort { |a,b| reversed ? b.start_priority <=> a.start_priority : a.start_priority <=> b.start_priority }.each do |gear|
               yielder.yield(gear) unless honor_lock && gear.stop_lock?
             end
           else
@@ -450,6 +456,15 @@ command :list do |c|
   c.description = %q(list all gears on node)
 
   c.action { OpenShift::Runtime::ApplicationContainer.all_uuids.each { |u| $stdout.puts u } }
+end
+
+command :listbypriority do |c|
+  c.syntax      = "#{$name} #{c.name}"
+  c.description = %q(list all gears without a stop_lock)
+
+  c.action do |_, options|
+    OpenShift::Runtime::AdminGearsControl.new(options).list
+  end
 end
 
 command :listidle do |c|
