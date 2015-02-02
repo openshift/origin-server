@@ -8,7 +8,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.32.3
+Version: 1.32.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -110,6 +110,9 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Mon Feb 02 2015 Adam Miller <admiller@redhat.com> 1.32.4-1
+- Add region level reporting to oo-stats (cewong@redhat.com)
+
 * Tue Jan 13 2015 Adam Miller <admiller@redhat.com> 1.32.3-1
 - oo-accept-broker: testrecord DNS w/absolute domain (lmeyer@redhat.com)
 
