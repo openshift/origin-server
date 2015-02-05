@@ -34,7 +34,7 @@ cp -r profile/* %{buildroot}/etc/tune-profiles/openshift-node/
 /usr/sbin/tuned-adm profile openshift-node
 
 %preun
-/usr/sbin/tuned-admin profile default
+/usr/sbin/tuned-adm profile default
 
 %changelog
 * Wed Jan 07 2015 Adam Miller <admiller@redhat.com> 0.1.1-1
