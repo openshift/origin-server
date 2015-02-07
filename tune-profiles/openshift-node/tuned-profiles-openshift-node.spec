@@ -31,10 +31,14 @@ cp -r profile/* %{buildroot}/etc/tune-profiles/openshift-node/
 /etc/tune-profiles/openshift-node/tuned.conf
 
 %post
-/usr/sbin/tuned-adm profile openshift-node
+/usr/sbin/tuned-adm profile openshift-node > /dev/null 2>&1
 
 %preun
-/usr/sbin/tuned-admin profile default
+# reset the tuned profile to the recommended profile
+# $1 = 0 when we're being removed > 0 during upgrades
+if [ "$1" = 0 ]; then
+  /usr/sbin/tuned-adm profile default > /dev/null 2>&1
+fi
 
 %changelog
 * Wed Jan 07 2015 Adam Miller <admiller@redhat.com> 0.1.1-1
