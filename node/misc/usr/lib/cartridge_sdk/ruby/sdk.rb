@@ -14,6 +14,9 @@
 # limitations under the License.
 #
 
+# bz1187829 - don't let gems in $GEM_HOME override OpenShift-provided ones
+ENV['GEM_HOME'] = ''
+
 require 'openshift-origin-node/model/application_container'
 require 'openshift-origin-node/utils/environ'
 
