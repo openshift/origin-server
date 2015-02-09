@@ -1,7 +1,7 @@
 # openshift-origin-broker
 #
 # To build, cd into the origin-server source directory and run:
-# docker build -rm -t openshift-origin-broker .
+# docker build --rm -t openshift-origin-broker .
 #
 # To run origin-broker:
 # docker run -d -i -t -e "MONGO_HOST_PORT=<mongo_host_port>" -e "AUTH_SALT=<broker_auth_salt>" -p <port_on_host>:443 openshift-origin-broker
@@ -11,7 +11,7 @@
 # modify the broker.conf file in your source and re-build instead of passing -e flags.
 #
 # To run oo-* admin commands:
-# docker run -rm -i -t -e "MONGO_HOST_PORT=<mongo_host_port>" -e "AUTH_SALT=<broker_auth_salt>" openshift-origin-broker /bin/bash --login
+# docker run --rm -i -t -e "MONGO_HOST_PORT=<mongo_host_port>" -e "AUTH_SALT=<broker_auth_salt>" openshift-origin-broker /bin/bash --login
 # Where MONGO_HOST_PORT and AUTH_SALT are the config values as defined in broker.conf
 
 FROM fedora
