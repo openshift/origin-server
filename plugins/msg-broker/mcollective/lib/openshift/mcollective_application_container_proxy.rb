@@ -690,24 +690,26 @@ module OpenShift
     end
 
     # <<accessor>>
-    # Get the public IP address of a Node
+    # Get the IP address of a Node
+    # i.e. the IP that PUBLIC_NIC is using
     #
     # INPUTS:
     # none
     #
     # RETURNS:
-    # * String: the public IP address of a node
+    # * String: the IP address of a node's PUBLIC_NIC
     #
     # NOTES:
     # * method on Node
     # * calls rpc_get_fact_direct
     #
     def get_ip_address
-      rpc_get_fact_direct('ipaddress_eth0')
+      rpc_get_fact_direct('host_ip')
     end
 
     # <<accessor>>
     # Get the public IP address of a Node
+    # as configured in PUBLIC_IP
     #
     # INPUTS:
     # none
