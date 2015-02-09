@@ -438,9 +438,11 @@ module OpenShift
           names.each do |name, software_versions|
             lcv = latest_cartridge_version(vendor, name)
             software_versions.keys.sort.reverse.each do |software_version|
-              unless software_versions[software_version][lcv].instance_of?(Hash)
-                latest = software_versions[software_version]['_']
-                cartridges << latest unless latest.instance_of?(Hash)
+              if software_versions[software_version].has_key? lcv
+                unless software_versions[software_version][lcv].instance_of?(Hash)
+                  latest = software_versions[software_version]['_']
+                  cartridges << latest unless latest.instance_of?(Hash)
+                end
               end
             end
           end
