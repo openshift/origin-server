@@ -9,7 +9,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
-Version: 1.32.0
+Version: 1.32.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -95,6 +95,10 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Feb 12 2015 Adam Miller <admiller@redhat.com> 1.32.1-1
+- Bug 1185031 - allow enabling of execution statistics (maszulik@redhat.com)
+- bump_minor_versions for sprint 57 (admiller@redhat.com)
+
 * Fri Jan 16 2015 Adam Miller <admiller@redhat.com> 1.31.2-1
 - Remove max_prepared_transactions validation check (nakayamakenjiro@gmail.com)
 - Add else end for setting max_prepared_transactions
