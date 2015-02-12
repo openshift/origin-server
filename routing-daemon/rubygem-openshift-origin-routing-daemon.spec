@@ -11,7 +11,7 @@
 
 Summary:       OpenShift daemon for routing integration
 Name:          rubygem-%{gem_name}
-Version: 0.22.1
+Version: 0.22.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -88,6 +88,13 @@ cp -a init/* %{buildroot}/etc/rc.d/init.d/
 %attr(0755,-,-) %{_var}/log/openshift
 
 %changelog
+* Thu Feb 12 2015 Adam Miller <admiller@redhat.com> 0.22.2-1
+- BZ1187047 - "oo-admin-ctl-routing delete-alias" does not delete..
+  (calfonso@redhat.com)
+- BZ1186171 - scp needs additional arguments to avoid prompts
+  (calfonso@redhat.com)
+- Add F5 HTTPS support and removing the routes feature (calfonso@redhat.com)
+
 * Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 0.22.1-1
 - bump_minor_versions for sprint 55 (admiller@redhat.com)
 
