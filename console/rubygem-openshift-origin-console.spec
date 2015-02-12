@@ -10,7 +10,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.33.1
+Version: 1.33.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -168,6 +168,9 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Feb 12 2015 Adam Miller <admiller@redhat.com> 1.33.2-1
+- Updates Community QuickStarts URL (jacoblucky@gmail.com)
+
 * Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 1.33.1-1
 - bump_minor_versions for sprint 55 (admiller@redhat.com)
 
