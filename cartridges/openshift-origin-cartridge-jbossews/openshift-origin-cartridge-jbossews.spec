@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 1.32.0
+Version: 1.32.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,6 +78,9 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Feb 12 2015 Adam Miller <admiller@redhat.com> 1.32.1-1
+- bump_minor_versions for sprint 57 (admiller@redhat.com)
+
 * Fri Jan 16 2015 Adam Miller <admiller@redhat.com> 1.31.3-1
 - Bumping cartridge versions (j.hadvig@gmail.com)
 
