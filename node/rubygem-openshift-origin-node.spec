@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.35.0
+Version: 1.35.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -285,6 +285,20 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Feb 12 2015 Adam Miller <admiller@redhat.com> 1.35.1-1
+- bump spec to fix tags (admiller@redhat.com)
+- Handle all encodings during regex comparisons (ironcladlou@gmail.com)
+- Merge pull request #6044 from detiber/bz1179006
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #6065 from ncdc/bz1187829-exclude-GEM_HOME-from-gear-
+  commands (dmcphers+openshiftbot@redhat.com)
+- Protect 'gear' command from gems in $GEM_HOME (agoldste@redhat.com)
+- Allow gear prioritization in startall/stopall (agrimm@redhat.com)
+- Merge pull request #6010 from a13m/bz1171289-master
+  (dmcphers+openshiftbot@redhat.com)
+- Fix tests for OOMPlugin (agrimm@redhat.com)
+- Bug 1179006 - CartridgeRepository latest_versions (jdetiber@redhat.com)
+
 * Thu Feb 12 2015 Adam Miller <admiller@redhat.com>
 - Handle all encodings during regex comparisons (ironcladlou@gmail.com)
 - Merge pull request #6044 from detiber/bz1179006
