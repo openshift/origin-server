@@ -12,7 +12,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.29.0
+Version: 1.29.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -53,6 +53,12 @@ cp -p facts/update_yaml.rb %{buildroot}%{update_yaml_root}
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Thu Feb 12 2015 Adam Miller <admiller@redhat.com> 1.29.1-1
+- Merge pull request #6050 from codificat/bz1147116-move-fails-if-eth0-has-no-
+  ip (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 57 (admiller@redhat.com)
+- Use EXTERNAL_ETH_DEV to determine the node IP (pep@redhat.com)
+
 * Tue Jan 13 2015 Adam Miller <admiller@redhat.com> 1.28.2-1
 - node-msg: rm duplicate+inaccurate agent validations (lmeyer@redhat.com)
 
