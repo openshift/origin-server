@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.31.0
+Version: 1.31.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -109,6 +109,9 @@ fi
 
 
 %changelog
+* Thu Feb 12 2015 Adam Miller <admiller@redhat.com> 1.31.1-1
+- bump_minor_versions for sprint 57 (admiller@redhat.com)
+
 * Fri Jan 16 2015 Adam Miller <admiller@redhat.com> 1.30.3-1
 - Bumping cartridge versions (j.hadvig@gmail.com)
 
