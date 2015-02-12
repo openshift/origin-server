@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.35.0
+Version: 1.35.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,20 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Feb 12 2015 Adam Miller <admiller@redhat.com> 1.35.1-1
+- Merge pull request #6066 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #6058 from Miciah/bug-1186036-routing-spi-send-
+  notifications-on-rollbacks (dmcphers+openshiftbot@redhat.com)
+- Bug 1183048: Fix stale keys/envvars in domains with no apps
+  (abhgupta@redhat.com)
+- Merge pull request #6052 from kwoodson/regions
+  (dmcphers+openshiftbot@redhat.com)
+- Routing SPI: Send notifications on rollbacks (miciah.masters@gmail.com)
+- Removing duplicate servers strings from fields. (kwoodson@redhat.com)
+- bump_minor_versions for sprint 57 (admiller@redhat.com)
+- Add region level reporting to oo-stats (cewong@redhat.com)
+
 * Tue Jan 13 2015 Adam Miller <admiller@redhat.com> 1.34.2-1
 - Bug 1175489: Wrong grep regexp in jbossews (j.hadvig@gmail.com)
 
