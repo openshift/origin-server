@@ -275,7 +275,10 @@ module OpenShift
           FileUtils.mkpath(directory) unless File.directory?(directory)
 
           if (Dir.entries(directory).size - 2 + variables.size) > USER_VARIABLE_MAX_COUNT
-            return 255, "CLIENT_ERROR: User Variables maximum of #{USER_VARIABLE_MAX_COUNT} exceeded\n"
+            variables.each_pair do |name,value|
+              path = PathUtils.join(directory, name)
+              return 255, "CLIENT_ERROR: User Variables maximum of #{USER_VARIABLE_MAX_COUNT} exceeded\n" if !File.exists?(path)
+            end
           end
 
           variables.each_pair do |name, value|

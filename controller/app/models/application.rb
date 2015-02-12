@@ -115,6 +115,7 @@ class Application
     format:   {with: APP_NAME_REGEX, message: "Application name must contain only alphanumeric characters (a-z, A-Z, or 0-9)."},
     length:   {maximum: APP_NAME_MAX_LENGTH, minimum: 0, message: "Application name must be a minimum of 1 and maximum of #{APP_NAME_MAX_LENGTH} characters."}
   validate :extended_validator
+  validate :name_plus_domain
 
   # Returns a map of field to error code for validation failures
   # * 105: Invalid application name
@@ -176,6 +177,14 @@ class Application
     notify_observers(:validate_application)
   end
 
+  def name_plus_domain
+    return if persisted? # only check at creation - old apps are grandfathered
+    charlimit = Rails.application.config.openshift[:limit_app_name_chars]
+    if charlimit > 0 && (name + domain.namespace).length > charlimit
+      errors.add :name,
+        "Name '#{name}' and domain namespace '#{domain.namespace}' cannot add up to more than #{charlimit} characters."
+    end
+  end
   ##
   # Helper for test cases to create the {Application}
   #
@@ -205,7 +214,7 @@ class Application
       ha: opts[:available],
       builder_id: opts[:builder_id],
       user_agent: opts[:user_agent],
-      init_git_url: opts[:initial_git_url],
+      init_git_url: opts[:initial_git_url]
     )
     app.config.each do |k, default|
       v = opts[k.to_sym]
@@ -1919,8 +1928,8 @@ class Application
                            gear_size: gear_size, prereq: [create_gear_op._id.to_s])
 
       register_dns_op = RegisterDnsOp.new(gear_id: gear_id, prereq: [create_gear_op._id.to_s])
-
       ops.push(init_gear_op, reserve_uid_op, create_gear_op, register_dns_op)
+      ops.push(RegisterRoutingDnsOp.new(prereq: [register_dns_op._id.to_s])) if self.ha and Rails.configuration.openshift[:manage_ha_dns]
 
       if additional_filesystem_gb != 0
         # FIXME move into CreateGearOp

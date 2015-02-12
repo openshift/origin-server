@@ -10,4 +10,8 @@ class NotifySslCertAddOp < PendingAppOp
     OpenShift::RoutingService.notify_ssl_cert_add application,fqdn,ssl_certificate,private_key,pass_phrase
   end
 
+  def rollback
+    OpenShift::RoutingService.notify_ssl_cert_remove application,fqdn
+  end
+
 end

@@ -69,6 +69,7 @@ module OpenShift
 
       GEAR_TO_GEAR_SSH = "/usr/bin/ssh -q -o 'BatchMode=yes' -o 'StrictHostKeyChecking=no' -i $OPENSHIFT_APP_SSH_KEY "
       DEFAULT_SKEL_DIR = PathUtils.join(OpenShift::Config::CONF_DIR,"skel")
+      DEFAULT_START_PRIORITY = 100
       $OpenShift_ApplicationContainer_SSH_KEY_MUTEX = Mutex.new
 
       attr_reader :uuid, :application_uuid, :state, :container_name, :application_name, :namespace, :container_dir,
@@ -492,22 +493,32 @@ module OpenShift
         if proxy_cartridge = @cartridge_model.web_proxy
           unless options[:hot_deploy] == true or options[:init]
             result = update_proxy_status(cartridge: proxy_cartridge,
-                                         action: :disable,
+                                         action:    :disable,
                                          gear_uuid: self.uuid,
-                                         persist: false)
+                                         persist:   false)
             result[:proxy_results].each do |proxy_gear_uuid, result|
               buffer << result[:messages].join("\n")
             end
           end
         end
-        buffer << @cartridge_model.stop_gear(options)
+
+        begin
+          buffer << @cartridge_model.stop_gear(options)
+        rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
+          raise e if options[:user_initiated] == true || options[:force] == false
+
+          logger.warn("stop_gear for #{self.uuid} failed with #{e.message}\n#{e.stdout}\n#{e.stderr}")
+        end
+
         unless buffer.empty?
           buffer.chomp!
           buffer << "\n"
         end
+
         if options[:force]
           kill_procs(options)
         end
+
         buffer << stopped_status_attr
         buffer
       end
@@ -647,6 +658,25 @@ module OpenShift
 
       def stop_lock?
         @cartridge_model.stop_lock?
+      end
+
+      def start_priority_file
+        return PathUtils.join(@container_dir, '.start_priority')
+      end
+
+      def start_priority
+        if @start_priority.nil? && File.exists?(start_priority_file)
+          @start_priority = File.open(start_priority_file).read.to_i rescue nil
+        end
+        @start_priority ||= DEFAULT_START_PRIORITY
+        return @start_priority
+      end
+
+      def start_priority=(prio)
+        File.open(start_priority_file, File::CREAT|File::TRUNC|File::WRONLY, 0644) do |sp|
+          sp.write(prio)
+        end
+        @start_priority = prio.to_i
       end
 
       #

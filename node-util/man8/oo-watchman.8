@@ -55,8 +55,37 @@ Default: 5 seconds
 Wait at least this number of seconds since last check before looking for gears under OOM.
 Default: 0 seconds
 .TP
+.B  FRONTEND_CLEANUP_PERIOD
+Wait at least this number of seconds since last check before cleaning up frontend http configuration files.
+Default: 172800 seconds
+.TP
+.B LOG_FILE
+General events logged to this file.
+May be overridden with WATCHMAN_LOG_FILE in node.conf file.
+Default: /var/log/openshift/node/watchman.log
+.TP
+.B LOG_LEVEL
+Set level of logging.
+May be overridden with WATCHMAN_LOG_LEVEL in node.conf file.
+Valid values: DEBUG (most verbose), INFO, WARN, ERROR, FATAL (least verbose)
+Default: INFO
+.TP
+.B
+TRACE_LOG
+Trace events logged to this file.
+May be overridden with WATCHMAN_TRACE_LOG_FILE in node.conf file.
+Default: /var/log/openshift/node/watchman-trace.log
+.TP
+.B
+TRACE_LOG_LEVEL
+Set trace level of logging.
+May be overridden with WATCHMAN_TRACE_LOG_LEVEL in node.conf file.
+Valid values: DEBUG (most verbose), INFO, WARN, ERROR, FATAL (least verbose)
+Default: ERROR
+.TP
+.TP
 .B  WATCHMAN_DEBUG
-Boolean value to suggest printing debug messages in log. 
+Boolean value to suggest printing debug messages in log.
 e.g. printing memory usage after invocation of each plugin (logged in /var/log/messages)
 Default: false
 .SH FILES
@@ -71,13 +100,13 @@ Node configuration elements
 Directory containing Watchman plugins. Location may be overridden in node.conf using by setting the
 .B
 WATCHMAN_PLUGIN_DIR
-element
+element. Only scripts ending in \fB.rb\fR are read.
 .TP
 .FN /var/log/watchman.log
-Exceptions from oo-watchman are logged here
+Exceptions from openshift-watchman and oo-watchman are logged here
 .TP
 .FN /var/log/watchman.output
-STDOUT and STDERR from watchman and plugins are logged here
+STDOUT and STDERR from openshift-watchman are logged here
 .TP
 .FN /var/log/messages
 Watchman initiated changes in gear state or status is logged
@@ -94,5 +123,8 @@ the last state change for the application commanded by the user. It will restart
 that have failed, or stop applications that are still running.
 .P
 The \fBThrottlerPlugin\fR monitors CPU usage via cgroups and restricts usage, if needed.
-
+.P
+The \fBFronendPlugin\fR monitors the frontend httpd proxy configuration files and removes configuration
+files that have been truncated.
+Truncation is used to provide a cleaner starting/stopping of httpd.
 .SH SEE ALSO

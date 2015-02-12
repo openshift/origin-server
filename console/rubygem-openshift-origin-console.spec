@@ -10,7 +10,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.32.0
+Version: 1.33.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -168,6 +168,21 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 1.33.1-1
+- bump_minor_versions for sprint 55 (admiller@redhat.com)
+
+* Wed Dec 03 2014 Adam Miller <admiller@redhat.com> 1.32.2-1
+- Bug 1170021 - quota warning not displayed after cartridge add in the web
+  console (jforrest@redhat.com)
+
+* Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.32.1-1
+- Merge pull request #5913 from liggitt/site_extended_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Use TLS for integration tests (jliggitt@redhat.com)
+- Bug 1156374 - domain admin member must be able to see domain teams
+  (contact@fabianofranz.com)
+- bump_minor_versions for sprint 53 (admiller@redhat.com)
+
 * Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.31.7-1
 - Merge pull request #5870 from fabianofranz/bugs/1151548
   (dmcphers+openshiftbot@redhat.com)

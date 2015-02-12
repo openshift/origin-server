@@ -29,6 +29,7 @@ class DeploymentsController < BaseController
     force_clean_build = get_bool(params[:force_clean_build].presence) 
     ref = params[:ref].presence
     artifact_url = params[:artifact_url].presence
+    artifact_url = URI::encode(artifact_url) if artifact_url
 
     return render_error(:unprocessable_entity, "The ref is not well-formed. Git ref must be less than 256 characters. See also git-check-ref-format man page for rules.",
                           -1, "ref") if ref && (ref.length > 256 or ref !~ Deployment::GIT_REF_REGEX)
@@ -52,7 +53,7 @@ class DeploymentsController < BaseController
   def is_invalid_binary_artifact_url(new_artifact_url)
     begin
       screening_url = URI(new_artifact_url)
-      if screening_url.scheme == "http" or screening_url.scheme == "https" or screening_url.scheme == "ftp"
+      if ["http", "https", "ftp"].include?(screening_url.scheme)
         case
           when screening_url.path.slice(-4, 4) == ".tgz"
             return false
@@ -75,11 +76,12 @@ class DeploymentsController < BaseController
     if deployments
       deploys = []
       deployments.each do |d|
+        artifact_url = d["artifact_url"] ? URI::encode(d["artifact_url"]) : nil
         deploys.push(Deployment.new(deployment_id: d["id"],
                             created_at: Time.at(d["created_at"].to_f),
                                    ref: d["ref"],
                                   sha1: d["sha1"],
-                          artifact_url: d["artifact_url"],
+                          artifact_url: artifact_url,
                            activations: d["activations"] ? d["activations"].map(&:to_f) : [],
                             hot_deploy: d["hot_deploy"] || false,
                      force_clean_build: d["force_clean_build"] || false))

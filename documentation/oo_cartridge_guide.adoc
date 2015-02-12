@@ -260,6 +260,9 @@ Adding marker files to `.openshift/markers` will have the following effects:
     
 |java7
 |Will run JBossAS with Java7 if present. If no marker is present then the baseline Java version will be used (currently Java6)
+
+|disable_auto_scaling
+|Will prevent scalable applications from scaling up or down according to application load.
 |===
 
 === JBoss CLI
@@ -407,6 +410,9 @@ Adding marker files to `.openshift/markers` will have the following effects:
     
 |java7
 |Will run JBossEAP with Java7 if present. If no marker is present then the baseline Java version will be used (currently Java6)
+
+|disable_auto_scaling
+|Will prevent scalable applications from scaling up or down according to application load.
 |===
 
 === JBoss CLI
@@ -536,6 +542,9 @@ Adding marker files to `.openshift/markers` will have the following effects:
     
 |java7
 |Will run Tomcat with Java7 if present. If no marker is present then the baseline Java version will be used (currently Java6)
+
+|disable_auto_scaling
+|Will prevent scalable applications from scaling up or down according to application load.
 |===
 
 
@@ -748,8 +757,12 @@ Adding marker files to `.openshift/markers` will have the following effects:
 
 |hot_deploy
 |Disable app restarting during git pushes (see 'Development Mode')
+
 |use_npm
 |This will force to run your application using NPM instead of using 'supervisor'
+
+|disable_auto_scaling
+|Will prevent scalable applications from scaling up or down according to application load.
 |===
 
 === Development Mode
@@ -1083,6 +1096,9 @@ Adding marker files to `.openshift/markers` will have the following effects:
 
 |enable_public_server_status
 |Will enable server-status application path to be publicly available.
+
+|disable_auto_scaling
+|Will prevent scalable applications from scaling up or down according to application load.
 |===
 
 === Environment variables
@@ -1183,6 +1199,17 @@ else
 fi
 ....
 
+=== Rails 4.0
+
+In case of creating application with Rails 4.0 or higher, one thing need to be kept in mind.
+
+==== Rack version
+
+When using the Rails 4.0 or higher, user has to use the rack 1.5.2 version in his Gemfile, in order to start the Passenger.
+....
+gem 'rack',  '~> 1.5.2'
+....
+
 === Environment Variables
 The `ruby` cartridge provides several environment variables to reference for ease of use:
 
@@ -1236,4 +1263,7 @@ Adding marker files to `.openshift/markers` will have the following effects:
 
 |enable_public_server_status
 |Will enable server-status application path to be publicly available.
+
+|disable_auto_scaling
+|Will prevent scalable applications from scaling up or down according to application load.
 |===

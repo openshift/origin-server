@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.11.0
+Version: 0.12.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -43,6 +43,8 @@ BuildRequires: %{?scl:%scl_prefix}rubygems
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 BuildArch:     noarch
 Provides:      rubygem(%{gem_name}) = %version
+
+Conflicts: rubygem-openshift-origin-frontend-apache-mod-rewrite
 
 %description
 Provides the Apache Virtual Hosts plugin for OpenShift web frontends
@@ -109,6 +111,36 @@ mv httpd/openshift-vhost-logconf.include %{buildroot}/etc/httpd/conf.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Mon Nov 24 2014 Adam Miller <admiller@redhat.com> 0.12.1-1
+- bump_minor_versions for sprint 54 (admiller@redhat.com)
+
+* Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 0.11.3-1
+- Merge pull request #5954 from ncdc/bug/1161072-vhost-multi-ha-app-dns
+  (dmcphers+openshiftbot@redhat.com)
+- Register app dns vhost for secondary haproxy gears (agoldste@redhat.com)
+
+* Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 0.11.2-1
+- Revert "Add logging about idling/unidling in vhost plugin"
+  (agoldste@redhat.com)
+
+* Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 0.11.1-1
+- Merge pull request #5935 from jwhonce/bug/1161263
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1161263 - Support class method truncate() (jhonce@redhat.com)
+- Add logging about idling/unidling in vhost plugin (agoldste@redhat.com)
+- File.join -> PathUtils.join (agoldste@redhat.com)
+- Bug 1160861 - Prevent both frontends installed at same time
+  (jhonce@redhat.com)
+- Bug 1160752 - Make apache-vhost more atomic (jhonce@redhat.com)
+- Bug 1160652 - Set defaults for the new crt/key/chain apache vhost plugin
+  configuration (bleanhar@redhat.com)
+- for custom certs; chain file is the same as ssl file (rchopra@redhat.com)
+- make the default crt/key/chain file to be configurable in vhost template
+  (rchopra@redhat.com)
+- fix bz 1156361. Race condition between destroy-app and configure.
+  (rchopra@redhat.com)
+- bump_minor_versions for sprint 53 (admiller@redhat.com)
+
 * Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 0.10.2-1
 - Bug 1153313: Disable SSLv3 (lmeyer@redhat.com)
 

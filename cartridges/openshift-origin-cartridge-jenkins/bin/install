@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
 case "$1" in
   -v|--version)
@@ -7,6 +7,14 @@ esac
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source $OPENSHIFT_JENKINS_DIR/bin/util
+
+while getopts 'd' OPTION
+do
+    case $OPTION in
+        d) set -x
+        ;;
+    esac
+done
 
 function generate_ssh_keys {
     mkdir -p ${OPENSHIFT_DATA_DIR}/.ssh/

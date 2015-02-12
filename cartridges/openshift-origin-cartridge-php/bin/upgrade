@@ -1,41 +1,37 @@
 #!/bin/bash -eu
 
-php_version=$1
-curr=$2
-next=$3
+php_version="$1"
+curr="$2"
+next="$3"
 
-if [[ $curr =~ ^0.0.[1-3]$ ]]; then
+case "$curr" in
+
+"0.0.1"|"0.0.2"|"0.0.3")
     pear -c "$OPENSHIFT_HOMEDIR"/.pearrc config-get bin_dir > "$OPENSHIFT_PHP_DIR/env/OPENSHIFT_PHP_PATH_ELEMENT"
-fi
+    ;;
 
-if [[ $curr == 0.0.4 ]]; then
+"0.0.4")
     mkdir -p $OPENSHIFT_HOMEDIR/.drush
-fi
+    ;;
 
-# Needed for version 0.0.1 -> 0.1.8.  This can be removed after the upgrade
-# has been deployed.
-if [ -e $OPENSHIFT_HOMEDIR/php/metadata/jenkins_shell_command ]; then
-    rm -f $OPENSHIFT_HOMEDIR/php/metadata/jenkins_shell_command
-fi
-
-if [[ $next == 0.0.12 ]]; then
+"0.0.11")
     chown $OPENSHIFT_GEAR_UUID:$OPENSHIFT_GEAR_UUID $OPENSHIFT_PHP_DIR/configuration/etc/conf.d/openshift.conf
     chcon -u unconfined_u $OPENSHIFT_PHP_DIR/configuration/etc/conf.d/openshift.conf
-fi
+    ;;
 
-if [[ $curr == 0.0.12 ]]; then
+"0.0.12")
     oo-erb ${OPENSHIFT_PHP_DIR}versions/shared/configuration/etc/php.ini.erb > ${OPENSHIFT_PHP_DIR}configuration/etc/php.ini
-fi
+    ;;
 
-if [[ $curr == 0.0.14 ]]; then
+"0.0.14")
     echo "${OPENSHIFT_PHP_DIR}configuration/etc/php.d" > ${OPENSHIFT_PHP_DIR}env/PHP_INI_SCAN_DIR
     # versions/ directory moved from user space (gear) to the shared usr/ directory (root)
     rm -rf ${OPENSHIFT_PHP_DIR}versions
     chown $OPENSHIFT_GEAR_UUID:$OPENSHIFT_GEAR_UUID ${OPENSHIFT_PHP_DIR}configuration/etc/php.ini
     chcon -u unconfined_u ${OPENSHIFT_PHP_DIR}configuration/etc/php.ini
-fi
+    ;;
 
-if [[ $curr == 0.0.17 ]]; then
+"0.0.17")
     source ${OPENSHIFT_PHP_DIR}usr/lib/php_config
     rm -f ${OPENSHIFT_PHP_DIR}configuration/etc/php.d/*
     echo > ${OPENSHIFT_PHP_DIR}configuration/etc/php.d/openshift.ini
@@ -45,4 +41,6 @@ if [[ $curr == 0.0.17 ]]; then
     mkdir -p ${OPENSHIFT_HOMEDIR}.composer
     chown $OPENSHIFT_GEAR_UUID:$OPENSHIFT_GEAR_UUID ${OPENSHIFT_HOMEDIR}.composer
     chcon -u unconfined_u ${OPENSHIFT_HOMEDIR}.composer
-fi
+    ;;
+
+esac

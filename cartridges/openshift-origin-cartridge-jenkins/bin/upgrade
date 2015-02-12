@@ -1,39 +1,5 @@
-#!/bin/bash
+#!/bin/bash -eu
 
-source $OPENSHIFT_CARTRIDGE_SDK_BASH
-
-# Create additional directories required by JENKINS
-mkdir -p ${OPENSHIFT_HOMEDIR}/.m2
-
-# add the ApplictionUUID property to all job configurations that do not
-# yet have it.
-pushd ${OPENSHIFT_DATA_DIR}/jobs > /dev/null
-for f in */*xml
-do
-  #echo $f
-  rc=0
-
-  # check if this config already has the appUUID property
-  grep "<applicationUUID>" $f >& /dev/null || rc=$?
-  if [ $rc -eq 1 ]; then
-    # bash doesn't support non-greedy matching so
-    # we have to do this as a two step process.
-    # first pull out the line containing the ssh url 
-    content=`grep "<url>ssh://.*</url>" $f`
-
-    # extract the uuid from the ssh url
-    [[ $content =~ ssh://(.*)@ ]]
-    uuid="${BASH_REMATCH[1]}"
-    # put the new ApplicationUUID property into the job config.xml
-    sed -i "s/<properties>/<properties>\n    <hudson.plugins.openshift.OpenShiftApplicationUUIDJobProperty>\n\t<applicationUUID>${uuid}<\/applicationUUID>\n    <\/hudson.plugins.openshift.OpenShiftApplicationUUIDJobProperty>/" $f
-    
-    echo "Added applicationUUID ${uuid} to build configuration ${f}" 
-
-  fi
-done
-
-# switch to https for jenkins updates to avoid making mixed http/https calls
-# which are now blocked by most browsers by default
-sed -i 's/http\(:\/\/updates.jenkins-ci.org\/update-center.json\)/https\1/' ${OPENSHIFT_DATA_DIR}/hudson.model.UpdateCenter.xml
-
-popd > /dev/null
+jenkins_version="$1"
+curr="$2"
+next="$3"

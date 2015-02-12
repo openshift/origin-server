@@ -88,41 +88,12 @@
           %br
           #{attr 'last-update-label'} #{attr :localdatetime}
       / Google Analytics
+      %script{:src => "//www.google-analytics.com/analytics.js", :type => "text/javascript", :async => true}
       :javascript
-        var _gaq = _gaq || [];
-        _gaq.push(['_setAccount', 'UA-40375612-1']);
-        _gaq.push(['_setDomainName', 'openshift.github.io']);
-        _gaq.push(['_trackPageview']);
-
-        (function() {
-          var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-          ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-          var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-        })();
-
-        $(document).ready(function() {
-          _gaq.push(function() {
-            $('a:not([href^="http"])').on("click", function(e) {
-              e.preventDefault();
-              var link = $(this).attr("href");
-              _gaq.push(["_trackEvent", "Internal Links", "click", link]);
-              setTimeout('document.location = "' + link + '"', 300);
-            });
-            $('a[href^="http"]').on("click", function(e) {
-              e.preventDefault();
-              var link = $(this).attr("href");
-              _gaq.push(["_trackEvent", "Outbound Links", "click", link]);
-              setTimeout('document.location = "' + link + '"', 300);
-            });
-          });
-        });
-      / Google Code for Remarketing
-      :javascript
-        var google_conversion_id = 1007064360;
-        var google_conversion_label = "7jfmCMC5ugQQqKqa4AM";
-        var google_custom_params = window.google_tag_params;
-        var google_remarketing_only = true;
-      <script type="text/javascript" src="//www.googleadservices.com/pagead/conversion.js"></script>
+        window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+        ga('create', 'UA-40375612-1', 'none');
+        ga('set', 'forceSSL', true);
+        ga('send', 'pageview');
       %noscript
         %div{ :style => "display: inline;" }
           %img{ :height => "1", :width => "1", :style => "border-style: none;", :alt => "", :src => "//googleads.g.doubleclick.net/pagead/viewthroughconversion/1007064360/?value=0&amp;label=7jfmCMC5ugQQqKqa4AM&amp;guid=ON&amp;script=0" }

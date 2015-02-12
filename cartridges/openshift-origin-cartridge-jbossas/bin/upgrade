@@ -1,23 +1,5 @@
-#!/bin/bash
-
-source $OPENSHIFT_CARTRIDGE_SDK_BASH
+#!/bin/bash -eu
 
 jboss_version="$1"
-old_cart_version="$2"
-new_cart_version="$3"
-
-# Needed for version 0.0.1 -> 0.1.10.  This can be removed after the upgrade
-# has been deployed.
-if [ -e $OPENSHIFT_HOMEDIR/jbossas/metadata/jenkins_shell_command ]; then
-  rm -f $OPENSHIFT_HOMEDIR/jbossas/metadata/jenkins_shell_command
-fi
-
-# For migration, if the user repo does not contain a standalone.xml, populate the "backup" from
-# the current config file used by the cartridge.
-mkdir -p $OPENSHIFT_JBOSSAS_DIR/jboss_cfg_backup
-if [ ! -f ${OPENSHIFT_REPO_DIR}/.openshift/config/standalone.xml ]
-then
-  cp -n ${OPENSHIFT_JBOSSAS_DIR}/standalone/configuration/standalone.xml $OPENSHIFT_JBOSSAS_DIR/jboss_cfg_backup
-else
-  cp -n ${OPENSHIFT_REPO_DIR}/.openshift/config/standalone.xml $OPENSHIFT_JBOSSAS_DIR/jboss_cfg_backup
-fi
+curr="$2"
+next="$3"

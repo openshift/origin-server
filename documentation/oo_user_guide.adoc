@@ -1367,6 +1367,13 @@ $ git commit -am "remove automatic scaling"
 $ git push
 ----
 
+After pushing the changes to the remote repository, you will need to restart the HAProxy cartridge, or the whole application. This applies only for the time you add the marker, so the HAProxy can pick up the changes. To restart the HAProxy cartridge you will need to SSH into the gear, run the _gear restart_ script and select the HAProxy cartridge. 
+To restart the whole application run:
+
+----
+$ rhc app-restart [AppName]
+----
+
 To add a new gear to your application, SSH to your application gear with the following command replacing the contents with the correct information for your application.
 
 ----

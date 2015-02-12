@@ -1,12 +1,12 @@
 #--
 # Copyright 2010 Red Hat, Inc.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -61,13 +61,39 @@ module OpenShift
       app_cfg = File.join(@basedir, "#{@container_uuid}_#{@namespace}_0_#{@container_name}.conf")
       exercise_connections_api do |mode|
         case mode
-        when :pre_set, :unset
-          assert Dir.glob(File.join(@app_path, '5*_element-*.conf')).empty?, "There should not be any connection files"
-        when :set, :pre_unset
-          assert File.size?(app_cfg), "App configuration must exist"
-          assert_equal @elements.length, Dir.glob(File.join(@app_path, '5*_element-*.conf')).length, "There should be a file for every connection"
+          when :pre_set, :unset
+            found = false
+            Dir.glob(File.join(@app_path, '5*_element-*.conf')).each do |path|
+              found = found || !!File.size?(path)
+            end
+
+            assert (not found), 'There should not be any connection files'
+          when :set, :pre_unset
+            assert File.size?(app_cfg), "App configuration must exist"
+            assert_equal @elements.length, Dir.glob(File.join(@app_path, '5*_element-*.conf')).length, "There should be a file for every connection"
         end
       end
+    end
+
+    def test_ha_conf
+      app_cfg = File.join(@basedir, "#{@container_uuid}_#{@namespace}_0_#{@container_name}.conf")
+      ha_app_cfg = File.join(@basedir, "#{@container_uuid}_#{@namespace}_0_#{@container_name}_ha.conf")
+
+      exercise_connections_api
+      assert File.size?(app_cfg), "App configuration must exist"
+      assert !File.size?(ha_app_cfg), "HA app configuration must not exist"
+
+      gear_fqdn = @fqdn
+      app_fqdn = "somegear-#{@namespace}.#{@domain}"
+      @plugin.fqdn = app_fqdn
+      exercise_connections_api
+      assert File.size?(app_cfg), "App configuration must exist"
+      app_cfg_fqdn = %x[/bin/awk -- '/ServerName/ {print $2; exit}' #{app_cfg}].chomp
+      assert_equal gear_fqdn, app_cfg_fqdn, "App configuration's ServerName must be gear's FQDN"
+
+      assert File.size?(ha_app_cfg), "HA app configuration must exist"
+      ha_app_cfg_fqdn = %x[/bin/awk -- '/ServerName/ {print $2; exit}' #{ha_app_cfg}].chomp
+      assert_equal app_fqdn, ha_app_cfg_fqdn, "HA app configuration's ServerName must be app's FQDN"
     end
 
     def test_aliases
@@ -76,7 +102,7 @@ module OpenShift
           alias_path = File.join(@app_path, "888888_server_alias-#{server_alias}.conf")
           case mode
           when :pre_set, :unset
-            assert (not File.exists?(alias_path)), "Alias file must not exist"
+            assert (not File.size?(alias_path)), "Alias file must not exist"
           when :set, :pre_unset
             assert File.size?(alias_path), "Alias file must exist and not be empty"
           end
@@ -89,7 +115,7 @@ module OpenShift
       exercise_idle_api do |mode|
         case mode
         when :pre_set, :unset
-          assert (not File.exists?(idle_path)), "Idler file should not exist"
+          assert (not File.size?(idle_path)), "Idler file should not exist"
         when :set, :pre_unset
           assert File.size?(idle_path), "Idler file should exist and be non-zero size"
         end
@@ -97,11 +123,11 @@ module OpenShift
     end
 
     def test_sts
-      sts_path = File.join(@app_path, "000001_sts_header.conf")
+      sts_path = File.join(@app_path, '000001_sts_header.conf')
       exercise_sts_api do |mode|
         case mode
         when :pre_set, :unset
-          assert (not File.exists?(sts_path)), "STS file should not exist"
+          assert (not File.size?(sts_path)), "STS file should not exist"
         when :set, :pre_unset
           assert File.size?(sts_path), "STS file should exist and be non-zero size"
         end
@@ -115,10 +141,10 @@ module OpenShift
           alias_path = File.join(@app_path, "888888_server_alias-#{server_alias}.conf")
           case mode
           when :pre_set, :unset
-            assert (not File.exists?(ssl_cfg)), "SSL conf file should not exist"
+            assert (not File.size?(ssl_cfg)), "SSL conf file should not exist"
           when :set, :pre_unset
             assert File.size?(ssl_cfg), "SSL conf file should exist and not be empty"
-            assert (not File.exists?(alias_path)), "Alias file must be replaced by SSL conf file"
+            assert (not File.size?(alias_path)), "Alias file must be replaced by SSL conf file"
             assert File.size?(File.join(@app_path, "#{server_alias}.crt")), "SSL cert file should exist and not be empty"
             assert File.size?(File.join(@app_path, "#{server_alias}.key")), "SSL key file should exist and not be empty"
             assert_equal ssl_cert, File.read(File.join(@app_path, "#{server_alias}.crt")).chomp, "Cert and saved cert should match"

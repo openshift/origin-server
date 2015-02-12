@@ -1,0 +1,109 @@
+#!/usr/bin/env ruby
+#--
+# Copyright 2014 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+require 'json'
+
+class PlotBrokerStats
+  def initialize(data)
+    @data = data
+  end
+
+  def apply(data, plot)
+    element = @data.first
+    labels  = %w[n request_id]
+    labels << element["count_objects"].keys << element["gc_stat"].keys
+    labels.flatten.each { |l| data << (l + ' ') }
+    data << "\n"
+
+    @data.each_with_index do |elements, index|
+      data << index << ' ' << elements['request_id'] << ' '
+
+      elements['count_objects'].each { |_, v| data << v << ' ' }
+      elements['gc_stat'].each { |_, v| data << v << ' ' }
+
+      data << "\n"
+    end
+
+    plot << %Q[set title 'Broker memory stats'\n]
+    plot << %Q[set key on outside right top box 3\n]
+    plot << %Q[set ylabel "lines"\n]
+    plot << %Q[set y2label "points"\n]
+
+    plot << %Q[set y2tics\n]
+    plot << %Q[plot \\\n]
+
+    datum = []
+    datum << %Q["memory_stats.data" using 1:3 axes x1y1 title 'total' with lines]
+    datum << %Q["memory_stats.data" using 1:4 axes x1y1 title 'free' with lines]
+    datum << %Q["memory_stats.data" using 1:5 axes x1y1 title 'objects' with lines]
+    # datum << %Q["memory_stats.data" using 1:6 axes x1y1 title 'classes' with lines]
+    # datum << %Q["memory_stats.data" using 1:7 axes x1y1 title 'modules' with lines]
+    # datum << %Q["memory_stats.data" using 1:8 axes x1y1 title 'floats' with lines]
+    datum << %Q["memory_stats.data" using 1:9 axes x1y1 title 'strings' with lines]
+    # datum << %Q["memory_stats.data" using 1:10 axes x1y1 title 'regexp' with lines]
+    datum << %Q["memory_stats.data" using 1:11 axes x1y1 title 'arrays' with lines]
+    datum << %Q["memory_stats.data" using 1:12 axes x1y1 title 'hashes' with lines]
+    # datum << %Q["memory_stats.data" using 1:13 axes x1y1 title 'structs' with lines]
+    # datum << %Q["memory_stats.data" using 1:14 axes x1y1 title 'bignums' with lines]
+    # datum << %Q["memory_stats.data" using 1:15 axes x1y1 title 'files' with lines]
+    datum << %Q["memory_stats.data" using 1:16 axes x1y1 title 'datum' with lines]
+    # datum << %Q["memory_stats.data" using 1:17 axes x1y1 title 'matches' with lines]
+    # datum << %Q["memory_stats.data" using 1:18 axes x1y1 title 'complex' with lines]
+    # datum << %Q["memory_stats.data" using 1:19 axes x1y1 title 'rationals' with lines]
+    datum << %Q["memory_stats.data" using 1:20 axes x1y1 title 'nodes' with lines]
+    # datum << %Q["memory_stats.data" using 1:21 axes x1y1 title 'iclasses' with lines]
+    datum << %Q["memory_stats.data" using 1:22 axes x1y1 title 'symbols' with lines]
+    # datum << %Q["memory_stats.data" using 1:23 axes x1y2 title 'count' with points]  # number of times GC ran
+    datum << %Q["memory_stats.data" using 1:24 axes x1y2 title 'heaps used' with points] # number of heaps used
+    datum << %Q["memory_stats.data" using 1:25 axes x1y2 title 'heaps size' with points] # size of total heaps
+    # datum << %Q["memory_stats.data" using 1:26 axes x1y2 title 'heap incr' with points] # heaps to be allocated
+    # datum << %Q["memory_stats.data" using 1:27 axes x1y2 title 'live in heap' with points] # running objects in heap
+    # datum << %Q["memory_stats.data" using 1:28 axes x1y2 title 'not freed' with points]
+    # datum << %Q["memory_stats.data" using 1:29 axes x1y2 title 'not finalized' with points]
+    plot << datum.join(", \\\n")
+  end
+end
+
+if __FILE__ == $0
+  begin
+    File.open(ARGV[0], 'r').close
+  rescue
+    puts %Q[Usage: #{__FILE__} broker.log]
+    exit 1
+  end
+
+  command  = %Q[/bin/sed -ne '/BROKER_STATS/s/.* \\({.*}\\).*/\\1/p' #{ARGV[0]}]
+  puts command
+  raw_data = %x[#{command}]
+
+  data = Array.new
+  raw_data.lines do |line|
+    begin
+      data << JSON.parse(line)
+    rescue JSON::ParserError
+    end
+  end
+
+  plotter = PlotBrokerStats.new(data)
+  data    = File.open('/tmp/memory_stats.data', 'w')
+  plot    = File.open('/tmp/memory_stats.plot', 'w')
+  plotter.apply(data, plot)
+
+  puts %q[You may now run: gnuplot -p /tmp/memory_stats.plot]
+end
+
+

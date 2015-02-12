@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker and node
 Name:          openshift-origin-util-scl
-Version: 1.20.0
+Version: 1.20.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -28,6 +28,9 @@ cp oo-* %{buildroot}%{_bindir}/
 
 
 %changelog
+* Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
+- bump_minor_versions for sprint 53 (admiller@redhat.com)
+
 * Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.19.2-1
 - Bug 1154521 - Fix the case when the system ruby is not installed
   (mfojtik@redhat.com)

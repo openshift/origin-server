@@ -26,10 +26,12 @@ class CartridgesController < ConsoleController
     if @cartridge.save
       @wizard = true
 
-      message = @cartridge.remote_results
-      flash[:info_pre] = message
+      # Only grab the warnings otherwise we end up with extra success / remote result messages not formatted how we want
+      messages = flash_messages(@cartridge.messages.select{ |m| m['severity'] == 'warning' }, {})
+      result = @cartridge.remote_results
+      messages[:info_pre] = result
 
-      redirect_to application_path(@application)
+      redirect_to application_path(@application), :flash => messages
     else
       Rails.logger.debug @cartridge.errors.inspect
       @application_id = @application.id

@@ -9,8 +9,10 @@ Version: '5.10'
 License: GPL v2
 License-Url: http://dev.perl.org/licenses/
 Vendor: perl.org
-Cartridge-Version: 0.0.18
-Compatible-Versions: []
+Cartridge-Version: 0.0.20
+Compatible-Versions:
+- 0.0.18
+- 0.0.19
 Cartridge-Vendor: redhat
 Categories:
 - service
@@ -48,7 +50,7 @@ Endpoints:
     Backend: ''
     Options:
       websocket: true
-  - Frontend: "/health"
+  - Frontend: /health
     Backend: ''
     Options:
       health: true

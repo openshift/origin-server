@@ -52,7 +52,8 @@ module OpenShift
               end
             end
 
-            return success ? 'succeeded' : 'installation failed'
+            return 'succeeded' if success
+            raise OpenShift::Runtime::Utils::ShellExecutionException.new("Installation failed", 1, "some cartridge cannot be installed")
           when :list
             return options.verbose ? repository.inspect : repository.to_s
           when :erase

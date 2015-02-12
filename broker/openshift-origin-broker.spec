@@ -201,6 +201,10 @@ sed -i -e '/NON-RUNTIME BEGIN/,/NON-RUNTIME END/d' %{buildroot}%{brokerdir}/Gemf
 %defattr(0640,apache,apache,0750)
 %attr(0750,-,-) %{_var}/log/openshift/broker
 %attr(0750,-,-) %{_var}/log/openshift/broker/httpd
+%attr(0640,-,-) %ghost %{_var}/log/openshift/broker/production.log
+%attr(0640,-,-) %ghost %{_var}/log/openshift/broker/development.log
+%attr(0640,-,-) %ghost %{_var}/log/openshift/broker/user_action.log
+%attr(0640,-,-) %ghost %{_var}/log/openshift/broker/usage.log
 %attr(0750,-,-) %{brokerdir}/script
 %attr(0750,-,-) %{brokerdir}/tmp
 %attr(0750,-,-) %{brokerdir}/tmp/cache
@@ -211,8 +215,12 @@ sed -i -e '/NON-RUNTIME BEGIN/,/NON-RUNTIME END/d' %{buildroot}%{brokerdir}/Gemf
 %dir %attr(0750,-,-) %{brokerdir}/httpd/conf.d
 %{brokerdir}
 %{htmldir}/broker
+# these are conf files, but we do not usually want users to edit them:
+%config %{brokerdir}/httpd/broker.conf
+%config %{brokerdir}/httpd/httpd.conf
 %config %{brokerdir}/config/environments/production.rb
 %config %{brokerdir}/config/environments/development.rb
+# these confs are likely to require user editing; updates should not overwrite edits:
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000002_openshift_origin_broker_proxy.conf
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000002_openshift_origin_broker_servername.conf
 %config(noreplace) %{_sysconfdir}/openshift/broker.conf

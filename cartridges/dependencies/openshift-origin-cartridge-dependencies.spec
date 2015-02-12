@@ -5,7 +5,7 @@
 
 Summary:       User dependencies for OpenShift Cartridges
 Name:          openshift-origin-cartridge-dependencies
-Version: 1.27.1
+Version: 1.28.1
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -295,9 +295,13 @@ Requires:  php-intl
 Requires:  php-mbstring
 Requires:  php-mcrypt
 Requires:  php-pdo
-Requires:  php-pecl-apc
+# Make sure we don't obsolete APC with APCu
+Requires:  php-pecl-apc < 4
+Conflicts: php-pecl-apcu
 Requires:  php-pecl-imagick
 Requires:  php-pecl-memcache
+# Make sure not to install OPCache for PHP 5.3, as we're using APC opcode cache exclusively instead
+Conflicts: php-pecl-opcache
 Requires:  php-pecl-xdebug
 Requires:  php-process
 Requires:  php-soap
@@ -312,10 +316,13 @@ Requires:  php54-php-ldap
 Requires:  php54-php-mbstring
 Requires:  php54-php-mcrypt
 Requires:  php54-php-pdo
-Requires:  php54-php-pecl-apc
+# Make sure we don't obsolete APC with APCu
+Requires:  php54-php-pecl-apc < 4
+Conflicts: php54-php-pecl-apcu
 Requires:  php54-php-pecl-imagick
 Requires:  php54-php-pecl-memcache
 Requires:  php54-php-pecl-xdebug
+Requires:  php54-php-pecl-zendopcache
 Requires:  php54-php-process
 Requires:  php54-php-soap
 Requires:  php54-php-xml
@@ -520,6 +527,21 @@ an OpenShift cartrige.
 %files optional-ruby
 
 %changelog
+* Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 1.28.1-1
+- Merge pull request #6002 from VojtechVitek/enable_zend_opcache
+  (dmcphers+openshiftbot@redhat.com)
+- Make sure to disable OPCache for PHP 5.3 (vvitek@redhat.com)
+- Fixed zend opcache template (nakayamakenjiro@gmail.com)
+- bump_minor_versions for sprint 55 (admiller@redhat.com)
+
+* Tue Dec 02 2014 Adam Miller <admiller@redhat.com> 1.27.3-1
+- Merge pull request #5994 from VojtechVitek/php54-pecl
+  (dmcphers+openshiftbot@redhat.com)
+- Make sure PHP 5.4 APC doesn't get obsoleted by APCu (vvitek@redhat.com)
+
+* Mon Dec 01 2014 Adam Miller <admiller@redhat.com> 1.27.2-1
+- Make sure APC doesn't get obsoleted by APCu (vvitek@redhat.com)
+
 * Thu Sep 18 2014 Adam Miller <admiller@redhat.com> 1.27.1-1
 - bump_minor_versions for sprint 51 (admiller@redhat.com)
 

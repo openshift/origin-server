@@ -274,11 +274,11 @@ module Console::HelpHelper
   end
 
   def create_quickstart_url
-    community_base_url 'node/add/quickstart'
+    'https://hub.openshift.com/quickstarts/new'
   end
 
   def community_quickstarts_url
-    community_base_url 'quickstarts'
+    'https://hub.openshift.com/'
   end
 
   def console_help_links

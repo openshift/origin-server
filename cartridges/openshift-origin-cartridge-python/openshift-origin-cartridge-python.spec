@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.30.0
+Version: 1.31.1
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -97,6 +97,21 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %exclude %{cartridgedir}/usr/versions/*/template/*.pyo
 
 %changelog
+* Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 1.31.1-1
+- bump_minor_versions for sprint 55 (admiller@redhat.com)
+
+* Wed Dec 03 2014 Adam Miller <admiller@redhat.com> 1.30.3-1
+- Cart version bump for Sprint 54 (vvitek@redhat.com)
+
+* Mon Nov 24 2014 Adam Miller <admiller@redhat.com> 1.30.2-1
+- Merge pull request #5949 from VojtechVitek/upgrade_scrips
+  (dmcphers+openshiftbot@redhat.com)
+- Clean up & unify upgrade scripts (vvitek@redhat.com)
+
+* Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.30.1-1
+- bump_minor_versions for sprint 53 (admiller@redhat.com)
+- Version bump for the sprint 52 (mfojtik@redhat.com)
+
 * Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.29.2-1
 - Bug 1151494 - Add WSGIApplicationGroup directive to wsgi.conf
   (mfojtik@redhat.com)

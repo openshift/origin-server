@@ -159,6 +159,31 @@ class EnvironTest < OpenShift::NodeTestCase
     end
   end
 
+  # Verify update user variables
+  def test_update
+    write_var(:user, 'UPDATE_VAR1', 'VAR')
+
+    OpenShift::Runtime::Utils::Environ.for_gear(File.join('/tmp', @uuid)).tap do |env|
+      assert_equal 'VAR', env['UPDATE_VAR1']
+    end
+
+    for varid in 2..50
+      write_var(:user, "UPDATE_VAR#{varid}", "VAR")
+    end
+
+    OpenShift::Runtime::Utils::Environ.for_gear(File.join('/tmp', @uuid)).tap do |env|
+      assert_equal 'VAR', env['UPDATE_VAR50']
+    end
+
+    write_var(:user, 'UPDATE_VAR50', 'Thisisatest')
+
+    # Test for bug 1073725
+    # Verify update user variables when reach user variables maximum value.
+    OpenShift::Runtime::Utils::Environ.for_gear(File.join('/tmp', @uuid)).tap do |env|
+      assert_equal 'Thisisatest', env['UPDATE_VAR50']
+    end
+  end
+
   # Verify nulls removed from user variables
   def test_nulls
     write_var(:user, 'EMBEDDED_NULL', "This\000is\000a\000test")

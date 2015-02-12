@@ -74,7 +74,11 @@ class ApplicationsController < BaseController
       end
     elsif Rails.application.config.openshift[:default_region_name].present?
       region = Region.find_by(name: Rails.application.config.openshift[:default_region_name]) rescue nil
-      Rails.logger.warn "The default region #{Rails.application.config.openshift[:default_region_name]} does not exist. Proceeding to create app without specific region" if region.nil?
+      if region.nil?
+        Rails.logger.warn "The default region #{Rails.application.config.openshift[:default_region_name]} does not exist. Proceeding to create app without specific region"
+      else
+        region_name = region.name
+      end
     end
 
     region_id = region ? region.id : nil
@@ -194,7 +198,11 @@ class ApplicationsController < BaseController
     result = app.add_initial_cartridges(cartridges, init_git_url, user_env_vars)
 
     @analytics_tracker.identify(@cloud_user.reload)
-    @analytics_tracker.track_event('app_create', @domain, @application)
+    analytics_props = {}
+    if region_name
+      analytics_props = {'region' => region_name}
+    end
+    @analytics_tracker.track_event('app_create', @domain, @application, analytics_props)
 
     include_cartridges = (params[:include] == "cartridges")
     rest_app = get_rest_application(app, include_cartridges)

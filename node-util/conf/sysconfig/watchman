@@ -19,8 +19,17 @@
 # Increase this to reduce Watchman's Throttler's impact on the system.
 #THROTTLER_CHECK_PERIOD=5
 
+# Age of a gear's frontend proxy files marked for delete before cleaning them up
+#FRONTEND_CLEANUP_PERIOD=172800
+
 # Wait at least this number of seconds since last check before looking for gears under OOM.
 #OOM_CHECK_PERIOD=0
 
 # Watchman debug - prints debug messages like memory usage
 #WATCHMAN_DEBUG=true
+
+# Watchman event logging configuration
+#LOG_FILE=/var/log/openshift/node/watchman.log
+#LOG_LEVEL=INFO
+#TRACE_LOG_FILE=/var/log/openshift/node/watchman-trace.log
+#TRACE_LOG_LEVEL=ERROR

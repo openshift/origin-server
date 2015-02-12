@@ -11,7 +11,7 @@
 
 Summary:       OpenShift daemon for routing integration
 Name:          rubygem-%{gem_name}
-Version: 0.20.1
+Version: 0.22.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -28,6 +28,7 @@ Requires:      %{?scl:%scl_prefix}rubygem(daemons)
 Requires:      %{?scl:%scl_prefix}rubygem(json)
 Requires:      %{?scl:%scl_prefix}rubygem(parseconfig)
 Requires:      %{?scl:%scl_prefix}rubygem(stomp)
+Requires:      rubygem(openshift-origin-common)
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
@@ -62,7 +63,7 @@ gem install -V \
 mkdir -p %{buildroot}/%{_var}/log/openshift
 
 mkdir -p %{buildroot}%{_root_sbindir}
-cp bin/oo-* bin/openshift-routing-daemon %{buildroot}%{_root_sbindir}/
+cp bin/oo-* %{buildroot}%{_root_sbindir}/
 
 mkdir -p %{buildroot}%{gem_dir}
 cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
@@ -84,10 +85,65 @@ cp -a init/* %{buildroot}/etc/rc.d/init.d/
 %config(noreplace) /etc/openshift/routing-daemon.conf
 %attr(0755,-,-) /etc/rc.d/init.d/openshift-routing-daemon
 %attr(0750,-,-) %{_root_sbindir}/oo-admin-ctl-routing
-%attr(0750,-,-) %{_root_sbindir}/openshift-routing-daemon
 %attr(0755,-,-) %{_var}/log/openshift
 
 %changelog
+* Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 0.22.1-1
+- bump_minor_versions for sprint 55 (admiller@redhat.com)
+
+* Tue Dec 02 2014 Adam Miller <admiller@redhat.com> 0.21.3-1
+- Merge pull request #5992 from Miciah/bug-1169424-some-oo-admin-ctl-routing-
+  tool-issues (dmcphers+openshiftbot@redhat.com)
+- oo-admin-ctl-routing: Better usage output (miciah.masters@gmail.com)
+- oo-admin-ctl-routing: Add list-aliases (miciah.masters@gmail.com)
+- oo-admin-ctl-routing: Add list-pool-aliases usage (miciah.masters@gmail.com)
+- oo-admin-ctl-routing: Fix list-monitors (miciah.masters@gmail.com)
+- oo-admin-ctl-routing usage info: Add missing "|" (miciah.masters@gmail.com)
+- oo-admin-ctl-routing: Print usage with no args (miciah.masters@gmail.com)
+
+* Mon Dec 01 2014 Adam Miller <admiller@redhat.com> 0.21.2-1
+- routing-daemon: Fix deletion of SSL cert key (miciah.masters@gmail.com)
+- BZ1168034 - nginx configuration is broken when multiple applications..
+  (calfonso@redhat.com)
+- BZ1168036 -  Requests made to the nginx router at '/' are forwarded..
+  (calfonso@redhat.com)
+- BZ115918 - Added configurable ha dns prefix to routing daemon
+  (calfonso@redhat.com)
+- BZ1167707 - openshift-routing-daemon miss stomp connection ...
+  (calfonso@redhat.com)
+- BZ1167949 - non-scaling app creation with HA routing causes NGINX..
+  (calfonso@redhat.com)
+- Merge pull request #5976 from calfonso/bz1167625
+  (dmcphers+openshiftbot@redhat.com)
+- BZ1167625 -  Fail to start openshift-routing-daemon service when no port
+  (calfonso@redhat.com)
+- BZ1166593 - conflicting alias server name is listening on 443
+  (calfonso@redhat.com)
+
+* Mon Nov 24 2014 Adam Miller <admiller@redhat.com> 0.21.1-1
+- bump_minor_versions for sprint 54 (admiller@redhat.com)
+- Merge pull request #5973 from calfonso/bz1166518
+  (dmcphers+openshiftbot@redhat.com)
+- BZ1166518 - rubygem-openshift-origin-common should be installed...
+  (calfonso@redhat.com)
+- BZ1166600 - routing-daemon will add duplicated route (calfonso@redhat.com)
+- BZ1158773 - openshift-routing-daemon always return success even...
+  (calfonso@redhat.com)
+- BZ1165606 - enable activemq ssl connections for routing (calfonso@redhat.com)
+
+* Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 0.20.2-1
+- BZ#1159392 - Add HTTPS configuration for all applications with NGINX
+  (calfonso@redhat.com)
+- BZ#1160860 - Update routing-daemon.conf setting defaults for NGINX to 1.6
+  (calfonso@redhat.com)
+- Fixes bz1158773 - openshift-routing-daemon always return success...
+  (calfonso@redhat.com)
+- bz#1157863 - rubygem-openshift-origin-routing-daemon needs to set the file
+  mode (calfonso@redhat.com)
+- bz#1156613 - Turn off NGINX PLus by default (calfonso@redhat.com)
+- add significant digit to verison number for build automation
+  (admiller@redhat.com)
+
 * Wed Oct 22 2014 Adam Miller <admiller@redhat.com> 0.20-1
 - Adding NGINX Plus health checks to routing-daemon (calfonso@redhat.com)
 

@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.31.0
+Version: 1.34.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -203,6 +203,71 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Fri Jan 16 2015 Adam Miller <admiller@redhat.com> 1.33.3-1
+- Merge pull request #6017 from a13m/bz1173180-m
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1173180 - Check for frontend directory existence before calling rm_r
+  (agrimm@redhat.com)
+
+* Tue Jan 13 2015 Adam Miller <admiller@redhat.com> 1.33.2-1
+- Merge pull request #6018 from sosiouxme/bz1172548-oo-last-access
+  (dmcphers+openshiftbot@redhat.com)
+- oo-last-access: fix gear UUID detection (lmeyer@redhat.com)
+- oo-last-access: rename "app" to "gear" (lmeyer@redhat.com)
+- restorer.php: allow predictable UUIDs to be restored too (lmeyer@redhat.com)
+- Bug 1172323 - Only remove unreferenced empty directories from the frontend
+  configuration (rpenta@redhat.com)
+- Revert "Bug 1169306: Clean up standalone db gear http conf in watchman."
+  (admiller@redhat.com)
+
+* Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 1.33.1-1
+- bump_minor_versions for sprint 55 (admiller@redhat.com)
+
+* Tue Dec 02 2014 Adam Miller <admiller@redhat.com> 1.32.2-1
+- Bug 1169306: Clean up standalone db gear http conf in watchman.
+  (mrunalp@gmail.com)
+
+* Mon Nov 24 2014 Adam Miller <admiller@redhat.com> 1.32.1-1
+- bump_minor_versions for sprint 54 (admiller@redhat.com)
+- Use absolute path to apachectl (agrimm@redhat.com)
+- Merge pull request #5767 from sztsian/bz1132299
+  (dmcphers+openshiftbot@redhat.com)
+- bz1132299 throw runtime error if oo-admin-cartridge failed to install a
+  cartridge (sztsian@gmail.com)
+- Bug 1163910 - Rename watchman log files (jhonce@redhat.com)
+- Bug 1163068 - Update oo-watchman man page (jhonce@redhat.com)
+
+* Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 1.31.3-1
+- Merge pull request #5954 from ncdc/bug/1161072-vhost-multi-ha-app-dns
+  (dmcphers+openshiftbot@redhat.com)
+- Register app dns vhost for secondary haproxy gears (agoldste@redhat.com)
+
+* Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 1.31.2-1
+- Merge pull request #5910 from a13m/aggressive-oom-kill
+  (dmcphers+openshiftbot@redhat.com)
+- Fix unit test for oom_plugin (agrimm@redhat.com)
+- Don't call unidle prematurely from GearStatePlugin (agoldste@redhat.com)
+- Kill out-of-memory gears more aggressively to reduce downtime
+  (agrimm@redhat.com)
+
+* Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.31.1-1
+- Fix calls to config (jhonce@redhat.com)
+- Bug 1162096 - Fix oo-admin-gear destroygear (jhonce@redhat.com)
+- Merge pull request #5932 from jwhonce/bug/1160752
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1160752 - Make Watchman frontend cleanup period configurable
+  (jhonce@redhat.com)
+- Revert "bz1147054 - use common lockfile" (jhonce@redhat.com)
+- Revert "bz1151744 - wrap the wait for reload to finish inside of the
+  lockfile" (jhonce@redhat.com)
+- Bug 1160752 - Add Watchman plugin to clean up vhost configurations
+  (jhonce@redhat.com)
+- Bug 1160752 - Make apache-vhost more atomic (jhonce@redhat.com)
+- Perf Improvement? (dmcphers@redhat.com)
+- Bug 1160770 - consider CNAMEs when checking last access (agrimm@redhat.com)
+- node-util: "conflicting TE rule" for openshift.pp (lmeyer@redhat.com)
+- bump_minor_versions for sprint 53 (admiller@redhat.com)
+
 * Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.30.5-1
 - bz1151744 - wrap the wait for reload to finish inside of the lockfile
   (rchopra@redhat.com)

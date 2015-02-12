@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.29.0
+Version: 1.31.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -109,6 +109,30 @@ fi
 
 
 %changelog
+* Fri Jan 16 2015 Adam Miller <admiller@redhat.com> 1.30.3-1
+- Bumping cartridge versions (j.hadvig@gmail.com)
+
+* Tue Jan 13 2015 Adam Miller <admiller@redhat.com> 1.30.2-1
+- Bug 1180399: Build fails if the default settings.xml is missing
+  (j.hadvig@gmail.com)
+- BUG 1176970: Delete all dependencies except settings.xml (j.hadvig@gmail.com)
+- Bug 1175489: Wrong grep regexp in jbossews (j.hadvig@gmail.com)
+
+* Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 1.30.1-1
+- bump_minor_versions for sprint 55 (admiller@redhat.com)
+
+* Wed Dec 03 2014 Adam Miller <admiller@redhat.com> 1.29.3-1
+- Cart version bump for Sprint 54 (vvitek@redhat.com)
+
+* Mon Nov 24 2014 Adam Miller <admiller@redhat.com> 1.29.2-1
+- Merge pull request #5949 from VojtechVitek/upgrade_scrips
+  (dmcphers+openshiftbot@redhat.com)
+- Clean up & unify upgrade scripts (vvitek@redhat.com)
+
+* Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.29.1-1
+- bump_minor_versions for sprint 53 (admiller@redhat.com)
+- Version bump for the sprint 52 (mfojtik@redhat.com)
+
 * Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.28.3-1
 - Bug 1147946 - Do not snapshot jboss*/standalone/tmp (jhonce@redhat.com)
 

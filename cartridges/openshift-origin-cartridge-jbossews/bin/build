@@ -31,8 +31,13 @@ if marker_present "skip_maven_build"; then
 fi
 
 if force_clean_build_enabled_for_latest_deployment; then
-  echo "force_clean_build marker found; removing Maven dependencies."
-  rm -rf ${OPENSHIFT_HOMEDIR}.m2/* ${OPENSHIFT_HOMEDIR}.m2/.[^.]*
+  # Removing all Maven dependencies, except settings.xml
+  echo "Force-clean build is enabled. Removing Maven dependencies." 1>&2
+  if [ -f ${OPENSHIFT_HOMEDIR}.m2/settings.xml ]; then
+    find ${OPENSHIFT_HOMEDIR}.m2/* -maxdepth 0 -name 'settings.xml' -prune -o -exec rm -rf '{}' ';'
+  else
+    rm -rf ${OPENSHIFT_HOMEDIR}.m2/* ${OPENSHIFT_HOMEDIR}.m2/.[^.]*
+  fi
 fi
 
 # Calculate build heap size

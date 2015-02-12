@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.32.0
+Version: 1.35.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,43 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Jan 13 2015 Adam Miller <admiller@redhat.com> 1.34.2-1
+- Bug 1175489: Wrong grep regexp in jbossews (j.hadvig@gmail.com)
+
+* Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 1.34.1-1
+- Merge pull request #5997 from pravisankar/bug-1163893
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1163893 - Encode artifact url for app deployments (rpenta@redhat.com)
+- bump_minor_versions for sprint 55 (admiller@redhat.com)
+
+* Mon Dec 01 2014 Adam Miller <admiller@redhat.com> 1.33.2-1
+- Merge pull request #5947 from sosiouxme/predictable-gear-uuids
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5971 from nak3/patch01 (dmcphers+openshiftbot@redhat.com)
+- controller: option LIMIT_APP_NAME_CHARS (lmeyer@redhat.com)
+- controller: make gear UUIDs predictable (lmeyer@redhat.com)
+- controller: whitespace fixes (lmeyer@redhat.com)
+- Default configuration parameter to set Private SSL certificates allowed
+  (nakayamakenjiro@gmail.com)
+
+* Mon Nov 24 2014 Adam Miller <admiller@redhat.com> 1.33.1-1
+- bump_minor_versions for sprint 54 (admiller@redhat.com)
+- Add cucumber tests for Unified Push Server cartridge (vvitek@redhat.com)
+
+* Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 1.32.3-1
+- BZ1158704 - Broker fails to create HA DNS entry for HA app
+  (calfonso@redhat.com)
+
+* Wed Nov 12 2014 Adam Miller <admiller@redhat.com> 1.32.2-1
+- Analytics additions (dmcphers@redhat.com)
+
+* Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.32.1-1
+- Fix race condition in team creation (decarr@redhat.com)
+- Bug 1158737 - exposes the "ha" attribute on the "application" rest endpoint
+  (contact@fabianofranz.com)
+- Bug 1158737 - exposes DISABLE_HA on broker (contact@fabianofranz.com)
+- bump_minor_versions for sprint 53 (admiller@redhat.com)
+
 * Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.31.8-1
 - ssh keys: remove special logins (lmeyer@redhat.com)
 - fix whitespace (lmeyer@redhat.com)

@@ -731,6 +731,7 @@ class Upgrader
 
       gear_result.warnings << "App '#{app_name}' not found" unless app
       gear_result.warnings << "Gear not found with uuid #{gear_uuid} for app '#{app_name}' and user '#{login}'" unless gear
+      gear_result.warnings << "App name you offered '#{app_name}' did not match the app name of the gear '#{app.name}'" unless app.nil? || app_name == app.name
 
       if app && gear
         server_identity = gear.server_identity

@@ -1,4 +1,4 @@
-/var/log/openshift/node/cgroups*.log {
+/var/log/openshift/node/watchman*.log {
  copytruncate
  rotate 30
  daily

@@ -35,6 +35,6 @@ rm -f $OPENSHIFT_HOMEDIR/.pearrc
 php_context "pear config-create ${OPENSHIFT_PHP_DIR}phplib/pear/ ${OPENSHIFT_HOMEDIR}.pearrc"
 php_context "pear -c ${OPENSHIFT_HOMEDIR}.pearrc config-set php_ini ${OPENSHIFT_PHP_DIR}configuration/etc/php.ini"
 php_context "pear -c ${OPENSHIFT_HOMEDIR}.pearrc config-set auto_discover 1"
-php_context "pear -c ${OPENSHIFT_HOMEDIR}.pearrc channel-update pear.php.net"
+php_context "pear -c ${OPENSHIFT_HOMEDIR}.pearrc channel-update pear.php.net" || true
 
 update_configuration

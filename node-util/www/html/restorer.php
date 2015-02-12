@@ -1,7 +1,7 @@
 <?php
 
 list($blank, $uuid, $blank) = split("/", $_SERVER["PATH_INFO"]);
-if (preg_match('/^[0-9a-fA-F]{24,32}$/', $uuid)) {
+if (preg_match('/^([0-9a-fA-F]{24,32}|\w+-\w+-\d+)$/', $uuid)) {
     $safe_uuid = escapeshellarg($uuid);
     shell_exec("/usr/sbin/oo-restorer-wrapper.sh $safe_uuid");
     sleep(2);

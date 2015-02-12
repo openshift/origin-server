@@ -89,19 +89,13 @@ module OpenShift
     end
 
     # @pools is a hash that maps String to LoadBalancerPool.
-    # @monitors, @routes, and @active_routes are arrays of strings.
-    attr_reader :pools, :monitors, :routes, :active_routes
+    # @monitors is an array of strings.
+    attr_reader :pools, :monitors
 
     def create_pool pool_name, monitor_name=nil
     end
 
     def delete_pool pool_name
-    end
-
-    def create_route route_name, route_path, pool_name
-    end
-
-    def delete_route route_name
     end
 
     def create_monitor monitor_name, path, up_code, type, interval, timeout

@@ -244,6 +244,7 @@ class CloudUser
       "view_global_teams" => Rails.application.config.openshift[:default_view_global_teams],
       "max_untracked_addtl_storage_per_gear" =>  Rails.application.config.openshift[:default_max_untracked_addtl_storage_per_gear],
       "max_tracked_addtl_storage_per_gear" =>  Rails.application.config.openshift[:default_max_tracked_addtl_storage_per_gear],
+      "private_ssl_certificates" => Rails.application.config.openshift[:default_private_ssl_certificates],
     }
   end
 

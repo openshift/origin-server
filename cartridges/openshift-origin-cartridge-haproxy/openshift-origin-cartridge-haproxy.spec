@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version: 1.28.0
+Version: 1.30.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -48,6 +48,33 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jan 16 2015 Adam Miller <admiller@redhat.com> 1.29.3-1
+- Bumping cartridge versions (j.hadvig@gmail.com)
+
+* Tue Jan 13 2015 Adam Miller <admiller@redhat.com> 1.29.2-1
+- Merge pull request #6008 from jhadvig/BZ1171066
+  (dmcphers+openshiftbot@redhat.com)
+- BUG 1171066: disable_auto_scaling marker requires restart of haproxy
+  cartridge (j.hadvig@gmail.com)
+
+* Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 1.29.1-1
+- bump_minor_versions for sprint 55 (admiller@redhat.com)
+
+* Wed Dec 03 2014 Adam Miller <admiller@redhat.com> 1.28.4-1
+- Cart version bump for Sprint 54 (vvitek@redhat.com)
+
+* Mon Dec 01 2014 Adam Miller <admiller@redhat.com> 1.28.3-1
+- Unify `-x' shell attribute in cartridge scripts (vvitek@redhat.com)
+
+* Mon Nov 24 2014 Adam Miller <admiller@redhat.com> 1.28.2-1
+- Merge pull request #5949 from VojtechVitek/upgrade_scrips
+  (dmcphers+openshiftbot@redhat.com)
+- Clean up & unify upgrade scripts (vvitek@redhat.com)
+
+* Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.28.1-1
+- bump_minor_versions for sprint 53 (admiller@redhat.com)
+- Version bump for the sprint 52 (mfojtik@redhat.com)
+
 * Thu Oct 02 2014 Adam Miller <admiller@redhat.com> 1.27.2-1
 - Bug 1146112 - Added 401 to default expected status codes on health check.
   This will allow for Basic Auth applications to work in scaled mode. Also
