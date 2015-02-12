@@ -122,8 +122,11 @@ class JbossPluginTest < OpenShift::NodeBareTestCase
   def test_utf8
     start_time = DateTime.civil(2012, 2, 7, 12, 0, 0, -6)
     File.open(@server_log, 'w') do |file|
+      # Write something using utf-8
       file.write('2012/02/07 17:57:11,034 INFO  [stdout] (Ergebnisse_Holen) {pointsTeam2=2, matchIsFinished=true, pointsTeam1=0, nameTeam1=Borussia Mönchengladbach, nameTeam2=Bayern München}')
       file.write("\n")
+      # Write something using ISO-8859-1 
+      file.write("\xe9\n")
     end
 
     @restart.expects(:call).never
