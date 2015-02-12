@@ -23,6 +23,10 @@ PassengerUser <%= ENV['OPENSHIFT_GEAR_UUID'] %>
 PassengerPreStart http://<%= ENV['OPENSHIFT_RUBY_IP'] %>:<%= ENV['OPENSHIFT_RUBY_PORT'] %>/
 PassengerTempDir /tmp/passenger
 
+<% unless ENV['RAILS_ENV'] == "development" %>
+PassengerFriendlyErrorPages off
+<% end %>
+
 <% if ENV['RAILS_ENV'] == "development" %>
 PassengerLogLevel 1
 <% end %>
@@ -31,4 +35,3 @@ PassengerLogLevel 1
     AllowOverride All
     Options -Multiviews
 </Directory>
-

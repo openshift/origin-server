@@ -1,4 +1,5 @@
 LoadModule passenger_module modules/mod_passenger.so
+
 <IfModule mod_passenger.c>
    PassengerRoot NativelyPackaged
    PassengerRuby /usr/bin/ruby
@@ -19,8 +20,12 @@ PassengerPreStart http://<%= ENV['OPENSHIFT_RUBY_IP'] %>:<%= ENV['OPENSHIFT_RUBY
 PassengerSpawnIPAddress <%= ENV['OPENSHIFT_RUBY_IP'] %>
 PassengerUseGlobalQueue off
 PassengerTempDir /tmp/passenger
+
+<% unless ENV['RAILS_ENV'] == "development" %>
+PassengerFriendlyErrorPages off
+<% end %>
+
 <Directory <%= ENV['OPENSHIFT_REPO_DIR'] %>/public/>
     AllowOverride All
     Options -Multiviews
 </Directory>
-
