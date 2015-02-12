@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.34.0
+Version: 1.34.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -203,6 +203,19 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Thu Feb 12 2015 Adam Miller <admiller@redhat.com> 1.34.1-1
+- Handle all encodings during regex comparisons (ironcladlou@gmail.com)
+- Allow gear prioritization in startall/stopall (agrimm@redhat.com)
+- Merge pull request #6010 from a13m/bz1171289-master
+  (dmcphers+openshiftbot@redhat.com)
+- Fix tests for OOMPlugin (agrimm@redhat.com)
+- Merge pull request #5986 from detiber/bz1165719
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 57 (admiller@redhat.com)
+- Bug 1171289 - background pkill command in OOMPlugin (agrimm@redhat.com)
+- Bug 1165719 - oo-accept-node incorrectly using manifests from cart repository
+  (jdetiber@redhat.com)
+
 * Fri Jan 16 2015 Adam Miller <admiller@redhat.com> 1.33.3-1
 - Merge pull request #6017 from a13m/bz1173180-m
   (dmcphers+openshiftbot@redhat.com)
