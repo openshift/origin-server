@@ -9,7 +9,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.30.1
+Version: 1.30.2
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -109,6 +109,14 @@ done
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Thu Feb 12 2015 Adam Miller <admiller@redhat.com> 1.30.2-1
+- Revert "Bug 1183135 - Added ror40 bin directory to ruby-2.0
+  OPENSHIFT_RUBY_PATH_ELEMENT and ror40 gems dirs to GEM_PATH."
+  (soltysh@gmail.com)
+- Bug 1183135 - Added ror40 bin directory to ruby-2.0
+  OPENSHIFT_RUBY_PATH_ELEMENT and ror40 gems dirs to GEM_PATH.
+  (maszulik@redhat.com)
+
 * Tue Dec 09 2014 Adam Miller <admiller@redhat.com> 1.30.1-1
 - bump_minor_versions for sprint 55 (admiller@redhat.com)
 
