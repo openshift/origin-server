@@ -6,7 +6,6 @@ LoadModule passenger_module /usr/lib64/httpd/modules/ruby193-mod_passenger.so
    PassengerSpawnMethod conservative
 </IfModule>
 
-
 ServerRoot "<%= ENV['OPENSHIFT_RUBY_DIR'] %>"
 DocumentRoot "<%= ENV['OPENSHIFT_REPO_DIR'] %>/public"
 Listen <%= ENV['OPENSHIFT_RUBY_IP'] %>:<%= ENV['OPENSHIFT_RUBY_PORT'] %>
@@ -21,8 +20,12 @@ PassengerPreStart http://<%= ENV['OPENSHIFT_RUBY_IP'] %>:<%= ENV['OPENSHIFT_RUBY
 PassengerSpawnIPAddress <%= ENV['OPENSHIFT_RUBY_IP'] %>
 PassengerUseGlobalQueue off
 PassengerTempDir /tmp/passenger
+
+<% unless ENV['RAILS_ENV'] == "development" %>
+PassengerFriendlyErrorPages off
+<% end %>
+
 <Directory <%= ENV['OPENSHIFT_REPO_DIR'] %>/public/>
     AllowOverride All
     Options -Multiviews
 </Directory>
-

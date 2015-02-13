@@ -6,6 +6,7 @@ source "${OPENSHIFT_RUBY_DIR}/lib/ruby_context"
 
 HTTPD_CFG_DIR=${OPENSHIFT_RUBY_DIR}/etc/conf.d
 HTTPD_CFG_FILE=$OPENSHIFT_RUBY_DIR/etc/conf/httpd_nolog.conf
+ERB_HTTPD_CFG_DIR=${OPENSHIFT_RUBY_DIR}versions/${OPENSHIFT_RUBY_VERSION}/etc/conf.d/
 HTTPD_PASSENV_FILE=${HTTPD_CFG_DIR}/passenv.conf
 HTTPD_PID_FILE=$OPENSHIFT_RUBY_DIR/run/httpd.pid
 RAILS_ENV=${RAILS_ENV:-production}
@@ -64,6 +65,7 @@ function restart() {
     echo "${1}ing Ruby cartridge"
     mkdir -p ${OPENSHIFT_REPO_DIR}public
     write_httpd_passenv $HTTPD_PASSENV_FILE
+    oo-erb ${ERB_HTTPD_CFG_DIR}openshift.conf.erb > ${HTTPD_CFG_DIR}/openshift.conf
     oo-erb ${OPENSHIFT_RUBY_DIR}conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
     [ -d ${OPENSHIFT_REPO_DIR}/tmp ] && touch ${OPENSHIFT_REPO_DIR}/tmp/restart.txt
     ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"

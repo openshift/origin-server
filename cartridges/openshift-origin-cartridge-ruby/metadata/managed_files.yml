@@ -12,7 +12,6 @@ locked_files:
 - etc/conf/
 - etc/conf/*
 - etc/conf.d/
-- etc/conf.d/openshift.conf
 - env/
 - env/OPENSHIFT_RUBY_DIR
 - env/PASSENGER_TEMP_DIR

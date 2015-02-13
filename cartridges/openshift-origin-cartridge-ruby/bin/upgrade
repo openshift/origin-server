@@ -13,3 +13,8 @@ if [[ "$next" == "0.0.14" ]]; then
     rm -f ${OPENSHIFT_RUBY_DIR}env/LD_LIBRARY_PATH
   fi
 fi
+
+if [[ "$next" == "0.0.24" ]]; then
+    chown $OPENSHIFT_GEAR_UUID:$OPENSHIFT_GEAR_UUID ${OPENSHIFT_RUBY_DIR}etc/conf.d/openshift.conf
+    chcon -u unconfined_u ${OPENSHIFT_RUBY_DIR}etc/conf.d/openshift.conf
+fi
