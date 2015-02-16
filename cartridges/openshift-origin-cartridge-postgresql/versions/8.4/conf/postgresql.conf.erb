@@ -34,7 +34,7 @@ max_connections = 100
 <% end %>
 unix_socket_directory = '<%= ENV['OPENSHIFT_POSTGRESQL_DB_SOCKET'] %>'
 unix_socket_permissions = 0700
-<% if ENV['OPENSHIFT_POSTGRESQL_SSL_ENABLED'] && ENV['OPENSHIFT_POSTGRESQL_SSL_ENABLED'].downcase == 'true' %>
+<% if ENV['OPENSHIFT_POSTGRESQL_SSL_ENABLED'] && ENV['OPENSHIFT_POSTGRESQL_SSL_ENABLED'].downcase == 'true' && File.exists?(ENV['PGDATA']+"/server.key") && File.exists?(ENV['PGDATA']+"/server.crt") %>
 ssl = on
 <% end %>
 
