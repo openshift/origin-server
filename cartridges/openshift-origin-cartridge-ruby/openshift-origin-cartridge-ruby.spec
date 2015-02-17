@@ -9,7 +9,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.30.2
+Version: 1.30.3
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -109,6 +109,13 @@ done
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Tue Feb 17 2015 Adam Miller <admiller@redhat.com> 1.30.3-1
+- Merge pull request #6072 from soltysh/bug1191517
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1191517 - Passenger is not hiding ErrorPages even when production is
+  specified. Added additional logic to force hiding ErrorPages when not in
+  development. (maszulik@redhat.com)
+
 * Thu Feb 12 2015 Adam Miller <admiller@redhat.com> 1.30.2-1
 - Revert "Bug 1183135 - Added ror40 bin directory to ruby-2.0
   OPENSHIFT_RUBY_PATH_ELEMENT and ror40 gems dirs to GEM_PATH."
