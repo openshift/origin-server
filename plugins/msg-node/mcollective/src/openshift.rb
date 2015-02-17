@@ -100,12 +100,12 @@ module MCollective
         ctx.delete(:cart_name) if ctx[:cart_name] == "openshift-origin-node" # dummy cart
 
         OpenShift::Runtime::NodeLogger.logger.info("openshift-agent: request start: action=#{request.action} requestid=#{request.uniqid}, "\
-                                                   "senderid=#{request.sender}, data=#{request.data}")
+                                                   "senderid=#{request.sender}, data=#{OpenShift::Runtime::Utils.sanitize_credentials(reply.data.inspect)}")
       end
 
       def after_processing_hook
         OpenShift::Runtime::NodeLogger.logger.info("openshift-agent: request end: action=#{request.action}, requestid=#{request.uniqid}, "\
-                                                   "senderid=#{request.sender}, statuscode=#{reply.statuscode}, data=#{reply.data}")
+                                                   "senderid=#{request.sender}, statuscode=#{reply.statuscode}, data=#{OpenShift::Runtime::Utils.sanitize_credentials(reply.data.inspect)}")
 
         # Clear the NodeLogger context for the request
         LOGGER_CONTEXT_ENTRIES.each { |k, v| OpenShift::Runtime::NodeLogger.context.delete(k) }
