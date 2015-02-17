@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.35.1
+Version: 1.35.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -285,6 +285,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Feb 17 2015 Adam Miller <admiller@redhat.com> 1.35.2-1
+- Bug 1192557 - Fixed creating application using --from-code=empty when
+  database cartridge is also specified. (maszulik@redhat.com)
+
 * Thu Feb 12 2015 Adam Miller <admiller@redhat.com> 1.35.1-1
 - bump spec to fix tags (admiller@redhat.com)
 - Handle all encodings during regex comparisons (ironcladlou@gmail.com)
