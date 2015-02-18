@@ -1,4 +1,4 @@
-Summary:       Openshift PAM module
+Summary:       OpenShift PAM module
 Name:          pam_openshift
 Version: 1.13.1
 Release:       1%{?dist}
@@ -14,7 +14,7 @@ BuildRequires: libselinux-devel
 BuildRequires: libattr-devel
 
 %description
-The Openshift PAM module configures proper SELinux context for
+The OpenShift PAM module configures proper SELinux context for
 processes in a session.
 
 %prep

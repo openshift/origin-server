@@ -1,4 +1,4 @@
-# Openshift Origin Dynamic DNS plugin for Amazon Web Services Route 53
+# OpenShift Origin Dynamic DNS plugin for Amazon Web Services Route 53
 
 This package is a Dynamic DNS plugin for OpenShift Origin.
 

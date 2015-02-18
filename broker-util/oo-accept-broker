@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This script checks the status of a host that is running an Openshift Origins
+# This script checks the status of a host that is running a OpenShift Origin
 # Broker service.
 #
 # Check that the broker components are installed and communicating properly

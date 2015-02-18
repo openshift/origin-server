@@ -1,4 +1,4 @@
-# Openshift Origin Dynamic DNS plugin using Fog
+# OpenShift Origin Dynamic DNS plugin using Fog
 
 This package is a Dynamic DNS plugin for OpenShift Origin.
 
