@@ -29,4 +29,4 @@ EXAMPLE
   $ oo-httpd-singular graceful
 
 AUTHOR
-  Robert Millner <rmillner@redhat.com> - man page written for Openshift Origin
+  Robert Millner <rmillner@redhat.com> - man page written for OpenShift Origin

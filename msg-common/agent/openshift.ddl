@@ -1,5 +1,5 @@
-metadata    :name        => "Openshift Origin Management",
-            :description => "Agent to manage Openshift Origin services",
+metadata    :name        => "OpenShift Origin Management",
+            :description => "Agent to manage OpenShift Origin services",
             :author      => "Mike McGrath",
             :license     => "ASL 2.0",
             :version     => "0.1",

@@ -1,5 +1,5 @@
 #
-# Make Openshift
+# Make OpenShift
 #
 require 'rubygems'
 

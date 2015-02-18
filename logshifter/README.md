@@ -1,4 +1,4 @@
-logshifter 1 "September 2014" Openshift "User Manuals"
+logshifter 1 "September 2014" OpenShift "User Manuals"
 =====
 
 NAME
