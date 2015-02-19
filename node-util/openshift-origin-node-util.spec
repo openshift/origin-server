@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.34.1
+Version: 1.34.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -203,6 +203,9 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Thu Feb 19 2015 Adam Miller <admiller@redhat.com> 1.34.2-1
+- Fixing typos (dmcphers@redhat.com)
+
 * Thu Feb 12 2015 Adam Miller <admiller@redhat.com> 1.34.1-1
 - Handle all encodings during regex comparisons (ironcladlou@gmail.com)
 - Allow gear prioritization in startall/stopall (agrimm@redhat.com)
