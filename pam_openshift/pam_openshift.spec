@@ -1,6 +1,6 @@
 Summary:       OpenShift PAM module
 Name:          pam_openshift
-Version: 1.13.1
+Version: 1.13.2
 Release:       1%{?dist}
 Group:         System Environment/Base
 License:       GPLv2
@@ -41,6 +41,9 @@ install -D -m 644 oo-namespace-init.8 %{buildroot}/%{_mandir}/man8/oo-namespace-
 %attr(0750,root,root) %{_sbindir}/oo-namespace-init
 
 %changelog
+* Thu Feb 19 2015 Adam Miller <admiller@redhat.com> 1.13.2-1
+- Fixing typos (dmcphers@redhat.com)
+
 * Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.13.1-1
 - bump_minor_versions for sprint 53 (admiller@redhat.com)
 
