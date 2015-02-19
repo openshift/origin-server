@@ -101,6 +101,7 @@ Broker::Application.configure do
     :ha_dns_prefix => conf.get('HA_DNS_PREFIX', "ha-"),
     :ha_dns_suffix => conf.get('HA_DNS_SUFFIX', ""),
     :valid_ssh_key_types => OpenShift::Controller::Configuration.parse_list(conf.get('VALID_SSH_KEY_TYPES', nil)),
+    :minimum_ssh_key_size => OpenShift::Controller::Configuration.parse_tokens_hash(conf.get('MINIMUM_SSH_KEY_SIZE', nil)),
     :allow_obsolete_cartridges => conf.get_bool('ALLOW_OBSOLETE_CARTRIDGES', "false"),
     :allow_multiple_haproxy_on_node => conf.get_bool('ALLOW_MULTIPLE_HAPROXY_ON_NODE', "true"),
     :syslog_enabled => conf.get_bool('SYSLOG_ENABLED', 'false'),
