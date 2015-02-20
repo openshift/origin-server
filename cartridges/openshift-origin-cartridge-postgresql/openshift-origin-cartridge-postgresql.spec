@@ -9,7 +9,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
-Version: 1.32.2
+Version: 1.32.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -95,6 +95,10 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Feb 20 2015 Adam Miller <admiller@redhat.com> 1.32.3-1
+- updating links for developer resources in initial pages for cartridges
+  (cdaley@redhat.com)
+
 * Tue Feb 17 2015 Adam Miller <admiller@redhat.com> 1.32.2-1
 - Bug 1191181 - Added checking server certs existence when turning on SSL.
   (maszulik@redhat.com)
