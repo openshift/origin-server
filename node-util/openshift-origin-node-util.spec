@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.34.2
+Version: 1.34.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -203,6 +203,11 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Fri Feb 20 2015 Adam Miller <admiller@redhat.com> 1.34.3-1
+- Merge pull request #6080 from dobbymoodge/watchman_BZ1134686
+  (dmcphers+openshiftbot@redhat.com)
+- Avoid skipping jenkins builders in gear ps list (jolamb@redhat.com)
+
 * Thu Feb 19 2015 Adam Miller <admiller@redhat.com> 1.34.2-1
 - Fixing typos (dmcphers@redhat.com)
 
