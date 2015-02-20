@@ -9,7 +9,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.30.3
+Version: 1.30.4
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -109,6 +109,10 @@ done
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Fri Feb 20 2015 Adam Miller <admiller@redhat.com> 1.30.4-1
+- updating links for developer resources in initial pages for cartridges
+  (cdaley@redhat.com)
+
 * Tue Feb 17 2015 Adam Miller <admiller@redhat.com> 1.30.3-1
 - Merge pull request #6072 from soltysh/bug1191517
   (dmcphers+openshiftbot@redhat.com)
