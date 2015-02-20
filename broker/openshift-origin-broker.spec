@@ -79,6 +79,7 @@ Requires:      %{?scl:%scl_prefix}rubygem-metaclass
 Requires:      %{?scl:%scl_prefix}rubygem-mime-types
 Requires:      %{?scl:%scl_prefix}rubygem-moped
 Requires:      %{?scl:%scl_prefix}rubygem-multi_json
+Requires:      %{?scl:%scl_prefix}rubygem-net-ssh
 Requires:      %{?scl:%scl_prefix}rubygem-origin
 Requires:      %{?scl:%scl_prefix}rubygem-polyglot
 Requires:      %{?scl:%scl_prefix}rubygem-rack
