@@ -11,11 +11,11 @@ extension = apc.so
 ; OpenShift uses OPCache as opcode cache. Don't turn this on.
 apc.enable_opcode_cache=0
 
-; This can be set to 0 to disable APC. 
+; This can be set to 0 to disable APC.
 apc.enabled=1
 
 ; The size of each shared memory segment, with M/G suffix
-apc.shm_size=<%= (ENV['OPENSHIFT_PHP_APC_SHM_SIZE'] =~ /^[0-9]+[MG]$/) ? ENV['OPENSHIFT_PHP_APC_SHM_SIZE'] : ((ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i/16).to_i.to_s+"M") %>
+apc.shm_size=<%= (ENV['OPENSHIFT_PHP_APC_SHM_SIZE'] =~ /^[0-9]+[MG]$/) ? ENV['OPENSHIFT_PHP_APC_SHM_SIZE'] : ((ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i/8).to_i.to_s+"M") %>
 
 ; The shared memory size reserved for strings, with M/G suffixe
 ; WARNING: only enable this buffer if you don't use Zend Opcache
@@ -23,7 +23,7 @@ apc.shm_size=<%= (ENV['OPENSHIFT_PHP_APC_SHM_SIZE'] =~ /^[0-9]+[MG]$/) ? ENV['OP
 ; OpenShift disabled to fix https://bugzilla.redhat.com/show_bug.cgi?id=1173796. Don't turn this on.
 apc.shm_strings_buffer=0
 
-; A "hint" about the number of distinct source files that will be included or 
+; A "hint" about the number of distinct source files that will be included or
 ; requested on your web server. Set to zero or omit if you are not sure;
 ;apc.num_files_hint=1000
 
@@ -42,7 +42,7 @@ apc.shm_strings_buffer=0
 ; this cache entry slot is needed by another entry.
 ;apc.user_ttl=0
 
-; The number of seconds that a cache entry may remain on the garbage-collection list. 
+; The number of seconds that a cache entry may remain on the garbage-collection list.
 ;apc.gc_ttl=3600
 
 ; On by default, but can be set to off and used in conjunction with positive
@@ -52,7 +52,7 @@ apc.shm_strings_buffer=0
 ; A comma-separated list of POSIX extended regular expressions.
 ;apc.filters=
 
-; The mktemp-style file_mask to pass to the mmap module 
+; The mktemp-style file_mask to pass to the mmap module
 apc.mmap_file_mask=/tmp/apc.XXXXXX
 
 
@@ -68,7 +68,7 @@ apc.mmap_file_mask=/tmp/apc.XXXXXX
 ; Whether to stat the main script file and the fullpath includes.
 apc.stat=<%= (ENV['APPLICATION_ENV'] == "development") ? "1" : "0" %>
 
-; Vertification with ctime will avoid problems caused by programs such as svn or rsync by making 
+; Vertification with ctime will avoid problems caused by programs such as svn or rsync by making
 ; sure inodes have not changed since the last stat. APC will normally only check mtime.
 ;apc.stat_ctime=0
 
@@ -77,7 +77,7 @@ apc.stat=<%= (ENV['APPLICATION_ENV'] == "development") ? "1" : "0" %>
 ; as realpath() does not support stream wrappers.
 ;apc.canonicalize=1
 
-; With write_lock enabled, only one process at a time will try to compile an 
+; With write_lock enabled, only one process at a time will try to compile an
 ; uncached script while the other processes will run uncached
 ;apc.write_lock=1
 
@@ -91,11 +91,11 @@ apc.stat=<%= (ENV['APPLICATION_ENV'] == "development") ? "1" : "0" %>
 ;apc.rfc1867_freq=0
 ;apc.rfc1867_ttl=3600
 
-; Enables APC handling of signals, such as SIGSEGV, that write core files when signaled. 
+; Enables APC handling of signals, such as SIGSEGV, that write core files when signaled.
 ; APC will attempt to unmap the shared memory segment in order to exclude it from the core file
 ;apc.coredump_unmap=0
 
-; Records a md5 hash of files. 
+; Records a md5 hash of files.
 ;apc.file_md5=0
 
 ; not documented
