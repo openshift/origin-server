@@ -390,6 +390,24 @@ command :stopgear do |c|
   end
 end
 
+command :stoplockgear do |c|
+  c.syntax      = "#{$name} #{c.name} --message MESSAGE <login name>"
+  c.description = %q(stop given gear creating stop_lock)
+
+  c.option '-m', '--message MESSAGE', 'Reason why this gear is being stopped with a .stoplock'
+  c.action do |args, options|
+    raise 'Requires a gear uuid' if args.empty?
+    raise 'Requires reason for writing .stoplock file' unless options.message
+
+    rc = OpenShift::Runtime::AdminGearsControl.new(options, args).stop(IGNORE_LOCK)
+    args.each do |uuid|
+      container = OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
+      container.cartridge_model.create_stop_lock(options.message)
+    end
+    exit rc
+  end
+end
+
 command :forcestopgear do |c|
   c.syntax      = "#{$name} #{c.name} <login name>"
   c.description = %q(stop given gear ignoring stop_lock with prejudice)
@@ -496,3 +514,4 @@ command :metricsall do |c|
     OpenShift::Runtime::AdminGearsControl.new(options).metrics
   end
 end
+
