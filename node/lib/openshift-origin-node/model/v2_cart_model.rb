@@ -1651,9 +1651,11 @@ module OpenShift
 
       ##
       # Writes the +stop_lock+ file and changes its ownership to the gear user.
-      def create_stop_lock
+      def create_stop_lock(reason = nil)
         unless stop_lock?
-          File.new(stop_lock, File::CREAT|File::TRUNC|File::WRONLY, 0644).close()
+          File.open(stop_lock, File::CREAT|File::TRUNC|File::WRONLY, 0644) do |f|
+            f.write(reason) if reason
+          end
           @container.set_rw_permission(stop_lock)
         end
       end

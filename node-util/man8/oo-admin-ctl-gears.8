@@ -1,6 +1,6 @@
 .\" Process this file with
 .\" groff -man -Tascii oo-admin-ctl-gears.8
-.\" 
+.\"
 .de FN
 \fI\|\\$1\|\fP
 ..
@@ -16,7 +16,7 @@ may be used to control and check the status of the OpenShift gears hosted on thi
 The following commands are understood:
 .TP
 .B "startall"
-start all gears and their cartridges on this node.
+start all gears without .stop_lock files and their cartridges on this node.
 This command uses multiple threads to start the gears as quickly as possible.
 The results are recorded in a log file while the threads run in the background.
 Control is returned to the terminal before the gears have been started.
@@ -31,7 +31,7 @@ restart all gears and their cartridges on this node
 start all gears if they have not already been started
 .TP
 .B "waited-startall"
-start all gears and their components in the foreground.
+start all gears without .stop_lock files and their components in the foreground.
 Control will only be returned to the terminal after all the gears have been started.
 .TP
 .B "status"
@@ -45,6 +45,12 @@ start given gear's cartridges
 .TP
 .BI "stopgear" " gear uuid"
 stop given gear's cartridges
+.TP
+.BI "stoplockgear" " --message MESSAGE gear uuid"
+stop given gear's cartridges and write MESSAGE to the .stop_lock file.  As this is
+.B "not"
+expected behavior be sure to explain why you are ensuring this gear is not started in the future
+in the MESSAGE.
 .TP
 .BI "restartgear" " gear uuid"
 restart given gear's cartridges
@@ -75,12 +81,12 @@ The gear and component cartridge output during a back-grounded start is recorded
 commands call the cartridge's restart command which may be optimized to
 run faster than calling the stop and start commands.
 .IP \n+[step] 2
-Not all cartridges provide meaningful status. 
+Not all cartridges provide meaningful status.
 .IP \n+[step] 2
 .B oo-admin-ctl-gears
 is of no value on a broker node that does not host gears.
 .SH BUGS
-The 
+The
 .B status
 command does not scale to a large number of hosted gears.
 This will be corrected in a future version of the OpenShift product.
