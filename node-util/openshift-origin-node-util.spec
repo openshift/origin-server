@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.34.3
+Version: 1.34.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -203,6 +203,9 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Tue Feb 24 2015 Adam Miller <admiller@redhat.com> 1.34.4-1
+- Bug 1190856 - Allow Operator to stop gear with .stop_lock (jhonce@redhat.com)
+
 * Fri Feb 20 2015 Adam Miller <admiller@redhat.com> 1.34.3-1
 - Merge pull request #6080 from dobbymoodge/watchman_BZ1134686
   (dmcphers+openshiftbot@redhat.com)
