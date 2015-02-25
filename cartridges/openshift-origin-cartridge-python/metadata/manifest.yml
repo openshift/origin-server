@@ -13,12 +13,13 @@ Versions:
 License: The Python License, version 2.6
 License-Url: http://docs.python.org/3/license.html
 Vendor: python.org
-Cartridge-Version: 0.0.23
+Cartridge-Version: 0.0.24
 Compatible-Versions:
 - 0.0.19
 - 0.0.20
 - 0.0.21
 - 0.0.22
+- 0.0.23
 Cartridge-Vendor: redhat
 Categories:
 - service
