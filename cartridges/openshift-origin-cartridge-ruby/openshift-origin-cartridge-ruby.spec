@@ -9,7 +9,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.30.4
+Version: 1.30.5
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -109,6 +109,9 @@ done
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Wed Feb 25 2015 Adam Miller <admiller@redhat.com> 1.30.5-1
+- Bump cartridge versions for Sprint 58 (maszulik@redhat.com)
+
 * Fri Feb 20 2015 Adam Miller <admiller@redhat.com> 1.30.4-1
 - updating links for developer resources in initial pages for cartridges
   (cdaley@redhat.com)
