@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.35.3
+Version: 1.35.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -285,6 +285,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Feb 25 2015 Adam Miller <admiller@redhat.com> 1.35.4-1
+- Sanitize credentials during post-configure logging (ironcladlou@gmail.com)
+
 * Tue Feb 24 2015 Adam Miller <admiller@redhat.com> 1.35.3-1
 - Bug 1190856 - Allow Operator to stop gear with .stop_lock (jhonce@redhat.com)
 
