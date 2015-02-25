@@ -388,7 +388,7 @@ module OpenShift
           output << cartridge_action(cartridge, 'post_install', software_version)
         end
 
-        logger.info("post-configure output: #{output}")
+        logger.info("post-configure output: #{Runtime::Utils.sanitize_credentials(output)}")
         output
       rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
         raise ::OpenShift::Runtime::Utils::Sdk.translate_shell_ex_for_client(e, 157)
