@@ -228,7 +228,7 @@ module OpenShift
       # @param uuid [String] gear identifier
       def cache_incident(op, uuid)
         if @incidents.has_key?(uuid)
-          delta = DateTime.now - @incidents[uuid][:last_updated]
+          delta = ((DateTime.now - @incidents[uuid][:last_updated]) * 24 * 60 * 60).to_i
 
           # Have we tried to restart in the last @retry_delay seconds?
           if delta < @retry_delay && op != :stop
