@@ -49,6 +49,8 @@ fi
 freq=$1
 source "$CART_CONF_DIR/limits"
 
+[[ -f /etc/openshift/cron/limits ]] && source /etc/openshift/cron/limits
+
 # First up check if the cron jobs are enabled.
 if [ ! -f $OPENSHIFT_CRON_DIR/run/jobs.enabled ]; then
    # Jobs are not enabled - just exit.
