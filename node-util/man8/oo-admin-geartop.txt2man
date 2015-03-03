@@ -1,0 +1,26 @@
+NAME
+  oo-admin-geartop
+
+SYNOPSIS
+  oo-admin-geartop [-d N][-n N][-s ORDER]
+
+DESCRIPTION
+  Displays top like statistics for running OpenShift gears including cgroups
+  utilization.
+
+OPTIONS
+  -d N                             Seconds between iterations
+  -n N                             Number of iterations to run
+  -s ORDER                         Sort order: m = mem, s = memsw, t = cpu, q = cpu_quota_pct, c = cpu_pct
+  -h, --help                       Show this message
+
+EXAMPLE
+
+  $ oo-admin-geartop -n 2 -d 5 -s s
+
+HINTS
+  This command should return with the text 'PASS' and return code 0, otherwise
+  the reasons for failure will be output.
+
+AUTHOR
+  Scott Dodson <sdodson@redhat.com> - man page written for OpenShift Origin
