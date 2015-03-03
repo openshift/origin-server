@@ -40,7 +40,6 @@ Cart-Data:
   Type: cart_data
   Description: Mongo DB connection URL
 Suggests:
-- 10gen-mms-agent-0.1
 - rockmongo
 Provides:
 - mongodb-2.2
