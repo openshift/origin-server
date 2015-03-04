@@ -27,7 +27,8 @@ no_overcommit_active=false
 # Quotas: File system limits per gear
 #
 # number of files (inodes) gear can own:
-quota_files=80000
+# Adjust per application requirements, good place to start is 80000 per GB
+quota_files=160000
 # size of storage allowed (1 block = 1024byte):
 # 2 GB
 quota_blocks=2097152
