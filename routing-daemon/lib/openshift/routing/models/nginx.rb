@@ -65,7 +65,7 @@ module OpenShift
     def create_monitor monitor_name, path, up_code, type, interval, timeout
     end
 
-    def delete_monitor monitor_name
+    def delete_monitor monitor_name, type
     end
 
     def get_pool_members pool_name

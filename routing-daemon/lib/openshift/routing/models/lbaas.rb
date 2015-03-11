@@ -138,7 +138,7 @@ module OpenShift
     end
 
     # Returns [String] of job ids.
-    def delete_monitor monitor_name
+    def delete_monitor monitor_name, type
       response = RestClient.delete("http://#{@host}/loadbalancers/tenant/#{@tenant}/monitors/#{monitor_name}",
                                    :content_type => :json,
                                    :accept => :json,

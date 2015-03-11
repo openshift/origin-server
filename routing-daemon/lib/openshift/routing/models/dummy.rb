@@ -35,8 +35,8 @@ module OpenShift
       [] # If using AsyncLoadBalancerController, return an array of jobids.
     end
 
-    def delete_monitor monitor_name
-      @logger.debug "delete monitor #{monitor_name}"
+    def delete_monitor monitor_name, type
+      @logger.debug "delete monitor #{monitor_name} of type #{type}"
       [] # If using AsyncLoadBalancerController, return an array of jobids.
     end
 

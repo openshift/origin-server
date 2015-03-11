@@ -102,20 +102,19 @@ module OpenShift
 
     def create_monitor monitor_name, path, up_code, type, interval, timeout
       type = type == 'https-ecv' ? 'https' : 'http'
-      post(url: "https://#{@host}/mgmt/tm/ltm/monitor/#{type}/#{monitor_name}",
+      post(url: "https://#{@host}/mgmt/tm/ltm/monitor/#{type}",
            payload: {
+             "name" => monitor_name,
              "interval" => interval,
              "recv" => up_code,
              "send" => "HEAD #{path} HTTP/1.0\\r\\n\\r\\n",
              "timeout" => timeout,
              "upInterval" => interval,
-           })
+           }.to_json)
     end
 
-    def delete_monitor monitor_name
-      # TODO: delete_monitor needs a 'type' parameter for the REST API.
-      delete(url: "https://#{@host}/mgmt/tm/ltm/monitor/http/#{monitor_name}")
-      #delete(url: "https://#{@host}/mgmt/tm/ltm/monitor/#{type}/#{monitor_name}")
+    def delete_monitor monitor_name, type
+      delete(url: "https://#{@host}/mgmt/tm/ltm/monitor/#{type}/#{monitor_name}")
     end
 
     def get_pool_members pool_name
