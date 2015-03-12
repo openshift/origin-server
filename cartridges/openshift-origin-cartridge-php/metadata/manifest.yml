@@ -35,7 +35,7 @@ Categories:
 - web_framework
 Website: http://www.php.net
 Help-Topics:
-  Developer Center: https://www.openshift.com/developers
+  Developer Portal: https://developers.openshift.com/en/php-overview.html
 Publishes:
   get-php-ini:
     Type: FILESYSTEM:php-ini
