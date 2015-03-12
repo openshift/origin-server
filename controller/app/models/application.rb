@@ -1936,8 +1936,9 @@ class Application
                            gear_size: gear_size, prereq: [create_gear_op._id.to_s])
 
       register_dns_op = RegisterDnsOp.new(gear_id: gear_id, prereq: [create_gear_op._id.to_s])
-      ops.push(init_gear_op, reserve_uid_op, create_gear_op, register_dns_op)
-      ops.push(RegisterRoutingDnsOp.new(prereq: [register_dns_op._id.to_s])) if self.ha and Rails.configuration.openshift[:manage_ha_dns]
+      register_sso_op = RegisterSsoOp.new(gear_id: gear_id, prereq: [register_dns_op._id.to_s])
+      ops.push(init_gear_op, reserve_uid_op, create_gear_op, register_dns_op, register_sso_op)
+      ops.push(RegisterRoutingDnsOp.new(prereq: [register_sso_op._id.to_s])) if self.ha and Rails.configuration.openshift[:manage_ha_dns]
 
       if additional_filesystem_gb != 0
         # FIXME move into CreateGearOp
@@ -1999,7 +2000,8 @@ class Application
     gear_ids.each do |gear_id|
       deleting_app = true if self.gears.find(gear_id).app_dns
       destroy_gear_op = DestroyGearOp.new(gear_id: gear_id)
-      deregister_dns_op = DeregisterDnsOp.new(gear_id: gear_id, prereq: [destroy_gear_op._id.to_s])
+      deregister_sso_op = DeregisterSsoOp.new(gear_id: gear_id, prereq: [destroy_gear_op._id.to_s])
+      deregister_dns_op = DeregisterDnsOp.new(gear_id: gear_id, prereq: [deregister_sso_op._id.to_s])
       unreserve_uid_op = UnreserveGearUidOp.new(gear_id: gear_id, prereq: [deregister_dns_op._id.to_s])
       delete_gear_op = DeleteGearOp.new(gear_id: gear_id, prereq: [unreserve_uid_op._id.to_s])
       track_usage_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
@@ -2007,7 +2009,7 @@ class Application
                           usage_type: UsageRecord::USAGE_TYPES[:gear_usage],
                           prereq: [delete_gear_op._id.to_s])
 
-      pending_ops.push(destroy_gear_op, deregister_dns_op, unreserve_uid_op, delete_gear_op, track_usage_op)
+      pending_ops.push(destroy_gear_op, deregister_sso_op, deregister_dns_op, unreserve_uid_op, delete_gear_op, track_usage_op)
 
       if additional_filesystem_gb != 0
         pending_ops <<  TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
