@@ -3315,7 +3315,7 @@ module OpenShift
       # Sort by district available capacity and take the best half
       server_infos = server_infos.sort_by { |server_info| (server_info.district_available_capacity ? server_info.district_available_capacity : 1) }
       # consider the top half and no less than min(4, the actual number of available)
-      server_infos = server_infos.last([4, (server_infos.length / 2).to_i].max)
+      server_infos = server_infos.first([4, (server_infos.length / 2).to_i].max)
 
       server_info = nil
       unless server_infos.empty?
