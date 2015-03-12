@@ -1,6 +1,6 @@
 module OpenShift
 
-  # SSO singleton, manages notifications of changes to routes.
+  # SSO singleton, manages notifications of changes to gears and aliases.
   #
   # An optional sso plug-in may be used to communicate with
   # infrastructure outside of OpenShift, such as an external SSO
@@ -44,22 +44,14 @@ module OpenShift
     end
 
     def self.register_gear(gear)
-      #Rails.logger.debug("register_gear #{gear.name} #{gear.application.domain_namespace} #{gear.application.list_user_env_variables.inspect}")
       notify_providers :register_gear, gear
     end
 
     def self.deregister_gear(gear)
-      #Rails.logger.debug("deregister_gear #{gear.name} #{gear.application.domain_namespace}")
       notify_providers :deregister_gear, gear
     end
 
-    #def self.register_alias(app, alias_str)
-    #  #Rails.logger.debug("register_alias #{alias_str} #{app.name} #{app.domain_namespace} #{gear.application.list_user_env_variables.inspect}")
-    #  notify_providers :register_alias, app, alias_str
-    #end
-
     def self.deregister_alias(app, alias_str)
-      #Rails.logger.debug("deregister_alias #{alias_str} #{app.name} #{app.domain_namespace}")
       notify_providers :deregister_alias, app, alias_str
     end
 
