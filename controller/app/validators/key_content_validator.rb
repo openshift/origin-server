@@ -1,3 +1,4 @@
+require 'net/ssh'
 class KeyContentValidator < ActiveModel::Validator
    def validate(record)
      # If it is not a key type that we have a size requirement for or 
