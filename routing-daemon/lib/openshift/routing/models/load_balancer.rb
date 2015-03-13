@@ -42,8 +42,8 @@ module OpenShift
     def create_monitor monitor_name, path, up_code, type, interval, timeout
     end
 
-    # delete_monitor :: String -> undefined
-    def delete_monitor monitor_name
+    # delete_monitor :: String, String -> undefined
+    def delete_monitor monitor_name, type
     end
 
     def get_pool_certificates pool_name

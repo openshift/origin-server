@@ -104,10 +104,11 @@ module OpenShift
       @monitors.push monitor_name
     end
 
-    def delete_monitor monitor_name, pool_name=nil
+    def delete_monitor monitor_name, pool_name, type
       raise LBControllerException.new "Monitor not found: #{monitor_name}" unless monitors.include? monitor_name
 
-      @lb_model.delete_monitor monitor_name if monitors.include? monitor_name
+      # we assume the types won't be modified at runtime
+      @lb_model.delete_monitor monitor_name, type if monitors.include? monitor_name
 
       @monitors.delete monitor_name
     end
