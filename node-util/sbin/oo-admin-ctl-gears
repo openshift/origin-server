@@ -95,7 +95,7 @@ module OpenShift
       # @param msg [String] message denoting operation. E.g., 'Starting gear uuid'
       def okay(msg)
         NodeLogger.logger.info %Q((#{Process.pid}) #{msg}[ OK ])
-        $stdout.puts %Q(#{msg}[ #{$stdout.tty? ? GREEN : ''} OK #{$stdout.tty? ? NORMAL : ''}])
+        $stdout.puts %Q(#{msg}[#{$stdout.tty? ? GREEN : ''} OK #{$stdout.tty? ? NORMAL : ''}])
       end
 
       # Log success messages
