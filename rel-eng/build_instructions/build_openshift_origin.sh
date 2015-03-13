@@ -121,8 +121,8 @@ if [[ -z "$origin_release" ]]; then
     printf "ERROR: must profive an origin_release to build \n"
     f_help
 else
-    if ! [[ "$origin_release" == "v4" ]] || 
-         [[ "$origin_release" == "nightly" ]]; then
+    if [[ "$origin_release" != "v4" ]] && 
+       [[ "$origin_release" != "nightly" ]]; then
         printf "ERROR: invalid origin_release provided\n"
         f_help
     fi
