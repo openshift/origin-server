@@ -2,37 +2,105 @@
 
 require 'rubygems'
 require 'json'
+require 'net/https'
+require 'uri'
 
 STDOUT.sync = true
 STDERR.sync = true
 Encoding.default_external = "utf-8"
 
+# Build constants from the environment.
 @hostname = ENV['JENKINS_URL'].split("/")[-1]
+@username = ENV['JENKINS_USERNAME']
+@password = ENV['JENKINS_PASSWORD']
 @job_url = "/job/#{ENV['OPENSHIFT_APP_NAME']}-build"
 
+# A list of recoverable HTTP error codes which should indicate
+# a retry is necessary.
+RETRYABLE_ERRORS = ['502', '503', '504']
+
+# Yields until the block stops raising errors. If a retry is
+# attempted, progress and completion is reported; otherwise
+# initial success is silent.
+#
+# Sleeps for a second between retries.
+def try_forever(msg)
+  retried = false
+  loop do
+    begin
+      yield
+      puts "Done." if retried
+      return
+    rescue => e
+      unless retried
+        print "Retrying #{msg}..."
+        retried = true
+      end
+      print '.'
+      sleep 1
+    end
+  end
+end
+
+# Makes an HTTP client with SSL verification disabled.
+def make_http(uri)
+  uri = URI.parse(uri)
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = true
+  http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+  return [http, uri]
+end
+
+# Makes a request to uri and yields the response. Will retry
+# requests whose response code is in RETRYABLE_ERRORS.
+def try_request(type, uri_string, label)
+  http, uri = make_http(uri_string)
+  case type
+  when 'GET'
+    request = Net::HTTP::Get.new(uri.request_uri)
+  when 'POST'
+    request = Net::HTTP::Post.new(uri.request_uri)
+  end
+  request.basic_auth(@username, @password)
+
+  response = nil
+  try_forever(label) do    
+    response = http.request(request)
+    if RETRYABLE_ERRORS.include?(response.code)
+      raise "#{label}: HTTP #{response.code} #{response.message}"
+    end
+  end
+  yield response
+end
+
+# Returns true if the job exists, otherwise returns false.
 def job_available?
-  status_code = `curl -s -w %{http_code} --output /dev/null -X POST --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@#{@hostname}#{@job_url}/api/json`
-  return status_code == '200'
+  url = "https://#{@hostname}#{@job_url}/api/json"
+  try_request('GET', url, 'job availability check') do |response|
+    return response.code == '200'
+  end
 end
 
+# Returns JSON representing all jobs.
 def get_jobs_info
-  jobs = `curl -s --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@#{@hostname}#{@job_url}/api/json`
-  result = $?
-  if result.exitstatus != 0
-    puts "ERROR - Couldn't access jobs information"
-    exit 290
+  url = "https://#{@hostname}#{@job_url}/api/json"
+  try_request('GET', url, 'jobs list') do |response|
+    if response.code != '200'
+      raise "Couldn't list jobs: HTTP #{response.code} #{response.message}"
+    end
+    return JSON.parse(response.body)
   end
-  JSON.parse(jobs.chomp)
 end
 
+# Returns JSON representing a single job.
 def get_job_info(num)
-  jobs = `curl -s --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@#{@hostname}#{@job_url}/#{num}/api/json`
-  result = $?
-  if result.exitstatus != 0
-    puts "ERROR - Couldn't access job information"
-    exit 291
+  url = "https://#{@hostname}#{@job_url}/#{num}/api/json"
+  try_request('GET', url, "job #{num} lookup") do |response|
+    if response.code != '200'
+      raise "Couldn't get job #{num} info: HTTP #{response.code} #{response.message}"
+    end
+    return JSON.parse(response.body)
   end
-  JSON.parse(jobs.chomp)
 end
 
 def get_build_num
@@ -45,62 +113,113 @@ def is_cancelled
   queueItem = jobs_info["queueItem"]
 end
 
+# Schedules a new build.
 def schedule_build
-  status_code = `curl -s -w %{http_code} --output /dev/null -X POST --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@#{@hostname}#{@job_url}/build`
-  unless ['302', '200', '201'].include? status_code
-    puts "ERROR - Couldn't schedule job"
-    exit 292
+  url = "https://#{@hostname}#{@job_url}/build"
+  try_request('POST', url, 'build request') do |response|
+    unless ['302', '200', '201'].include?(response.code)
+      raise "Couldn't schedule build: HTTP #{response.code} #{response.message}"
+    end
   end
 end
 
-if job_available?
-  # Save the current build num
-  build_num = get_build_num
-  
-  # Schedule a build
-  schedule_build
-  
-  # Wait until a new build is kicked off
-  next_build_num = get_build_num
-  print "Waiting for build to schedule..."
-  until next_build_num == build_num + 1
-    print "."
-    cancelled = is_cancelled
-    if cancelled == nil
-      next_build_num = get_build_num
-      if next_build_num == build_num + 1
-        break
-      else
-        puts ""
-        puts "**BUILD FAILED/CANCELLED**"
-        puts "Please see the Jenkins log for more details via 'rhc tail'"
-        exit 1
-      end
-    end
-    sleep 1
-    next_build_num = get_build_num
-  end
-  puts "Done"
-  
-  # Block until a result shows up
-  print "Waiting for job to complete..."
-  json = get_job_info(next_build_num)
-  until !json["building"]
-    print "."
-    sleep 1
-    json = get_job_info(next_build_num)
-  end
-  puts "Done"
-  
-  # Check the build result
-  if json["result"] == "SUCCESS"
-    puts "SUCCESS"
-    exit 0
-  else
-    puts "FAILED"
-    exit 1
-  end
-else
+unless job_available?
   puts "ERROR - Job not available: http://#{@hostname}#{@job_url}"
+  exit 1
+end
+
+# Save the current build num
+begin
+  build_num = get_build_num
+rescue => e
+  puts "Couldn't look up the last build number. Jenkins may be inaccessible."
+  puts "Error: #{e.message}"
+  exit 1
+end
+
+# Schedule a build
+begin
+  schedule_build
+rescue => e
+  puts "Couldn't schedule build. Jenkins may be inaccessible."
+  puts "Error: #{e.message}"
+  exit 2
+end
+
+# Wait until a new build is kicked off
+print "Waiting for build to schedule..."
+next_build_num = nil
+loop do
+  begin
+    next_build_num = get_build_num
+  rescue => e
+    puts "Couldn't find scheduled build. Jenkins may be inaccessible."
+    puts "Please note that the build may have been successfully scheduled."
+    puts "Error: #{e.message}"
+    exit 3
+  end
+
+  break if next_build_num == build_num + 1
+
+  print "."
+  begin
+    cancelled = is_cancelled
+  rescue => e
+    puts "Couldn't determine the build's status. Jenkins may be inaccessible."
+    puts "Please note that the build may have been successfully scheduled."
+    puts "Error: #{e.message}"
+    exit 4
+  end
+
+  if cancelled == nil
+    begin
+      next_build_num = get_build_num
+    rescue => e
+      puts "Couldn't find scheduled build. Jenkins may be inaccessible."
+      puts "Please note that the build may have been successfully scheduled."
+      puts "Error: #{e.message}"
+      exit 5
+    end
+
+    if next_build_num == build_num + 1
+      break
+    else
+      puts ""
+      puts "**BUILD FAILED/CANCELLED**"
+      puts "Please see the Jenkins log for more details via 'rhc tail'"
+      exit 6
+    end
+  end
+
+  sleep 1
+end
+puts "Done"
+
+# Block until a result shows up
+print "Waiting for job to complete..."
+job_json = nil
+loop do
+  begin
+    job_json = get_job_info(next_build_num)
+  rescue => e
+    puts "Couldn't get job #{next_build_num} info. Jenkins may be inaccessible."
+    puts "Please note that the build may have finished."
+    puts "Error: #{e.message}"
+    exit 5
+  end
+
+  break if !job_json["building"]
+  
+  print "."
+  sleep 1
+end
+puts "Done"
+
+# Check the build result
+if job_json["result"] == "SUCCESS"
+  puts "SUCCESS"
+  exit 0
+else
+  puts "FAILED"
   exit 1
 end
