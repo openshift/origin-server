@@ -1113,6 +1113,14 @@ class Application
   end
 
   ##
+  # Returns the application URL with the proper protocol (http vs https) based on configuration
+  # @return [String]
+  def app_url
+    proto = Rails.application.config.openshift[:app_advertise_https] ? "https" : "http"
+    "#{proto}://#{fqdn()}/"
+  end
+
+  ##
   # Returns the SSH URI for an application gear (unless specified, the primary)
   # @return [String]
   def ssh_uri(gear_uuid=nil)
