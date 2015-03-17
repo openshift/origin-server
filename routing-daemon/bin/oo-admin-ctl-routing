@@ -135,7 +135,7 @@ list-monitors
 create-monitor <name> <path> <up-code>
   Create a new monitor with the specified name that queries <path>
   and expects to receive <up-code> to indicate that the pool is up.
-delete-monitor <name> <type>
+delete-monitor <name> <pool> <type>
   Delete the specified monitor.
 list-pool-members <pool>
   List all members of the specified pool.
@@ -205,8 +205,8 @@ argvs.each do |argv|
       lb.create_monitor *argv
 
     when 'delete-monitor'
-      raise ArgumentError.new "Requires a pool name and monitor type." unless 2 == argv.length
-      puts "Deleting monitor #{argv[0]} of type #{argv[1]}."
+      raise ArgumentError.new "Requires a pool name and monitor type." unless 3 == argv.length
+      puts "Deleting monitor #{argv[0]} from pool #{argv[1]} of type #{argv[2]}."
       lb.delete_monitor *argv
 
     when 'list-pool-members'
