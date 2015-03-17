@@ -3307,15 +3307,26 @@ module OpenShift
       end
       server_infos.delete_if { |server_info| !server_info.zone_id } if has_zone_node
 
-      # Sort by node active capacity (consumed capacity) and take the best half
-      server_infos = server_infos.sort_by { |server_info| server_info.node_consumed_capacity }
-      # consider the top half and no less than min(4, the actual number of available)
-      server_infos = server_infos.first([4, (server_infos.length / 2).to_i].max)
+      if server_infos.length > 4
+        # Take all nodes with > the average remaining capacity.  Make sure to take at least max(4, 20% of nodes) nodes.
+        server_infos.sort_by! { |server_info| server_info.node_consumed_capacity }.reverse!
+        node_consumed_capacities = server_infos.map { |server_info| server_info.node_consumed_capacity }
+        average_consumed_capacity = (node_consumed_capacities.inject(0.0) { |sum, c| sum + c } / node_consumed_capacities.length) + 1
+        min_nodes = [4, (server_infos.length * 0.2).to_i].max
+        server_infos.delete_if { |server_info| server_info.node_consumed_capacity > average_consumed_capacity && server_infos.length > min_nodes }
 
-      # Sort by district available capacity and take the best half
-      server_infos = server_infos.sort_by { |server_info| (server_info.district_available_capacity ? server_info.district_available_capacity : 1) }
-      # consider the top half and no less than min(4, the actual number of available)
-      server_infos = server_infos.last([4, (server_infos.length / 2).to_i].max)
+        half_full_count = 0
+        server_infos.each do |server_info|
+          if server_info.district_available_capacity && server_info.district_available_capacity < (Rails.configuration.msg_broker[:districts][:max_capacity].to_f / 2).to_i
+            half_full_count += 1
+          end
+        end
+        half_full_ratio = half_full_count.to_f / server_infos.length
+        # Sort by district available capacity
+        server_infos.sort_by! { |server_info| server_info.district_available_capacity || 1 }
+        # consider the top 80% and no less than min(4, the actual number of available).  Take more than 80% if that many districts are less than 50% full.
+        server_infos = server_infos.last([4, (server_infos.length * [0.8, (1-half_full_ratio)].max).to_i].max)
+      end
 
       server_info = nil
       unless server_infos.empty?
