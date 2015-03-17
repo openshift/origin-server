@@ -137,6 +137,10 @@ create-monitor <name> <path> <up-code>
   and expects to receive <up-code> to indicate that the pool is up.
 delete-monitor <name> [<pool>] <type>
   Delete the specified monitor.
+add-pool-monitor <pool> <monitor>
+  Associate the specified monitor with the specified pool.
+delete-pool-monitor <pool> <monitor>
+  Dissociate the specified monitor from the specified pool.
 list-pool-members <pool>
   List all members of the specified pool.
 add-pool-member <pool> <host>:<port>
@@ -213,6 +217,16 @@ argvs.each do |argv|
         puts "Deleting monitor #{argv[0]} from pool #{argv[1]} of type #{argv[2]}."
         lb.delete_monitor *argv
       end
+
+    when 'add-pool-monitor'
+      raise ArgumentError.new "Requires a pool name and monitor name." unless 2 == argv.length
+      puts "Adding monitor #{argv[0]} to pool #{argv[1]}."
+      lb.pools[argv[0]].add_monitor argv[1]
+
+    when 'delete-pool-monitor'
+      raise ArgumentError.new "Requires a pool name and monitor name." unless 2 == argv.length
+      puts "Deleting monitor #{argv[0]} from pool #{argv[1]}."
+      lb.pools[argv[0]].delete_monitor argv[1]
 
     when 'list-pool-members'
       raise ArgumentError.new "Requires a pool name." unless 1 == argv.length

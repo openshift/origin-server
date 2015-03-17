@@ -128,6 +128,22 @@ module OpenShift
       delete(url: "https://#{@host}/mgmt/tm/ltm/monitor/#{type}/#{monitor_name}")
     end
 
+    # add_pool_monitor :: String, String -> undefined
+    def add_pool_monitor pool_name, monitor_name
+      patch(url: "https://#{@host}/mgmt/tm/ltm/pool/#{pool_name}",
+            payload: {
+              "monitor" => "/Common/#{monitor_name}",
+            }.to_json)
+    end
+
+    # delete_pool_monitor :: String, String -> undefined
+    def delete_pool_monitor pool_name, monitor_name
+      patch(url: "https://#{@host}/mgmt/tm/ltm/pool/#{pool_name}",
+            payload: {
+              "monitor" => nil,
+            }.to_json)
+    end
+
     def get_pool_members pool_name
       JSON.parse(get(url: "https://#{@host}/mgmt/tm/ltm/pool/#{pool_name}/members"))['items'].map {|item| item['name']}
     end

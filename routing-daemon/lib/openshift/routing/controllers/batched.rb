@@ -62,6 +62,14 @@ module OpenShift
         @aliases.delete alias_str
         @lb_model.delete_pool_alias @name, alias_str
       end
+
+      def add_monitor monitor_name
+        @lb_model.add_pool_monitor @name, monitor_name
+      end
+
+      def delete_monitor monitor_name
+        @lb_model.delete_pool_monitor @name, monitor_name
+      end
     end
 
     def add_ssl alias_str, ssl_cert, private_key
