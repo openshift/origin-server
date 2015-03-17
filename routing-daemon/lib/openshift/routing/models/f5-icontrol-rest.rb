@@ -37,10 +37,21 @@ module OpenShift
 
       expected_code = options.delete(:expected_code) || 200
 
-      RestClient::Request.execute(defaults.merge(options)).tap do |response|
-        unless response.code == expected_code
-          raise LBModelException.new "Expected HTTP #{expected_code} but got #{response.code} instead"
+      begin
+        RestClient::Request.execute(defaults.merge(options)).tap do |response|
+          unless response.code == expected_code
+            raise LBModelException.new "Expected HTTP #{expected_code} but got #{response.code} instead"
+          end
         end
+      rescue => e
+        msg = "got #{e.class} exception: #{e.to_s}"
+        begin
+          resp = JSON.parse e.response
+          m = resp['message']
+          msg += " (#{m})" unless m.empty?
+        rescue
+        end
+        raise LBModelException.new msg
       end
     end
 
