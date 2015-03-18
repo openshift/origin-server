@@ -204,6 +204,22 @@ module OpenShift
       # failure during app create
       def archive_gear()
         archive_dir = @config.get("ARCHIVE_DESTROYED_GEARS_DIR", nil)
+        archive_compress = @config.get("ARCHIVE_DESTROYED_GEARS_COMPRESSION", 'bzip2').downcase
+        archive_suffix = ""
+        if not [ 'bzip2', 'gzip', 'none' ].include? archive_compress
+          archive_compress = 'bzip2'
+        end
+        case archive_compress
+        when 'bzip2'
+          archive_compress = "--#{archive_compress}"
+          archive_suffix = '.bz2'
+        when 'gzip'
+          archive_compress = "--#{archive_compress}"
+          archive_suffix = '.gz'
+        when 'none'
+          archive_compress = ''
+          archive_suffix = ''
+        end
         if @config.get_bool("ARCHIVE_DESTROYED_GEARS", false)
           if not archive_dir
             logger.warn "Cannot archive destroyed gears; ARCHIVE_DESTROYED_GEARS_DIR is not set in node.conf"
@@ -218,15 +234,16 @@ module OpenShift
             logger.warn "Cannot archive destroyed gears; #{archive_dir} is world readable and/or writable"
             return
           end
-          archive_filespec = PathUtils.join(archive_dir, "#{@container.application_name}-#{@container.uuid}.tar.bz2")
+          archive_filespec = PathUtils.join(archive_dir, "#{@container.application_name}-#{@container.uuid}.tar#{archive_suffix}")
           if File.exists? archive_filespec
             logger.warn "Cannot archive destroyed gears; #{archive_filespec} already exists"
           else
-            command = "tar --selinux --acls --preserve --create --bzip2 --file=#{archive_filespec} #{@container.container_dir}"
+            command = "tar --selinux --acls --preserve-permissions --preserve-order --create #{archive_compress} --file=#{archive_filespec} #{@container.container_dir}"
             tarout, tarerr, rc = Utils.oo_spawn(command)
-            unless rc == 0
+            if rc == 1
+              logger.warn "Some files may have changed while running \"#{command}\"; rc=#{rc}, stdout=#{tarout}, stderr=#{tarerr}"
+            elsif rc != 0
               logger.warn "Error occurred running \"#{command}\"; rc=#{rc}, stdout=#{tarout}, stderr=#{tarerr}"
-              FileUtils.rm_f archive_filespec
             end
           end
         end
