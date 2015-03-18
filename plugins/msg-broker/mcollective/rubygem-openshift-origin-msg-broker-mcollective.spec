@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.32.1
+Version: 1.32.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Wed Mar 18 2015 Adam Miller <admiller@redhat.com> 1.32.2-1
+- Take district less into account when filtering available servers
+  (dmcphers@redhat.com)
+
 * Thu Feb 12 2015 Adam Miller <admiller@redhat.com> 1.32.1-1
 - Merge pull request #6050 from codificat/bz1147116-move-fails-if-eth0-has-no-
   ip (dmcphers+openshiftbot@redhat.com)
