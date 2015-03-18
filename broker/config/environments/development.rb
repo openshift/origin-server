@@ -119,6 +119,7 @@ Broker::Application.configure do
     :normalize_username_method => conf.get("NORMALIZE_USERNAME_METHOD", "noop"),
     :use_predictable_gear_uuids => conf.get_bool("USE_PREDICTABLE_GEAR_UUIDS", false),
     :limit_app_name_chars => conf.get("LIMIT_APP_NAME_CHARS", -1).to_i,
+    :app_advertise_https => conf.get_bool("APP_ADVERTISE_HTTPS", false),
   }
 
   config.auth = {
