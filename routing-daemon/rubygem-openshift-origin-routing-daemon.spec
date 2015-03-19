@@ -11,7 +11,7 @@
 
 Summary:       OpenShift daemon for routing integration
 Name:          rubygem-%{gem_name}
-Version: 0.23.0
+Version: 0.23.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -88,6 +88,13 @@ cp -a init/* %{buildroot}/etc/rc.d/init.d/
 %attr(0755,-,-) %{_var}/log/openshift
 
 %changelog
+* Thu Mar 19 2015 Adam Miller <admiller@redhat.com> 0.23.1-1
+- bump_minor_versions for sprint 60 (admiller@redhat.com)
+- BZ1199904 - Fixing oo-admin-ctl-routing to delete monitors
+  (calfonso@redhat.com)
+- BZ1199901, BZ1199903, BZ1199904 creating and deleting monitors
+  (christopher.alfonso@gmail.com)
+
 * Thu Feb 12 2015 Adam Miller <admiller@redhat.com> 0.22.2-1
 - BZ1187047 - "oo-admin-ctl-routing delete-alias" does not delete..
   (calfonso@redhat.com)
