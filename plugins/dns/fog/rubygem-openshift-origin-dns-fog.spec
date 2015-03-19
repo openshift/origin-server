@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for Fog cloud services library
 Name:          rubygem-%{gem_name}
-Version: 1.1.0
+Version: 1.1.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
