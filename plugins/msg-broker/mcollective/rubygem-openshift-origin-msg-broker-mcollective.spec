@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.33.0
+Version: 1.33.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,11 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Thu Mar 19 2015 Adam Miller <admiller@redhat.com> 1.33.1-1
+- bump spec to fix tags (admiller@redhat.com)
+- Take district less into account when filtering available servers
+  (dmcphers@redhat.com)
+
 * Thu Mar 19 2015 Adam Miller <admiller@redhat.com>
 - Take district less into account when filtering available servers
   (dmcphers@redhat.com)
