@@ -216,8 +216,10 @@ argvs.each do |argv|
         puts "Deleting monitor #{argv[0]} of type #{argv[1]}."
         lb.delete_monitor argv[0], nil, argv[1]
       else
-        puts "Deleting monitor #{argv[0]} from pool #{argv[1]} of type #{argv[2]}."
-        lb.delete_monitor *argv
+        puts "Deleting monitor #{argv[0]} from pool #{argv[2]}."
+        lb.pools[argv[2]].delete_monitor argv[0]
+        puts "Deleting monitor #{argv[0]} of type #{argv[1]}."
+        lb.delete_monitor argv[0], argv[2], argv[1]
       end
 
     when 'add-pool-monitor'
