@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.36.0
+Version: 1.36.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -285,6 +285,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Mar 19 2015 Adam Miller <admiller@redhat.com> 1.36.1-1
+- bump_minor_versions for sprint 60 (admiller@redhat.com)
+- Don't delete archives if tar returns !0 (jolamb@redhat.com)
+
 * Wed Feb 25 2015 Adam Miller <admiller@redhat.com> 1.35.4-1
 - Sanitize credentials during post-configure logging (ironcladlou@gmail.com)
 
