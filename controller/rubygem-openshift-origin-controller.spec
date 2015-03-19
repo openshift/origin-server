@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.35.1
+Version: 1.35.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,16 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Mar 19 2015 Adam Miller <admiller@redhat.com> 1.35.2-1
+- Add option to have the default application URL use https - updated
+  (bedin@redhat.com)
+- Update rest-keys tests for ssh key length validation (sdodson@redhat.com)
+- Add net-ssh to controller gem-spec and validator (sdodson@redhat.com)
+- Updated key_content_validator.rb with better exception handling for invalid
+  keys (bedin@redhat.com)
+- Change for SSH minimum key size check (bedin@redhat.com)
+- Card devexp_483 - Obsoleting 10gen cartridge (maszulik@redhat.com)
+
 * Thu Feb 12 2015 Adam Miller <admiller@redhat.com> 1.35.1-1
 - Merge pull request #6066 from abhgupta/abhgupta-dev
   (dmcphers+openshiftbot@redhat.com)
