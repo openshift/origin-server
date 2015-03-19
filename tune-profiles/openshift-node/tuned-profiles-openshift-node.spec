@@ -1,5 +1,5 @@
 Name:     tuned-profiles-openshift-node
-Version: 0.2.0
+Version: 0.2.1
 Release:  1%{?dist}
 Summary:  tuned profile for openshift node hosts
 
@@ -41,6 +41,9 @@ if [ "$1" = 0 ]; then
 fi
 
 %changelog
+* Thu Mar 19 2015 Adam Miller <admiller@redhat.com> 0.2.1-1
+- bump_minor_versions for sprint 60 (admiller@redhat.com)
+
 * Thu Feb 12 2015 Adam Miller <admiller@redhat.com> 0.1.2-1
 - Only reset the profile when being uninstalled (sdodson@redhat.com)
 - BZ889539 - Fix profile removal (sdodson@redhat.com)
