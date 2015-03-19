@@ -141,6 +141,8 @@ add-pool-monitor <pool> <monitor>
   Associate the specified monitor with the specified pool.
 delete-pool-monitor <pool> <monitor>
   Dissociate the specified monitor from the specified pool.
+list-pool-monitors <pool>
+  List all monitors associated with the specified pool.
 list-pool-members <pool>
   List all members of the specified pool.
 add-pool-member <pool> <host>:<port>
@@ -227,6 +229,17 @@ argvs.each do |argv|
       raise ArgumentError.new "Requires a pool name and monitor name." unless 2 == argv.length
       puts "Deleting monitor #{argv[0]} from pool #{argv[1]}."
       lb.pools[argv[0]].delete_monitor argv[1]
+
+    when 'list-pool-monitors'
+      raise ArgumentError.new "Requires a pool name." unless 1 == argv.length
+      puts "Listing monitors for pool #{argv[0]}."
+      pool_name = argv[0]
+      monitors = lb.pools[pool_name].get_monitors
+      if monitors.count > 0
+        puts "Pool #{pool_name} has #{monitors.count} monitors:\n" + monitors.map {|m| "  "+m+"\n"}.join
+      else
+        puts "Pool #{pool_name} has 0 monitors.\n"
+      end
 
     when 'list-pool-members'
       raise ArgumentError.new "Requires a pool name." unless 1 == argv.length

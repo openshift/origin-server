@@ -54,6 +54,10 @@ module OpenShift
     def delete_pool_monitor pool_name, monitor_name
     end
 
+    # get_pool_monitors :: String -> [String]
+    def get_pool_monitors pool_name
+    end
+
     def get_pool_certificates pool_name
       @logger.debug "get pool certificates #{pool_name}"
       [] # Return an array of String representing certificates.

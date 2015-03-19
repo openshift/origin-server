@@ -130,18 +130,38 @@ module OpenShift
 
     # add_pool_monitor :: String, String -> undefined
     def add_pool_monitor pool_name, monitor_name
+      monitor_name = "/Common/#{monitor_name}" unless monitor_name =~ /^\/Common\//
+      monitors = get_pool_monitors(pool_name).
+        push(monitor_name).
+        map {|m| m+' '}.
+        join('and ')
       patch(url: "https://#{@host}/mgmt/tm/ltm/pool/#{pool_name}",
             payload: {
-              "monitor" => "/Common/#{monitor_name}",
+              "monitor" => monitors,
             }.to_json)
     end
 
     # delete_pool_monitor :: String, String -> undefined
     def delete_pool_monitor pool_name, monitor_name
+      monitor_name = "/Common/#{monitor_name}" unless monitor_name =~ /^\/Common\//
+      monitors = get_pool_monitors(pool_name).
+        tap {|ary| ary.delete(monitor_name)}.
+        map {|m| m+' '}.
+        join('and ')
       patch(url: "https://#{@host}/mgmt/tm/ltm/pool/#{pool_name}",
             payload: {
-              "monitor" => nil,
+              "monitor" => monitors,
             }.to_json)
+    end
+
+    def get_pool_monitors pool_name
+      pool_json = get(url: "https://#{@host}/mgmt/tm/ltm/pool/#{pool_name}")
+      # The JSON representation of a pool uses a string rather than an array
+      # to represent the list of monitors.  A single monitor is represented as
+      # '/Common/foo ' (with the trailing whitespace), two monitors are
+      # represented as '/Common/foo and /Common/bar ', three monitors as
+      # '/Common/foo and /Common/bar and /Common/baz ', and so on.
+      JSON.parse(pool_json)['monitor'].split('and ').map {|m| m.chomp ' '} rescue []
     end
 
     def get_pool_members pool_name

@@ -110,6 +110,10 @@ module OpenShift
       # force an immediate update.
       def delete_monitor monitor_name
       end
+
+      # Get the list of monitors associated with the pool.
+      def get_monitors
+      end
     end
 
     # @pools is a hash that maps String to LoadBalancerPool.

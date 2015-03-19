@@ -154,6 +154,9 @@ module OpenShift
     def delete_pool_monitor pool_name, monitor_name
     end
 
+    def get_pool_monitors pool_name
+    end
+
     # Returns [String] of pool names.
     def get_pool_members pool_name
       begin

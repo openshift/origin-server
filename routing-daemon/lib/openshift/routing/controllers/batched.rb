@@ -70,6 +70,10 @@ module OpenShift
       def delete_monitor monitor_name
         @lb_model.delete_pool_monitor @name, monitor_name
       end
+
+      def get_monitors
+        @lb_model.get_pool_monitors @name
+      end
     end
 
     def add_ssl alias_str, ssl_cert, private_key

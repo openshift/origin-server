@@ -133,6 +133,10 @@ module OpenShift
         #   deleted, added, and deleted again).
         @lb_controller.queue_op Operation.new(:delete_pool_monitor, [self.name, monitor_name]), @lb_controller.ops.select {|op| (op.type == :create_pool && op.operands[0] == self.name) || ([:add_pool_monitor, :delete_pool_monitor].include?(op.type) && op.operands[0] == self.name && op.operands[1] == monitor_name)}
       end
+
+      def get_monitors
+        @lb_model.get_pool_monitors @name
+      end
     end
 
     def add_ssl alias_str, ssl_cert, private_key
