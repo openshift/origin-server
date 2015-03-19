@@ -303,7 +303,7 @@ argvs.each do |argv|
 
   rescue => e
     $stderr.print("#{e.class}: ") unless e.class == ArgumentError
-    $stderr.puts(e.to_s)
+    $stderr.puts(e.message)
     $stderr.puts(e.backtrace) unless e.class == ArgumentError
     exit 1
   end

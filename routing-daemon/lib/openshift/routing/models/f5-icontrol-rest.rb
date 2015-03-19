@@ -44,7 +44,7 @@ module OpenShift
           end
         end
       rescue => e
-        msg = "got #{e.class} exception: #{e.to_s}"
+        msg = "got #{e.class} exception: #{e.message}"
         begin
           resp = JSON.parse e.response
           m = resp['message']
