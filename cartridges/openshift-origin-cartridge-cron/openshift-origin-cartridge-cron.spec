@@ -2,7 +2,7 @@
 
 Summary:       Embedded cron support for OpenShift
 Name:          openshift-origin-cartridge-cron
-Version: 1.24.1
+Version: 1.24.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -37,6 +37,13 @@ Cron cartridge for openshift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Mar 19 2015 Adam Miller <admiller@redhat.com> 1.24.2-1
+- Merge pull request #6089 from miheer/bz1197873-make-cron-limit-customizable
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1197873 Bugzilla Link -
+  https://bugzilla.redhat.com/show_bug.cgi?id=1197873 Using this fix a user a
+  can have a cronjob timeout limit customizable (miheer.salunke@gmail.com)
+
 * Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.24.1-1
 - bump specs to resolve conflict with hotfixes (admiller@redhat.com)
 - Fix malformed ENV VARs in Cron (vvitek@redhat.com)
