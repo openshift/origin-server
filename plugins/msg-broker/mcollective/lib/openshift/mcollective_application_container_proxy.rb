@@ -3311,9 +3311,11 @@ module OpenShift
         # Take all nodes with > the average remaining capacity.  Make sure to take at least max(4, 20% of nodes) nodes.
         server_infos.sort_by! { |server_info| server_info.node_consumed_capacity }.reverse!
         node_consumed_capacities = server_infos.map { |server_info| server_info.node_consumed_capacity }
-        average_consumed_capacity = (node_consumed_capacities.inject(0.0) { |sum, c| sum + c } / node_consumed_capacities.length) + 1
+        average_consumed_capacity = (node_consumed_capacities.inject(0.0) { |sum, c| sum + c } / node_consumed_capacities.length)
+        # Add a little so average isn't as harsh at the low end
+        cut_off_capacity = average_consumed_capacity + (1 - average_consumed_capacity/100)
         min_nodes = [4, (server_infos.length * 0.2).to_i].max
-        server_infos.delete_if { |server_info| server_info.node_consumed_capacity > average_consumed_capacity && server_infos.length > min_nodes }
+        server_infos.delete_if { |server_info| server_info.node_consumed_capacity > cut_off_capacity && server_infos.length > min_nodes }
 
         half_full_count = 0
         server_infos.each do |server_info|
@@ -3330,8 +3332,17 @@ module OpenShift
 
       server_info = nil
       unless server_infos.empty?
-        # Randomly pick one of the best options
-        server_info = server_infos[rand(server_infos.length)]
+        server_infos.sort_by! { |server_info| server_info.node_consumed_capacity }.reverse!
+        # Weight the servers by their availability
+        # Divide by 2 gives a 3:1 ratio of most to least available selection.  Divide by 4 would give 5:1.
+        weight_skew = (server_infos.length.to_f / 2).round
+        # The most available nodes are at the end of the list and are associated with a larger portion of the sum
+        weights_sum = (((server_infos.length.to_f/2) * (server_infos.length-1)) + (weight_skew * server_infos.length)).to_i
+        random_weighted_position = rand(weights_sum)
+
+        # Map the random weighted position into its corresponding index
+        random_index = (0.5 - weight_skew + Math.sqrt((weight_skew - 0.5)**2 + (2 * random_weighted_position))).floor
+        server_info = server_infos[random_index]
         Rails.logger.debug "Selecting best fit node: server: #{server_info.name} capacity: #{server_info.node_consumed_capacity}"
       end
 
