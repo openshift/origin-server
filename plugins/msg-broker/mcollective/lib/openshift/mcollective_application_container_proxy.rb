@@ -3312,7 +3312,10 @@ module OpenShift
         server_infos.sort_by! { |server_info| server_info.node_consumed_capacity }.reverse!
         node_consumed_capacities = server_infos.map { |server_info| server_info.node_consumed_capacity }
         average_consumed_capacity = (node_consumed_capacities.inject(0.0) { |sum, c| sum + c } / node_consumed_capacities.length)
-        # Add a little so average isn't as harsh at the low end
+        # Add a little so average isn't as harsh at the low end.  Ex:
+        # If you have nodes with capacity of 5,5,5,5,6,6,6,6 which averages to 5.5.  You probably don't want to leave out the 6s from random selection.
+        # But if you have nodes with 98,98,98,98,99,99,99,99 capacities and average of 98.5, you probably do want to leave out the 99s.
+        # The cut off capacity's goal is to satisfy both of these use cases.
         cut_off_capacity = average_consumed_capacity + (1 - average_consumed_capacity/100)
         min_nodes = [4, (server_infos.length * 0.2).to_i].max
         server_infos.delete_if { |server_info| server_info.node_consumed_capacity > cut_off_capacity && server_infos.length > min_nodes }
@@ -3337,10 +3340,16 @@ module OpenShift
         # Divide by 2 gives a 3:1 ratio of most to least available selection.  Divide by 4 would give 5:1.
         weight_skew = (server_infos.length.to_f / 2).round
         # The most available nodes are at the end of the list and are associated with a larger portion of the sum
+        # Ex: [4,3,2,1] => (((4/2) * (3)) + (2*4)) = 14
         weights_sum = (((server_infos.length.to_f/2) * (server_infos.length-1)) + (weight_skew * server_infos.length)).to_i
         random_weighted_position = rand(weights_sum)
 
         # Map the random weighted position into its corresponding index
+        # Ex from above continued results in:
+        # 0,1 => 0
+        # 2,3,4 => 1
+        # 5,6,7,8 => 2
+        # 9,10,11,12,13 => 3
         random_index = (0.5 - weight_skew + Math.sqrt((weight_skew - 0.5)**2 + (2 * random_weighted_position))).floor
         server_info = server_infos[random_index]
         Rails.logger.debug "Selecting best fit node: server: #{server_info.name} capacity: #{server_info.node_consumed_capacity}"
