@@ -37,10 +37,21 @@ module OpenShift
 
       expected_code = options.delete(:expected_code) || 200
 
-      RestClient::Request.execute(defaults.merge(options)).tap do |response|
-        unless response.code == expected_code
-          raise LBModelException.new "Expected HTTP #{expected_code} but got #{response.code} instead"
+      begin
+        RestClient::Request.execute(defaults.merge(options)).tap do |response|
+          unless response.code == expected_code
+            raise LBModelException.new "Expected HTTP #{expected_code} but got #{response.code} instead"
+          end
         end
+      rescue => e
+        msg = "got #{e.class} exception: #{e.message}"
+        begin
+          resp = JSON.parse e.response
+          m = resp['message']
+          msg += " (#{m})" unless m.empty?
+        rescue
+        end
+        raise LBModelException.new msg
       end
     end
 
@@ -115,6 +126,42 @@ module OpenShift
 
     def delete_monitor monitor_name, type
       delete(url: "https://#{@host}/mgmt/tm/ltm/monitor/#{type}/#{monitor_name}")
+    end
+
+    # add_pool_monitor :: String, String -> undefined
+    def add_pool_monitor pool_name, monitor_name
+      monitor_name = "/Common/#{monitor_name}" unless monitor_name =~ /^\/Common\//
+      monitors = get_pool_monitors(pool_name).
+        push(monitor_name).
+        map {|m| m+' '}.
+        join('and ')
+      patch(url: "https://#{@host}/mgmt/tm/ltm/pool/#{pool_name}",
+            payload: {
+              "monitor" => monitors,
+            }.to_json)
+    end
+
+    # delete_pool_monitor :: String, String -> undefined
+    def delete_pool_monitor pool_name, monitor_name
+      monitor_name = "/Common/#{monitor_name}" unless monitor_name =~ /^\/Common\//
+      monitors = get_pool_monitors(pool_name).
+        tap {|ary| ary.delete(monitor_name)}.
+        map {|m| m+' '}.
+        join('and ')
+      patch(url: "https://#{@host}/mgmt/tm/ltm/pool/#{pool_name}",
+            payload: {
+              "monitor" => monitors,
+            }.to_json)
+    end
+
+    def get_pool_monitors pool_name
+      pool_json = get(url: "https://#{@host}/mgmt/tm/ltm/pool/#{pool_name}")
+      # The JSON representation of a pool uses a string rather than an array
+      # to represent the list of monitors.  A single monitor is represented as
+      # '/Common/foo ' (with the trailing whitespace), two monitors are
+      # represented as '/Common/foo and /Common/bar ', three monitors as
+      # '/Common/foo and /Common/bar and /Common/baz ', and so on.
+      JSON.parse(pool_json)['monitor'].split('and ').map {|m| m.chomp ' '} rescue []
     end
 
     def get_pool_members pool_name

@@ -40,6 +40,21 @@ module OpenShift
       [] # If using AsyncLoadBalancerController, return an array of jobids.
     end
 
+    def add_pool_monitor pool_name, monitor_name
+      @logger.debug "add monitor #{monitor_name} to pool #{pool_name}"
+      [] # If using AsyncLoadBalancerController, return an array of jobids.
+    end
+
+    def delete_pool_monitor pool_name, monitor_name
+      @logger.debug "delete monitor #{monitor_name} from pool #{pool_name}"
+      [] # If using AsyncLoadBalancerController, return an array of jobids.
+    end
+
+    def get_pool_monitors pool_name
+      @logger.debug "get monitors of pool #{pool_name}"
+      [] # If using AsyncLoadBalancerController, return an array of jobids.
+    end
+
     def get_pool_certificates pool_name
       @logger.debug "get pool certificates #{pool_name}"
       [] # Return an array of String representing certificates.

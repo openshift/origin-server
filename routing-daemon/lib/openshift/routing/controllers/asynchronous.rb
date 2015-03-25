@@ -113,6 +113,30 @@ module OpenShift
 
         @aliases.delete alias_str
       end
+
+      def add_monitor monitor_name
+        # :add_monitor blocks
+        # if the corresponding pool is being created,
+        # if the monitor being added is the same as one that is being deleted, or
+        # if the monitor being added is the same as one that is being added
+        #   (which can be the case if the same monitor is being added,
+        #   deleted, added, and deleted again).
+        @lb_controller.queue_op Operation.new(:add_pool_monitor, [self.name, monitor_name]), @lb_controller.ops.select {|op| (op.type == :create_pool && op.operands[0] == self.name) || ([:add_pool_monitor, :delete_pool_monitor].include?(op.type) && op.operands[0] == self.name && op.operands[1] == monitor_name)}
+      end
+
+      def delete_monitor monitor_name
+        # :add_monitor blocks
+        # if the corresponding pool is being created,
+        # if the monitor being added is the same as one that is being deleted, or
+        # if the monitor being added is the same as one that is being added
+        #   (which can be the case if the same monitor is being added,
+        #   deleted, added, and deleted again).
+        @lb_controller.queue_op Operation.new(:delete_pool_monitor, [self.name, monitor_name]), @lb_controller.ops.select {|op| (op.type == :create_pool && op.operands[0] == self.name) || ([:add_pool_monitor, :delete_pool_monitor].include?(op.type) && op.operands[0] == self.name && op.operands[1] == monitor_name)}
+      end
+
+      def get_monitors
+        @lb_model.get_pool_monitors @name
+      end
     end
 
     def add_ssl alias_str, ssl_cert, private_key
@@ -312,6 +336,8 @@ module OpenShift
       # if the corresponding pool is being created,
       # if members are being added to the pool,
       # if members are being deleted from the pool,
+      # if a monitor is being added to the pool,
+      # if a monitor is being deleted from the pool,
       # if an alias is being added to the pool, or
       # if an alias is being deleted from the pool.
       #
@@ -327,7 +353,7 @@ module OpenShift
       #
       # The pool is not depended upon on by any other objects besides
       # pool members and pool aliases.
-      queue_op Operation.new(:delete_pool, [pool_name]), @ops.select {|op| [:delete_pool_member, :delete_pool_alias, :create_pool].include?(op.type) && op.operands[0] == pool_name}
+      queue_op Operation.new(:delete_pool, [pool_name]), @ops.select {|op| [:delete_pool_member, :delete_pool_monitor, :delete_pool_alias, :create_pool].include?(op.type) && op.operands[0] == pool_name}
 
       pools.delete pool_name
     end
@@ -337,7 +363,7 @@ module OpenShift
 
       # :create_monitor blocks
       # if a monitor of the same name is currently being deleted.
-      queue_op Operation.new(:create_monitor, [monitor_name, path, up_code, type, interval, timeout]), @ops.select {|op| op.type == :delete_monitor_pool && op.operands[0] == monitor_name}
+      queue_op Operation.new(:create_monitor, [monitor_name, path, up_code, type, interval, timeout]), @ops.select {|op| op.type == :delete_monitor && op.operands[0] == monitor_name}
 
       monitors.push monitor_name
     end
@@ -348,7 +374,7 @@ module OpenShift
       # :delete_monitor blocks
       # if the corresponding pool is being deleted (if one is specified) or
       # if the monitor is being created.
-      queue_op Operation.new(:delete_monitor, [monitor_name, pool_name, type]), @ops.select {|op| (op.type == :create_monitor && op.operands[0] == monitor_name) || (pool_name && op.type == :delete_pool && op.operands[0] == pool_name)}
+      queue_op Operation.new(:delete_monitor, [monitor_name, type]), @ops.select {|op| (op.type == :create_monitor && op.operands[0] == monitor_name) || (pool_name && op.type == :delete_pool && op.operands[0] == pool_name)}
 
       monitors.delete monitor_name
     end

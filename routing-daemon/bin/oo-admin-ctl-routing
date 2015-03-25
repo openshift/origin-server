@@ -135,8 +135,14 @@ list-monitors
 create-monitor <name> <path> <up-code>
   Create a new monitor with the specified name that queries <path>
   and expects to receive <up-code> to indicate that the pool is up.
-delete-monitor <name> <pool> <type>
+delete-monitor <name> [<pool>] <type>
   Delete the specified monitor.
+add-pool-monitor <pool> <monitor>
+  Associate the specified monitor with the specified pool.
+delete-pool-monitor <pool> <monitor>
+  Dissociate the specified monitor from the specified pool.
+list-pool-monitors <pool>
+  List all monitors associated with the specified pool.
 list-pool-members <pool>
   List all members of the specified pool.
 add-pool-member <pool> <host>:<port>
@@ -205,9 +211,37 @@ argvs.each do |argv|
       lb.create_monitor *argv
 
     when 'delete-monitor'
-      raise ArgumentError.new "Requires a pool name and monitor type." unless 3 == argv.length
-      puts "Deleting monitor #{argv[0]} from pool #{argv[1]} of type #{argv[2]}."
-      lb.delete_monitor *argv
+      raise ArgumentError.new "Requires a pool name and monitor type." unless [2,3].include? argv.length
+      if 2 == argv.length
+        puts "Deleting monitor #{argv[0]} of type #{argv[1]}."
+        lb.delete_monitor argv[0], nil, argv[1]
+      else
+        puts "Deleting monitor #{argv[0]} from pool #{argv[2]}."
+        lb.pools[argv[2]].delete_monitor argv[0]
+        puts "Deleting monitor #{argv[0]} of type #{argv[1]}."
+        lb.delete_monitor argv[0], argv[2], argv[1]
+      end
+
+    when 'add-pool-monitor'
+      raise ArgumentError.new "Requires a pool name and monitor name." unless 2 == argv.length
+      puts "Adding monitor #{argv[0]} to pool #{argv[1]}."
+      lb.pools[argv[0]].add_monitor argv[1]
+
+    when 'delete-pool-monitor'
+      raise ArgumentError.new "Requires a pool name and monitor name." unless 2 == argv.length
+      puts "Deleting monitor #{argv[0]} from pool #{argv[1]}."
+      lb.pools[argv[0]].delete_monitor argv[1]
+
+    when 'list-pool-monitors'
+      raise ArgumentError.new "Requires a pool name." unless 1 == argv.length
+      puts "Listing monitors for pool #{argv[0]}."
+      pool_name = argv[0]
+      monitors = lb.pools[pool_name].get_monitors
+      if monitors.count > 0
+        puts "Pool #{pool_name} has #{monitors.count} monitors:\n" + monitors.map {|m| "  "+m+"\n"}.join
+      else
+        puts "Pool #{pool_name} has 0 monitors.\n"
+      end
 
     when 'list-pool-members'
       raise ArgumentError.new "Requires a pool name." unless 1 == argv.length
@@ -269,7 +303,7 @@ argvs.each do |argv|
 
   rescue => e
     $stderr.print("#{e.class}: ") unless e.class == ArgumentError
-    $stderr.puts(e.to_s)
+    $stderr.puts(e.message)
     $stderr.puts(e.backtrace) unless e.class == ArgumentError
     exit 1
   end

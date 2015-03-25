@@ -68,6 +68,15 @@ module OpenShift
     def delete_monitor monitor_name, type
     end
 
+    def add_pool_monitor pool_name, monitor_name
+    end
+
+    def delete_pool_monitor pool_name, monitor_name
+    end
+
+    def get_pool_monitors pool_name
+    end
+
     def get_pool_members pool_name
       begin
         fname = "#{@confdir}/#{pool_name}.conf"

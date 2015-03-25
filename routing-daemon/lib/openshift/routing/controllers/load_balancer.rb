@@ -86,6 +86,34 @@ module OpenShift
       # force an immediate update.
       def remove_ssl alias_str
       end
+
+      # Add a monitor to the pool.
+      #
+      # The argument should be a String representing the name of a monitor.  The
+      # monitor must already exist.
+      #
+      # Depending on the model, adding a monitor may overwrite any existing
+      # monitor.
+      #
+      # This method does not necessarily update the load balancer itself; use
+      # the update method of the corresponding LoadBalancerController object to
+      # force an immediate update.
+      def add_monitor monitor_name
+      end
+
+      # Delete a monitor from the pool.
+      #
+      # The argument should be a String representing the name of a monitor.
+      #
+      # This method does not necessarily update the load balancer itself; use
+      # the update method of the corresponding LoadBalancerController object to
+      # force an immediate update.
+      def delete_monitor monitor_name
+      end
+
+      # Get the list of monitors associated with the pool.
+      def get_monitors
+      end
     end
 
     # @pools is a hash that maps String to LoadBalancerPool.

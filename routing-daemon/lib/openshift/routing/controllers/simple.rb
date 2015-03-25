@@ -66,6 +66,18 @@ module OpenShift
         @certs.delete alias_str
         @lb_model.remove_ssl @name, alias_str
       end
+
+      def add_monitor monitor_name
+        @lb_model.add_pool_monitor @name, monitor_name
+      end
+
+      def delete_monitor monitor_name
+        @lb_model.delete_pool_monitor @name, monitor_name
+      end
+
+      def get_monitors
+        @lb_model.get_pool_monitors @name
+      end
     end
 
     def read_config cfgfile
