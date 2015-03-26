@@ -135,7 +135,7 @@ list-monitors
 create-monitor <name> <path> <up-code>
   Create a new monitor with the specified name that queries <path>
   and expects to receive <up-code> to indicate that the pool is up.
-delete-monitor <name> [<pool>] <type>
+delete-monitor <name> <type> [<pool>]
   Delete the specified monitor.
 add-pool-monitor <pool> <monitor>
   Associate the specified monitor with the specified pool.
