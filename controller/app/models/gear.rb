@@ -317,7 +317,7 @@ class Gear
 
   # Gets the list of server identities where this gear cannot be hosted
   # == Returns:
-  # @return [Array] List of server identities where this gear cannnot be hosted
+  # @return [Array] List of server identities where this gear cannot be hosted
   def restricted_server_identities
     restricted_nodes = []
     if !Rails.configuration.openshift[:allow_multiple_haproxy_on_node] and self.application.scalable and self.component_instances.select { |ci| ci.is_web_proxy? }.present?
