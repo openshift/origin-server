@@ -27,6 +27,7 @@ Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem(daemons)
 Requires:      %{?scl:%scl_prefix}rubygem(json)
 Requires:      %{?scl:%scl_prefix}rubygem(parseconfig)
+Requires:      %{?scl:%scl_prefix}rubygem(rest-client)
 Requires:      %{?scl:%scl_prefix}rubygem(stomp)
 Requires:      rubygem(openshift-origin-common)
 %if 0%{?fedora}%{?rhel} <= 6
