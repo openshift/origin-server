@@ -304,7 +304,11 @@ module OpenShift
         monitor_path = generate_monitor_path app_name, namespace
         unless monitor_name.nil? or monitor_name.empty? or monitor_path.nil? or monitor_path.empty?
           @logger.info "Creating new monitor #{monitor_name} with path #{monitor_path}"
-          @lb_controller.create_monitor monitor_name, monitor_path, @monitor_up_code, @monitor_type, @monitor_interval, @monitor_timeout
+          begin
+            @lb_controller.create_monitor monitor_name, monitor_path, @monitor_up_code, @monitor_type, @monitor_interval, @monitor_timeout
+          rescue LBControllerException => e
+            @logger.warn "#{e.class}: #{e.message}"
+          end
         end
       end
 
