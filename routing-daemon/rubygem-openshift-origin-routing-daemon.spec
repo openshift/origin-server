@@ -11,7 +11,7 @@
 
 Summary:       OpenShift daemon for routing integration
 Name:          rubygem-%{gem_name}
-Version: 0.23.1
+Version: 0.23.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -89,6 +89,19 @@ cp -a init/* %{buildroot}/etc/rc.d/init.d/
 %attr(0755,-,-) %{_var}/log/openshift
 
 %changelog
+* Thu Mar 26 2015 Wesley Hearn <whearn@redhat.com> 0.23.2-1
+- routing-daemon: add ruby193-rubygem-rest-client dep (sdodson@redhat.com)
+- Merge pull request #6102 from Miciah/routing-daemon-monitor-fixes
+  (dmcphers+openshiftbot@redhat.com)
+- routing-daemon: Use e.message, not e.to_s (miciah.masters@gmail.com)
+- oo-admin-ctl-routing: Make delete-monitor cleverer (miciah.masters@gmail.com)
+- routing-daemon: Allow list monitors of pool (miciah.masters@gmail.com)
+- routing-daemon: Associate/dissociate monitors (miciah.masters@gmail.com)
+- oo-admin-ctl-routing delete-monitor: pool optional (miciah.masters@gmail.com)
+- routing-daemon: Improve error reporting for F5 (miciah.masters@gmail.com)
+- routing-daemon: Fix async delete_monitor arguments (miciah.masters@gmail.com)
+- routing-daemon: Fix async create_monitor queueing (miciah.masters@gmail.com)
+
 * Thu Mar 19 2015 Adam Miller <admiller@redhat.com> 0.23.1-1
 - bump_minor_versions for sprint 60 (admiller@redhat.com)
 - BZ1199904 - Fixing oo-admin-ctl-routing to delete monitors
