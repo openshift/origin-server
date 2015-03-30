@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.35.2
+Version: 1.35.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Mar 30 2015 Troy Dawson <tdawson@redhat.com> 1.35.3-1
+- Remove invalid test (dmcphers@redhat.com)
+- Fix typo (dmcphers@redhat.com)
+
 * Thu Mar 19 2015 Adam Miller <admiller@redhat.com> 1.35.2-1
 - Add option to have the default application URL use https - updated
   (bedin@redhat.com)
