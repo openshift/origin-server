@@ -573,6 +573,10 @@ or names.
     options.names = names.split(/[\, ]/)
   end
 
+  opts.on('--all', "Display all information") do
+    options.all = true
+  end
+
   opts.on('-q', "Display only ids") do
     options.quiet = true
   end
