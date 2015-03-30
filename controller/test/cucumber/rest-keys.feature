@@ -154,15 +154,11 @@ Feature: keys
      | JSON   |
      | XML    |
 
-   Scenario Outline: Create a keys of varying lengths
+   Scenario Outline: Create keys of varying lengths
     Given a new user
     And I accept "<format>"
     When I send a POST request to "/user/keys" with the following:"name=api&type=ssh-rsa&content=AAAAB3NzaC1yc2EAAAADAQABAAABAQDa/hAlFXyOr+8NIroKEJjqLkxOJD0qZLGXiMjIj4KulKt6H81OGZbnQP+sBfZtQ0aZA5IhQf5paznU8rSPz1yRcXUZv40mi/6yzpnI8pM2IJ7AHRrrXN/LfCrHInCfhJKzjh8aZwsaB/367diCfTundPsHcth2V70v7lTnrR1QJsKsFJFbsgdfiP6fw/+VN9kD37zJZQ9zLG4cy8BBfZKOqTg9wVgGEWOx6KBGDbX1UqnJZ8HFbmTgoUJbyLDSdAjnDGiM1IvyFat5Yw9nhNbT+mc/2e/4VfH0T3G9ff2dbVH37GDNZ5muB8HfzHhq3FT/VMmyfzVhWKxDmXG/E8IX"
     Then the response should be "201"
-    And the response should be a "key" with attributes "name=api&type=ssh-rsa&content=AAAAB3NzaC1yc2EAAAADAQABAAABAQDa/hAlFXyOr+8NIroKEJjqLkxOJD0qZLGXiMjIj4KulKt6H81OGZbnQP+sBfZtQ0aZA5IhQf5paznU8rSPz1yRcXUZv40mi/6yzpnI8pM2IJ7AHRrrXN/LfCrHInCfhJKzjh8aZwsaB/367diCfTundPsHcth2V70v7lTnrR1QJsKsFJFbsgdfiP6fw/+VN9kD37zJZQ9zLG4cy8BBfZKOqTg9wVgGEWOx6KBGDbX1UqnJZ8HFbmTgoUJbyLDSdAjnDGiM1IvyFat5Yw9nhNbT+mc/2e/4VfH0T3G9ff2dbVH37GDNZ5muB8HfzHhq3FT/VMmyfzVhWKxDmXG/E8IX"
-    When I send a POST request to "/user/keys" with the following:"name=too-short&type=ssh-rsa&content=AAAAB3NzaC1yc2EAAAADAQABAAAAYQDZZwwO7HDIfgwyv6FKYMWSg9dLYkhUuZttkiJSUXDtpGhYQ++9YdzEubqdFWnzc5wObrzL9ttiVUuwqpNCSguU8YD3Lts/OsCeS1q/3EPunuVxREa+QxZDnYaEg5/zp8s="
-    Then the response should be "422"
-    And the error message should have "field=content&severity=error&exit_code=108"
     When I send a POST request to "/user/keys" with the following:"name=dss1024&type=ssh-dss&content=AAAAB3NzaC1kc3MAAACBAMKbO9DyBwLdSUkm/gE0KS8pL0EWSTe0B6IzhghbOA2oQyz/g/2LvehUZfempmcIhEDIVburLlWEKusuk8B/bngcnMWx3HmtIVopbuSbFrZE7PAiE4iRfb5VKiQUpWtGiTGDTMq9JJWg1TA0QU7HdKwRVTWzCcRzjE3b/RvoHWQzAAAAFQCaEQ+SG4xlUs0/KV66se7qZRZKYwAAAIAPhZJ+dtQblwOGk7a4TzcjWZhXjT6Sa2vFgXFnbjjVOTUvog8SIGkrWxtgNeF6YgrgZYHhSJEariLdh7ZiQyKA4+9J0h1NYdmfrNCM+6ZohP2uMum7I7JTowjiET0iZrli1JciwyO8hz+YMLrgeO9AfOnXQwMUwiDcZ44dfIxlLQAAAIEAugXzYScsDJs1S9OFVQvY0OiLcQE/sBoDuud1LxDrdN9Ui45j1USOgxZTUMRWnBlH38Vy7cPOrPBSUM7WvjUnlei1767IRTDld4wNstICtzbUsRX7TvpKv6uyO4NzCYv2EH4ap74kpHxKh6t7pXsRo3B90Aex8NGwDAHO6iEq49Y="
     Then the response should be "201"
     And the response should be a "key" with attributes "name=dss1024&type=ssh-dss&content=AAAAB3NzaC1kc3MAAACBAMKbO9DyBwLdSUkm/gE0KS8pL0EWSTe0B6IzhghbOA2oQyz/g/2LvehUZfempmcIhEDIVburLlWEKusuk8B/bngcnMWx3HmtIVopbuSbFrZE7PAiE4iRfb5VKiQUpWtGiTGDTMq9JJWg1TA0QU7HdKwRVTWzCcRzjE3b/RvoHWQzAAAAFQCaEQ+SG4xlUs0/KV66se7qZRZKYwAAAIAPhZJ+dtQblwOGk7a4TzcjWZhXjT6Sa2vFgXFnbjjVOTUvog8SIGkrWxtgNeF6YgrgZYHhSJEariLdh7ZiQyKA4+9J0h1NYdmfrNCM+6ZohP2uMum7I7JTowjiET0iZrli1JciwyO8hz+YMLrgeO9AfOnXQwMUwiDcZ44dfIxlLQAAAIEAugXzYScsDJs1S9OFVQvY0OiLcQE/sBoDuud1LxDrdN9Ui45j1USOgxZTUMRWnBlH38Vy7cPOrPBSUM7WvjUnlei1767IRTDld4wNstICtzbUsRX7TvpKv6uyO4NzCYv2EH4ap74kpHxKh6t7pXsRo3B90Aex8NGwDAHO6iEq49Y="
