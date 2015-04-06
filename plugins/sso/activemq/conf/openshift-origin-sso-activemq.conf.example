@@ -1,0 +1,8 @@
+ACTIVEMQ_DESTINATION='/topic/ssoinfo'
+ACTIVEMQ_USERNAME='ssoinfo'
+ACTIVEMQ_PASSWORD='ssoinfopasswd'
+ACTIVEMQ_HOST='127.0.0.1'
+ACTIVEMQ_PORT='61613'
+
+# Setting MCOLLECTIVE_CONFIG will override any activemq host settings above
+#MCOLLECTIVE_CONFIG="/opt/rh/ruby193/root//etc/mcollective/client.cfg"
