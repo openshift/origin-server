@@ -193,8 +193,12 @@ class GearStatePlugin < OpenShift::Runtime::WatchmanPlugin
       command = command.join(' ')
 
       # skip everything owned by root (for speed) and not a "daemon" (we can be fooled here)
-      # bz1134686 - but don't skip jenkins builder slaves
-      next unless uid != '0' && command =~ /jenkins\/slave.jar/ && ppid == '1'
+      if uid == '0' || ppid != '1'
+        # bz1134686 - don't skip jenkins builder slaves
+        if command !~ /jenkins\/slave.jar/
+          next
+        end
+      end
 
       # bz1133629
       # skip haproxy and logshifter related processes
