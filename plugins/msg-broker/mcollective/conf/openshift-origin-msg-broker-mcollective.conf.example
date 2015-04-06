@@ -30,3 +30,7 @@ ZONES_REQUIRE_FOR_APP_CREATE=false
 
 # Minimum zones required for gears in application gear group to be distributed.
 ZONES_MIN_PER_GEAR_GROUP=1
+
+# Specify how to address a node when doing rsync commands.  Valid options are
+# ip_address, server_identity, and public_hostname
+NODE_RSYNC_ADDRESS="ip_address"
