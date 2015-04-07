@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.35.3
+Version: 1.35.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Apr 07 2015 Wesley Hearn <whearn@redhat.com> 1.35.4-1
+- Merge pull request #6093 from timothyh/dev/timothyh/rfe/1200123
+  (dmcphers+openshiftbot@redhat.com)
+- Clean up sso_service (thunt@redhat.com)
+- Initial commit of controller hooks for SSO Service (thunt@redhat.com)
+
 * Mon Mar 30 2015 Troy Dawson <tdawson@redhat.com> 1.35.3-1
 - Remove invalid test (dmcphers@redhat.com)
 - Fix typo (dmcphers@redhat.com)
