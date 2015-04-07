@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.35.1
+Version: 1.35.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -205,6 +205,9 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Tue Apr 07 2015 Wesley Hearn <whearn@redhat.com> 1.35.2-1
+- Bug 1207486 - stop_lock gears have status of "started" (bleanhar@redhat.com)
+
 * Thu Mar 19 2015 Adam Miller <admiller@redhat.com> 1.35.1-1
 - bump_minor_versions for sprint 60 (admiller@redhat.com)
 - oo-admin-ctl-gears: removing a white space (mmahut@redhat.com)
