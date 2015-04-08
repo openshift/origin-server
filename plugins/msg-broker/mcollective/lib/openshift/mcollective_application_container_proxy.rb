@@ -37,6 +37,7 @@ module OpenShift
     def initialize(id, district=nil)
       @id = id
       @district = district
+      @disable_print_debug = false
     end
 
     # <<factory method>>
@@ -1824,7 +1825,7 @@ module OpenShift
       if gear.group_instance.platform.downcase == "windows"
         log_debug "DEBUG: Restoring ownership and user ACLs for Windows gear '#{gear.uuid}'"
         rsync_keyfile = Rails.configuration.auth[:rsync_keyfile]
-        log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{get_rsync_address(destination_container)} "/cygdrive/c/openshift/bin/oo-cmd.exe oo-admin-restore-acls --uuid:#{gear.uuid}"; exit_code=$?; ssh-agent -k;exit $exit_code`
+        log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile} 2>/dev/null; ssh -o StrictHostKeyChecking=no -A root@#{get_rsync_address(destination_container)} "/cygdrive/c/openshift/bin/oo-cmd.exe oo-admin-restore-acls --uuid:#{gear.uuid}"; exit_code=$?; ssh-agent -k;exit $exit_code`
       end
 
       start_order.each do |cinst|
@@ -2278,9 +2279,9 @@ module OpenShift
       case platform.downcase
         when "windows"
           #Rsync arguments had to be changed for windows to move the gear with full rights and reset them correctly in the post move method
-          log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_address} "rsync --perms -rltgoD0v --chmod=Du=rwx,Dg=rwx,Do=rwx,Fu=rww,Fg=rwx,Fo=rwx -p --exclude 'profile' -e 'ssh -o StrictHostKeyChecking=no' /cygdrive/c/openshift/gears/#{gear.uuid}/ root@#{destination_address}:/cygdrive/c/openshift/gears/#{gear.uuid}/"; exit_code=$?; ssh-agent -k;exit $exit_code`
+          log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile} 2>/dev/null; ssh -o StrictHostKeyChecking=no -A root@#{source_address} "rsync --perms -rltgoD0v --chmod=Du=rwx,Dg=rwx,Do=rwx,Fu=rww,Fg=rwx,Fo=rwx -p --exclude 'profile' -e 'ssh -o StrictHostKeyChecking=no' /cygdrive/c/openshift/gears/#{gear.uuid}/ root@#{destination_address}:/cygdrive/c/openshift/gears/#{gear.uuid}/"; exit_code=$?; ssh-agent -k;exit $exit_code`
         else
-          log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_address} "rsync -aAXS -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{gear.uuid}/ root@#{destination_address}:/var/lib/openshift/#{gear.uuid}/"; exit_code=$?; ssh-agent -k; exit $exit_code`
+          log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile} 2>/dev/null; ssh -o StrictHostKeyChecking=no -A root@#{source_address} "rsync -aAXS -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{gear.uuid}/ root@#{destination_address}:/var/lib/openshift/#{gear.uuid}/"; exit_code=$?; ssh-agent -k; exit $exit_code`
       end
 
       if $?.exitstatus != 0
@@ -2291,9 +2292,9 @@ module OpenShift
       case platform.downcase
         when "windows"
           #Rsync arguments changed, preserving extended attributes and ACLs cannot be used on windows
-          log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_address} "rsync -rltgoD0v -e 'ssh -o StrictHostKeyChecking=no' --include '.httpd.d/' --include '.httpd.d/#{gear.uuid}_***' --include '#{gear.name}-#{app.domain.namespace}' --include '.last_access/' --include '.last_access/#{gear.uuid}' --exclude '*' /cygdrive/c/openshift/gears/ root@#{destination_address}:/cygdrive/c/openshift/gears/"; exit_code=$?; ssh-agent -k; exit $exit_code`
+          log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile} 2>/dev/null; ssh -o StrictHostKeyChecking=no -A root@#{source_address} "rsync -rltgoD0v -e 'ssh -o StrictHostKeyChecking=no' --include '.httpd.d/' --include '.httpd.d/#{gear.uuid}_***' --include '#{gear.name}-#{app.domain.namespace}' --include '.last_access/' --include '.last_access/#{gear.uuid}' --exclude '*' /cygdrive/c/openshift/gears/ root@#{destination_address}:/cygdrive/c/openshift/gears/"; exit_code=$?; ssh-agent -k; exit $exit_code`
         else
-          log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_address} "rsync -aAXS -e 'ssh -o StrictHostKeyChecking=no' --include '.httpd.d/' --include '.httpd.d/#{gear.uuid}_***' --include '#{gear.name}-#{app.domain_namespace}' --include '.last_access/' --include '.last_access/#{gear.uuid}' --exclude '*' /var/lib/openshift/ root@#{destination_address}:/var/lib/openshift/"; exit_code=$?; ssh-agent -k; exit $exit_code`
+          log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile} 2>/dev/null; ssh -o StrictHostKeyChecking=no -A root@#{source_address} "rsync -aAXS -e 'ssh -o StrictHostKeyChecking=no' --include '.httpd.d/' --include '.httpd.d/#{gear.uuid}_***' --include '#{gear.name}-#{app.domain_namespace}' --include '.last_access/' --include '.last_access/#{gear.uuid}' --exclude '*' /var/lib/openshift/ root@#{destination_address}:/var/lib/openshift/"; exit_code=$?; ssh-agent -k; exit $exit_code`
       end
 
       if $?.exitstatus != 0
@@ -2551,6 +2552,11 @@ module OpenShift
       end
     end
 
+    # Disable the printing of debug messages
+    def disable_log_debug!
+      @disable_print_debug = true
+    end
+
     protected
 
     #
@@ -2683,7 +2689,7 @@ module OpenShift
     #
     def log_debug(message)
       Rails.logger.debug message
-      puts message
+      puts message unless @disable_print_debug
     end
 
     #
