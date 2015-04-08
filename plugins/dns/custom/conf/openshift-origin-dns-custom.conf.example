@@ -1,0 +1,5 @@
+# Settings related OpenShift Enterprise custom DNS plugin
+
+# The custom script to call to perform the DNS updates
+DNS_CUSTOM_SCRIPT_NAME="/usr/local/bin/ose-dns-custom"
+

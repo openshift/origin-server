@@ -1,0 +1,100 @@
+#!/bin/bash
+
+# Usage
+function usage {
+    echo "Usage: $0 <args>"
+    echo
+    echo "          --action {add|delete}"
+    echo "          --host hostname - FQ Hostname"
+    echo "          --cname         - CNAME to add to host"
+    echo
+    exit 1
+}
+
+# options followed by one colon indicate they have a required argument
+if ! options=$(getopt -o ahc: -l action:,host:,cname: -- "$@")
+then
+   usage
+fi
+
+set -- $options
+
+while [ $# -gt 0 ]
+do
+    case $1 in
+    --action)  action=`eval echo $2` ; shift ;;
+    --host)    osehost=`eval echo $2`   ; shift ;;
+    --cname)   cname=`eval echo $2`  ; shift ;;
+    (--) shift; break;;
+    (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
+    (*) break;;
+    esac
+    shift
+done
+
+echo
+echo [ose-dns-custom] INFO: Input Param: action = $action
+echo [ose-dns-custom] INFO: Input Param: host = $osehost
+echo [ose-dns-custom] INFO: Input Param: cname = $cname
+
+
+if [ -z $action ] ; then
+    echo
+    echo "   action is a required option with arguments: {add|delete}, exiting."
+    echo
+    usage
+fi
+
+if [ -z $osehost ] && [ "$action" = "add" ] ; then
+    echo
+    echo "   host is a required option when action is add, exiting."
+    echo
+    usage
+fi
+
+if [ -z $cname ] ; then
+    echo
+    echo "   cname is a required option, exiting."
+    echo
+    usage
+fi
+
+
+# Main
+
+# Params for nsupdate
+hostname=127.0.0.1
+priv_key=/etc/openshift/example.com.key
+ttl=60
+zone=example.com
+
+ret_stat=0
+
+case $action in
+
+   add)    echo [ose-dns-custom] INFO: adding CNAME $cname to HOST $osehost: update add $cname $ttl CNAME $osehost
+           nsupdate_out=$(echo "zone $zone
+server $hostname
+update add ${cname} $ttl CNAME $osehost
+show
+send" | nsupdate -k $priv_key -v 2>&1)
+           ret_stat=$?
+           logger "$nsupdate_out"
+           ;;
+
+   delete) echo [ose-dns-custom] INFO: deleting CNAME $cname: update delete $cname
+           nsupdate_out=$(echo "zone $zone
+server $hostname
+update delete $cname
+show
+send" | nsupdate -k $priv_key -v 2>&1)
+           ret_stat=$?
+           logger "$nsupdate_out"
+           ;;
+
+   (*)     echo [ose-dns-custom] ERROR: Invalid option value for action, exiting. ; usage ;; 
+
+esac
+
+echo [ose-dns-custom] INFO: return status=$ret_stat 
+exit $ret_stat
