@@ -62,6 +62,10 @@ OPTIONS
   --setplan plan_id
     Set the plan for the user
     
+  --forceplan
+    Do not check if the consumed resources are compatible with the specified plan. Used with --setplan.
+    Note that this can leave user accounts in states where they are consuming more resources than allowed by their plan.
+    
   --setplanquantity plan_quantity
     Set the quantity of plan
     
