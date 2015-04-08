@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
-Version: 1.30.2
+Version: 1.30.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -48,6 +48,9 @@ Provides mysql cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Apr 08 2015 Wesley Hearn <whearn@redhat.com> 1.30.3-1
+- Bump cartridge versions for 2.0.60 (bparees@redhat.com)
+
 * Thu Mar 19 2015 Adam Miller <admiller@redhat.com> 1.30.2-1
 - Bug 1197825 - Unable to set max_allowed_packet for MySQL
   https://bugzilla.redhat.com/show_bug.cgi?id=1197825 It is not possible to the
