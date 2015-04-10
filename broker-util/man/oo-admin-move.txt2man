@@ -2,10 +2,10 @@ NAME
   oo-admin-move
   
 SYNOPSIS
-  oo-admin-move --gear_uuid gear-uuid 
+  oo-admin-move --gear_uuid gear-uuid[,gear-uuid,gear-uuid]
   [--change_district]
   [--destination_district_uuid district-uuid]
-  [-i|--target_server_identity server-identity]
+  [-i|--target_server_identity server-identity] [--json]
   [-p|--node_profile node-profile] [-t|--timeout time-out]
 
   oo-admin-move -h|--help
@@ -13,7 +13,8 @@ SYNOPSIS
 DESCRIPTION
   Used to move a gear to a different node. With no options, an active
   node in the same district is selected. Options specify different or
-  more specific destinations for the gear.
+  more specific destinations for the gear. You can use the list of gears
+  separated by a comma.
 
   A gear's numeric UID can not be changed during a move. When moving
   between districts or between undistricted nodes, the gear's numeric UID
@@ -47,6 +48,9 @@ OPTIONS
   -t|--timeout time-out  
     Timeout value for the move.
 
+  --json
+    Print the move report in JSON at finish.
+
 EXAMPLE
 
   $ oo-admin-move
@@ -59,3 +63,4 @@ SEE ALSO
  
 AUTHOR
   Adam Miller <admiller@redhat.com> - man page written for OpenShift Origin 
+  Marek Mahut <mmahut@redhat.com>
