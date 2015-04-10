@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.36.0
+Version: 1.36.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Apr 10 2015 Wesley Hearn <whearn@redhat.com> 1.36.1-1
+- bump_minor_versions for sprint 62 (whearn@redhat.com)
+
 * Tue Apr 07 2015 Wesley Hearn <whearn@redhat.com> 1.35.4-1
 - Merge pull request #6093 from timothyh/dev/timothyh/rfe/1200123
   (dmcphers+openshiftbot@redhat.com)
