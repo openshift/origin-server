@@ -8,7 +8,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.34.1
+Version: 1.34.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -110,6 +110,10 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Fri Apr 10 2015 Wesley Hearn <whearn@redhat.com> 1.34.2-1
+- broker-util: allow oo-admin-move to eat a list of gears and add an final
+  output in json (mmahut@redhat.com)
+
 * Thu Mar 19 2015 Adam Miller <admiller@redhat.com> 1.34.1-1
 - bump_minor_versions for sprint 60 (admiller@redhat.com)
 
