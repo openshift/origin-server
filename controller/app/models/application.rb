@@ -1938,7 +1938,10 @@ class Application
       register_dns_op = RegisterDnsOp.new(gear_id: gear_id, prereq: [create_gear_op._id.to_s])
       register_sso_op = RegisterSsoOp.new(gear_id: gear_id, prereq: [register_dns_op._id.to_s])
       ops.push(init_gear_op, reserve_uid_op, create_gear_op, register_dns_op, register_sso_op)
-      ops.push(RegisterRoutingDnsOp.new(prereq: [register_sso_op._id.to_s])) if self.ha and Rails.configuration.openshift[:manage_ha_dns]
+      # Only register the routing dns here on application creation:
+      if self.component_instances == []
+        ops.push(RegisterRoutingDnsOp.new(prereq: [register_sso_op._id.to_s])) if self.ha and Rails.configuration.openshift[:manage_ha_dns]
+      end
 
       if additional_filesystem_gb != 0
         # FIXME move into CreateGearOp

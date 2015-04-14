@@ -300,6 +300,18 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_response :forbidden
   end
 
+  # Follows user workflow to make an application ha
+  test "app create available routing dns created only once" do
+    Rails.configuration.openshift[:manage_ha_dns] = true
+    @user.ha = true
+    @user.save
+    @app_name = "app#{@random}"
+    Application.any_instance.expects(:register_routing_dns).once
+    post :create, {"name" => @app_name, "cartridge" => jbosseap_version, "domain_id" => @domain.namespace, "scale" => true}
+    assert app = assigns(:application)
+    assert app.make_ha
+  end
+
   test "app create available show destroy by domain and app name" do
     @user.ha=true
     @user.save
