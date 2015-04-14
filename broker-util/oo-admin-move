@@ -1,6 +1,7 @@
 #!/usr/bin/env oo-ruby
 
 require 'rubygems'
+require 'json'
 require 'getoptlong'
 
 def usage
@@ -14,7 +15,7 @@ oo-admin-move: Move an app from one node to another
 oo-admin-move OPTIONS
 
 Options:
---gear_uuid <gear_uuid>
+--gear_uuid <gear_uuid>[,<gear_uuid>,<gear_uuid>]
     Gear uuid to move
 --destination_district_uuid <district_uuid>
     Destination district uuid
@@ -24,6 +25,8 @@ Options:
     Node profile
 -t|--timeout
     timeout
+--json
+    Print the move report at finish in JSON
 --change_district
     Move to a different district other than the source district
 -h|--help
@@ -40,6 +43,7 @@ opts = GetoptLong.new(
     ["--timeout",          "-t", GetoptLong::REQUIRED_ARGUMENT],
     ["--change_district",  GetoptLong::NO_ARGUMENT],
     ["--change_region",    GetoptLong::NO_ARGUMENT],
+    ["--json",  GetoptLong::NO_ARGUMENT],
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
 )
 
@@ -56,6 +60,7 @@ destination_district_uuid = args['--destination_district_uuid']
 node_profile = args['--node_profile']
 change_district = args['--change_district'] ? true : false
 change_region = args['--change_region'] ? true : false
+json = args['--json'] ? true : false
 timeout  = args['--timeout']
 
 if args["--help"]
@@ -83,44 +88,62 @@ if timeout
   Rails.configuration.msg_broker[:rpc_options][:timeout] = timeout.to_i
 end
 
-app = nil
-user = nil
-gear = nil
+move_status = {}
+gear_uuid.split(',').each do |uuid|
+    app = nil
+    user = nil
+    gear = nil
 
-app, gear = Application.find_by_gear_uuid(gear_uuid)
+    app, gear = Application.find_by_gear_uuid(uuid)
 
-if gear.nil? or app.nil?
-  puts "ERROR: Gear not found: #{gear_uuid}"
-  exit 1
+    if gear.nil? or app.nil?
+      puts "ERROR: Gear not found: #{uuid}"
+      exit 1
+    end
+
+    if app.scalable and node_profile
+      puts "Cannot specify 'node_profile' for a gear belonging to a scalable application."
+      exit 1
+    end
+
+    url = "http://#{app.name}-#{app.domain.namespace}.#{Rails.configuration.openshift[:domain_suffix]}"
+
+    unless json
+      puts "URL: #{url}"
+      puts "Login: #{app.domain.owner.login}"
+      puts "App UUID: #{app._id}"
+      puts "Gear UUID: #{gear._id}"
+    end
+
+    destination_container = nil
+    destination_container = OpenShift::ApplicationContainerProxy.instance(target_server_identity) if target_server_identity
+    move_status[uuid] = { :login => app.domain.owner.login, :application => app._id, :destination => destination_container } if json
+
+    reply = nil
+    begin
+      gear.get_proxy.disable_log_debug! if json
+      reply = gear.get_proxy.move_gear_secure(gear, destination_container, destination_district_uuid, change_district, change_region, node_profile)
+      move_status[uuid].merge!({ :result => true })
+    rescue OpenShift::NodeException => ne
+      if json
+        move_status[uuid].merge!({ :result => false, :message => ne.message, :trace => ne })
+      else
+        puts ne.message
+      fi
+    rescue OpenShift::UserException => ue
+      if json
+        move_status[uuid].merge!({ :result => false, :message => ue.message, :trace => ue })
+      else
+        puts ue.message
+      fi
+    end
+
+    move_status[uuid].merge!({ :errorIO => reply.errorIO.string }) unless reply.errorIO.string.empty?
+    move_status[uuid].merge!({ :debugIO => reply.debugIO.string }) unless reply.debugIO.string.empty?
+
+    unless reply.nil?
+      puts "################# ADDITIONAL DEBUG OUTPUT #################\n#{reply.debugIO.string}\n" unless reply.debugIO.string.empty?
+      puts "################# ADDITIONAL ERROR OUTPUT #################\n#{reply.errorIO.string}\n" unless reply.errorIO.string.empty?
+    end
 end
-
-if app.scalable and node_profile
-  puts "Cannot specify 'node_profile' for a gear belonging to a scalable application."
-  exit 1
-end
-
-url = "http://#{app.name}-#{app.domain.namespace}.#{Rails.configuration.openshift[:domain_suffix]}"
-
-puts "URL: #{url}"
-puts "Login: #{app.domain.owner.login}"
-puts "App UUID: #{app._id}"
-puts "Gear UUID: #{gear._id}"
-
-destination_container = nil
-destination_container = OpenShift::ApplicationContainerProxy.instance(target_server_identity) if target_server_identity
-
-reply = nil
-begin
-  reply = gear.get_proxy.move_gear_secure(gear, destination_container, destination_district_uuid, change_district, change_region, node_profile)
-rescue OpenShift::NodeException => ne
-  puts ne.message
-  exit 1
-rescue OpenShift::UserException => ue
-  puts ue.message
-  exit 1
-end
-
-unless reply.nil?
-  puts "################# ADDITIONAL DEBUG OUTPUT #################\n#{reply.debugIO.string}\n" unless reply.debugIO.string.empty?
-  puts "################# ADDITIONAL ERROR OUTPUT #################\n#{reply.errorIO.string}\n" unless reply.errorIO.string.empty?
-end
+puts move_status.to_json if json
