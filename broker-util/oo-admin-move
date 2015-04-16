@@ -88,6 +88,7 @@ if timeout
   Rails.configuration.msg_broker[:rpc_options][:timeout] = timeout.to_i
 end
 
+rc = 0
 move_status = {}
 gear_uuid.split(',').each do |uuid|
     app = nil
@@ -97,13 +98,25 @@ gear_uuid.split(',').each do |uuid|
     app, gear = Application.find_by_gear_uuid(uuid)
 
     if gear.nil? or app.nil?
-      puts "ERROR: Gear not found: #{uuid}"
-      exit 1
+      message = "ERROR: Gear not found: #{uuid}"
+      if json
+        move_status[uuid] = { :result => false, :message => message }
+      else
+        puts message
+      end
+      rc |= 1
+      next
     end
 
     if app.scalable and node_profile
-      puts "Cannot specify 'node_profile' for a gear belonging to a scalable application."
-      exit 1
+      message = "Cannot specify 'node_profile' for a gear belonging to a scalable application."
+      if json
+        move_status[uuid] = { :result => false, :message => message }
+      else
+        puts message
+      end
+      rc |= 1
+      next
     end
 
     url = "http://#{app.name}-#{app.domain.namespace}.#{Rails.configuration.openshift[:domain_suffix]}"
@@ -117,33 +130,47 @@ gear_uuid.split(',').each do |uuid|
 
     destination_container = nil
     destination_container = OpenShift::ApplicationContainerProxy.instance(target_server_identity) if target_server_identity
-    move_status[uuid] = { :login => app.domain.owner.login, :application => app._id, :destination => destination_container } if json
+    if json
+      move_status[uuid] = { :login => app.domain.owner.login,
+                            :app_uuid    => app._id,
+                            :gear_uuid   => gear._id,
+                            :app_name    => app.name,
+                            :app_domain  => app.domain.namespace,
+                            :destination => target_server_identity,
+                            :source      => gear.server_identity }
+    end
 
     reply = nil
     begin
       gear.get_proxy.disable_log_debug! if json
       reply = gear.get_proxy.move_gear_secure(gear, destination_container, destination_district_uuid, change_district, change_region, node_profile)
-      move_status[uuid].merge!({ :result => true })
+      if json
+        app, gear = Application.find_by_gear_uuid(uuid)
+        move_status[uuid].merge!({ :result => true, :destination => gear.server_identity })
+      end
     rescue OpenShift::NodeException => ne
       if json
-        move_status[uuid].merge!({ :result => false, :message => ne.message, :trace => ne })
+        move_status[uuid].merge!({ :result => false, :message => ne.message, :trace => ne.backtrace })
       else
         puts ne.message
-      fi
+      end
     rescue OpenShift::UserException => ue
       if json
-        move_status[uuid].merge!({ :result => false, :message => ue.message, :trace => ue })
+        move_status[uuid].merge!({ :result => false, :message => ue.message, :trace => ue.backtrace })
       else
         puts ue.message
-      fi
+      end
     end
 
-    move_status[uuid].merge!({ :errorIO => reply.errorIO.string }) unless reply.errorIO.string.empty?
-    move_status[uuid].merge!({ :debugIO => reply.debugIO.string }) unless reply.debugIO.string.empty?
-
     unless reply.nil?
-      puts "################# ADDITIONAL DEBUG OUTPUT #################\n#{reply.debugIO.string}\n" unless reply.debugIO.string.empty?
-      puts "################# ADDITIONAL ERROR OUTPUT #################\n#{reply.errorIO.string}\n" unless reply.errorIO.string.empty?
+      if json
+        move_status[uuid].merge!({ :errorIO => reply.errorIO.string }) unless reply.errorIO.string.empty?
+        move_status[uuid].merge!({ :debugIO => reply.debugIO.string }) unless reply.debugIO.string.empty?
+      else
+        puts "################# ADDITIONAL DEBUG OUTPUT #################\n#{reply.debugIO.string}\n" unless reply.debugIO.string.empty?
+        puts "################# ADDITIONAL ERROR OUTPUT #################\n#{reply.errorIO.string}\n" unless reply.errorIO.string.empty?
+      end
     end
 end
 puts move_status.to_json if json
+exit rc
