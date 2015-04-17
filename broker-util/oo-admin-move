@@ -92,7 +92,6 @@ rc = 0
 move_status = {}
 gear_uuid.split(',').each do |uuid|
     app = nil
-    user = nil
     gear = nil
 
     app, gear = Application.find_by_gear_uuid(uuid)
