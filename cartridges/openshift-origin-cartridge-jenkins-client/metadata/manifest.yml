@@ -8,7 +8,7 @@ Description: The Jenkins client connects to your Jenkins application and enables
   Client 1.509+
 Version: '1'
 License: ASL 2.0
-Cartridge-Version: 0.0.12
+Cartridge-Version: 0.0.13
 Compatible-Versions:
 - 0.0.1
 - 0.0.2
@@ -21,6 +21,7 @@ Compatible-Versions:
 - 0.0.9
 - 0.0.10
 - 0.0.11
+- 0.0.12
 Cartridge-Vendor: redhat
 Categories:
 - ci_builder

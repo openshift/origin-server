@@ -15,6 +15,8 @@ class RemoveAliasOp < PendingAppOp
       # ignore if alias is not found
     end
 
+    OpenShift::SsoService.deregister_alias(gear,fqdn) unless gear.removed
+
     result_io
   end
 
@@ -30,6 +32,8 @@ class RemoveAliasOp < PendingAppOp
       application.aliases.push(Alias.new(fqdn: fqdn))
       application.save!
     end
+
+    OpenShift::SsoService.register_gear(gear) unless gear.removed
 
     result_io
   end

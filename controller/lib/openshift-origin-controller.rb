@@ -23,6 +23,7 @@ module OpenShift
   autoload :AuthService,               'openshift/auth_service'
   autoload :AnalyticsTracker,          'openshift/analytics_tracker'
   autoload :DnsService,                'openshift/dns_service'
+  autoload :SsoService,                'openshift/sso_service'
   autoload :BillingService,            'openshift/billing_service'
   autoload :DataStore,                 'openshift/data_store'
   autoload :DistributedLock,           'openshift/distributed_lock'

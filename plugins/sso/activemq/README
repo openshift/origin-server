@@ -1,0 +1,16 @@
+Before enabling this plug-in, you need to add a new user, topic, and
+queue to ActiveMQ.  Edit /etc/activemq/activemq.xml and add the
+following user:
+
+<authenticationUser username="ssoinfo" password="ssoinfopasswd" groups="ssoinfo,everyone"/>
+
+Then add the following authorization entries:
+
+<authorizationEntry topic="ssoinfo.>" write="ssoinfo" read="ssoinfo" admin="ssoinfo" />
+<authorizationEntry queue="ssoinfo.>" write="ssoinfo" read="ssoinfo" admin="ssoinfo" />
+
+To enable the plug-in, copy the file
+/etc/openshift/plugins.d/openshift-origin-sso-activemq.conf.example to
+/etc/openshift/plugins.d/openshift-origin-sso-activemq.conf on your broker and edit
+the settings therein appropriately to point to your ActiveMQ server and
+to use the topic and credentials you have configured for ActiveMQ.

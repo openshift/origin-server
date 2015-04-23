@@ -125,6 +125,7 @@ module OpenShift
     end
 
     def delete_monitor monitor_name, type
+      type = type == 'https-ecv' ? 'https' : 'http'
       delete(url: "https://#{@host}/mgmt/tm/ltm/monitor/#{type}/#{monitor_name}")
     end
 

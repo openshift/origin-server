@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.33.2
+Version: 1.34.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,13 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Fri Apr 10 2015 Wesley Hearn <whearn@redhat.com> 1.34.1-1
+- bump_minor_versions for sprint 62 (whearn@redhat.com)
+
+* Tue Apr 07 2015 Wesley Hearn <whearn@redhat.com> 1.33.3-1
+- Bug 1174824 - Allow gear moves to rsync by node attributes other than IP
+  (agrimm@redhat.com)
+
 * Thu Mar 26 2015 Wesley Hearn <whearn@redhat.com> 1.33.2-1
 - Add more comments (dmcphers@redhat.com)
 - Be more precise than +1 to avoid edge cases and use a weighted selection

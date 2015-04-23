@@ -3,7 +3,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.32.1
+Version: 1.33.1
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -56,6 +56,12 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Fri Apr 10 2015 Wesley Hearn <whearn@redhat.com> 1.33.1-1
+- bump_minor_versions for sprint 62 (whearn@redhat.com)
+
+* Wed Apr 08 2015 Wesley Hearn <whearn@redhat.com> 1.32.2-1
+- Bump cartridge versions for 2.0.60 (bparees@redhat.com)
+
 * Thu Mar 19 2015 Adam Miller <admiller@redhat.com> 1.32.1-1
 - bump_minor_versions for sprint 60 (admiller@redhat.com)
 - Updates PHP Composer, updates Help-Topics (jacoblucky@gmail.com)

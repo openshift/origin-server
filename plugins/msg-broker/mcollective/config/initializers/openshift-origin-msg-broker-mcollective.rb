@@ -36,7 +36,8 @@ Broker::Application.configure do
         :require_zones_for_app_create => conf.get_bool("ZONES_REQUIRE_FOR_APP_CREATE", "false"),
         :min_zones_per_gear_group => conf.get("ZONES_MIN_PER_GEAR_GROUP", 1).to_i
       },
-      :node_profile_enabled => conf.get_bool("NODE_PROFILE_ENABLED", "false")
+      :node_profile_enabled => conf.get_bool("NODE_PROFILE_ENABLED", "false"),
+      :node_rsync_address => conf.get("NODE_RSYNC_ADDRESS", "ip_address")
     }
   end
 end
