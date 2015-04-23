@@ -64,6 +64,9 @@ OPTIONS
   -n|--name NAMES
     A comma-delimited list of cartridge names. Used by the "delete" command.
 
+  --all
+    Display all information
+
   --ids IDS
     ID for a cartridge version to activate or deactivate (comma-delimited).
 
