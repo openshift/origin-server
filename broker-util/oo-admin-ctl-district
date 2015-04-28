@@ -164,7 +164,7 @@ if uuid || name
     puts "--size is required with command: #{command}"
     exit 1
   end
-elsif command && ! %w[list-available publish-uids].include?(command)
+elsif command && ! %w[list-available publish-uids remove-node deactivate-node activate-node set-region unset-region].include?(command)
   if command != 'create'
     puts "--uuid or --name is required with command: #{command}"
   else
@@ -183,6 +183,13 @@ def collate_errors(servers, reply, &block)
       reply.exitcode = e.code && e.respond_to?('code') ? e.code : 1
     end
   end
+end
+
+def district_for_server(server, reply)
+  districts = District.where('servers.name' => server).all
+  raise OpenShift::OOException.new("District not found for #{server}") if districts.length == 0
+  reply.errorIO << "WARNING: #{server} found in multiple districts: #{districts.collect { |d| d['name'] }.join(',')}\n" if districts.length > 1
+  districts[0]
 end
 
 reply = ResultIO.new
@@ -227,15 +234,15 @@ begin
       end
     end
   when "set-region"
-    collate_errors(server_identity, reply) {|server| district.set_region(server, region, zone) }
+    collate_errors(server_identity, reply) {|server| d = district || district_for_server(server, reply); d.set_region(server, region, zone) }
   when "unset-region"
-    collate_errors(server_identity, reply) {|server| district.unset_region(server) }
+    collate_errors(server_identity, reply) {|server| d = district || district_for_server(server, reply); d.unset_region(server) }
   when "deactivate-node"
-    collate_errors(server_identity, reply) {|server| district.deactivate_node(server) }
+    collate_errors(server_identity, reply) {|server| d = district || district_for_server(server, reply); d.deactivate_node(server) }
   when "remove-node"
-    collate_errors(server_identity, reply) {|server| district.remove_node(server) }
+    collate_errors(server_identity, reply) {|server| d = district || district_for_server(server, reply); d.remove_node(server) }
   when "activate-node"
-    collate_errors(server_identity, reply) {|server| district.activate_node(server) }
+    collate_errors(server_identity, reply) {|server| d = district || district_for_server(server, reply); d.activate_node(server) }
   when "add-capacity"
     district.add_capacity(size)
     reply.resultIO << "Success!"
