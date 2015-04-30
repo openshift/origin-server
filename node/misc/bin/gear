@@ -61,8 +61,14 @@ def valid_git_ref?(ref)
   end
 end
 
-@container = OpenShift::Runtime::ApplicationContainer.new(ENV['OPENSHIFT_APP_UUID'], ENV['OPENSHIFT_GEAR_UUID'], Etc.getpwuid.uid, ENV['OPENSHIFT_APP_NAME'], ENV['OPENSHIFT_GEAR_NAME'], ENV['OPENSHIFT_NAMESPACE'])
-@repo = OpenShift::Runtime::ApplicationRepository.new(@container)
+if ENV['OPENSHIFT_APP_UUID'] && ENV['OPENSHIFT_GEAR_UUID']
+	@container = OpenShift::Runtime::ApplicationContainer.new(ENV['OPENSHIFT_APP_UUID'], ENV['OPENSHIFT_GEAR_UUID'], Etc.getpwuid.uid, ENV['OPENSHIFT_APP_NAME'], ENV['OPENSHIFT_GEAR_NAME'], ENV['OPENSHIFT_NAMESPACE'])
+	@repo = OpenShift::Runtime::ApplicationRepository.new(@container)
+else
+  $stderr.puts "This command should only be run inside of a gear."
+  $stderr.puts "The environment variables 'OPENSHIFT_APP_UUID' and 'OPENSHIFT_GEAR_UUID' are not set."
+  exit 254
+end
 
 def do_command(command, options)
   begin
