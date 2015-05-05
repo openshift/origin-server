@@ -38,8 +38,7 @@ link:oo_notes_running_a_local_ddns.html[Notes on Running a Local DNS]
 a|link:oo_contributors_guide.html[OpenShift Contributors Guide] +
 link:oo_cartridge_developers_guide.html[Cartridge Developers Guide] +
 link:oo_user_guide.html[User Guide] +
-link:rest_api/rest-api-1-6.html[Broker REST API] +
-link:oo_notes_building_rpms_from_source.html[Notes on Building from Source]
+link:rest_api/rest-api-1-6.html[Broker REST API]
 
 |===
 
@@ -53,9 +52,6 @@ OpenShift Origin sources are arranged into 5 repositories:
 |===
 |Repository
 |Description
-
-|http://github.com/openshift/origin-dev-tools[origin-dev-tools]
-|Contains all the build tools necessary for building and testing a local or EC2 OpenShift Origin installation.
 
 |http://github.com/openshift/origin-server[origin-server]
 |The main repository that contains the source code for the Broker, Node and various plugins for DNS, Communication and Authentication. It also contains some of the core cartridges used by OpenShift installations.
