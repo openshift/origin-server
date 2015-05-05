@@ -66,14 +66,21 @@ module OpenShift
                       "ERROR: unable to create user group(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
                   ) unless rc == 0
 
-            cmd = %{useradd -u #{@container.uid} \
-                    -d #{@container.container_dir} \
-                    -s #{@gear_shell} \
-                    -g #{@container.gid} \
-                    -c '#{@container.gecos}' \
-                    -m \
-                    -k #{@container.skel_dir} \
-                    #{@container.uuid}}
+            useradd_opts = ["-u #{@container.uid}",
+                            "-d #{@container.container_dir}",
+                            "-s #{@gear_shell}",
+                            "-g #{@container.gid}",
+                            "-c '#{@container.gecos}'",
+                            "-m",
+                            "-k #{@container.skel_dir}"]
+            # DISABLE_PASSWORD_AGING should be true, by default.
+            disable_password_aging = @config.get_bool('DISABLE_PASSWORD_AGING', true)
+            if disable_password_aging
+              useradd_opts.concat(["-K PASS_MAX_DAYS=-1",
+                                   "-K PASS_MIN_DAYS=-1",
+                                   "-K PASS_WARN_AGE=-1"])
+            end
+            cmd = %{useradd #{useradd_opts.join(" ")} #{@container.uuid}}
             if @container.supplementary_groups != ""
               cmd << %{ -G "#{@container.supplementary_groups}"}
             end
