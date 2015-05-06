@@ -20,6 +20,8 @@ Options:
     Login with OpenShift access (required)
 -a|--app     <application>
     Application name  (alphanumeric) (required)
+-n|--domain <domain>
+    Domain name
 -c|--command <command>
     #{CTL_APP_COMMANDS} (required)
 -b|--bypass
@@ -41,6 +43,7 @@ end
 opts = GetoptLong.new(
     ["--login",            "-l", GetoptLong::REQUIRED_ARGUMENT],
     ["--app",              "-a", GetoptLong::REQUIRED_ARGUMENT],    
+    ["--domain",           "-n", GetoptLong::REQUIRED_ARGUMENT],
     ["--command",          "-c", GetoptLong::REQUIRED_ARGUMENT],
     ["--gear_uuid",              GetoptLong::REQUIRED_ARGUMENT],
     ["--cartridge",              GetoptLong::REQUIRED_ARGUMENT],
@@ -59,6 +62,7 @@ end
 
 login    = args["--login"]
 app_name = args["--app"]
+domain   = args["--domain"]
 command  = args['--command']
 bypass   = args['--bypass']
 gear_uuid = args['--gear_uuid']
@@ -88,7 +92,13 @@ unless user
   puts "User #{login} not found."
   exit 1
 end
-app = Application.find_by_user(user, app_name)
+
+if domain
+  app = Application.find_by(:name => app_name, :domain_namespace => domain, :owner_id => user._id)
+else
+  app = Application.find_by_user(user, app_name)
+end
+
 unless app
   puts "Application #{app_name} for user #{login} not found."
   exit 1
