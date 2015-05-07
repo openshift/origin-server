@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.36.1
+Version: 1.36.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -86,6 +86,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu May 07 2015 Troy Dawson <tdawson@redhat.com> 1.36.2-1
+- Bug 1218841 - Adding the net-ssh requirement to the controller RPM
+  (bleanhar@redhat.com)
+
 * Fri Apr 10 2015 Wesley Hearn <whearn@redhat.com> 1.36.1-1
 - bump_minor_versions for sprint 62 (whearn@redhat.com)
 
