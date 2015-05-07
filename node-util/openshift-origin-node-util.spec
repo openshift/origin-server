@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.36.1
+Version: 1.36.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -205,6 +205,10 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Thu May 07 2015 Troy Dawson <tdawson@redhat.com> 1.36.2-1
+- Bug 1136425 Bug link https://bugzilla.redhat.com/show_bug.cgi?id=1136425
+  Disable password aging for gear users (tiwillia@redhat.com)
+
 * Fri Apr 10 2015 Wesley Hearn <whearn@redhat.com> 1.36.1-1
 - bump_minor_versions for sprint 62 (whearn@redhat.com)
 
