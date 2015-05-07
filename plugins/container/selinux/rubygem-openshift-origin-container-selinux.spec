@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for SELinux based containers
 Name:          rubygem-%{gem_name}
-Version: 0.10.1
+Version: 0.10.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,10 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-container-selinux.conf.exam
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Thu May 07 2015 Troy Dawson <tdawson@redhat.com> 0.10.2-1
+- Bug 1136425 Bug link https://bugzilla.redhat.com/show_bug.cgi?id=1136425
+  Disable password aging for gear users (tiwillia@redhat.com)
+
 * Thu Jun 26 2014 Adam Miller <admiller@redhat.com> 0.10.1-1
 - bump_minor_versions for sprint 47 (admiller@redhat.com)
 
