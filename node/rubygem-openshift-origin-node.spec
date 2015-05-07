@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.36.1
+Version: 1.36.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -285,6 +285,12 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu May 07 2015 Troy Dawson <tdawson@redhat.com> 1.36.2-1
+- Bug 1136425 Bug link https://bugzilla.redhat.com/show_bug.cgi?id=1136425
+  Disable password aging for gear users (tiwillia@redhat.com)
+- BZ1216220 - oo-snapshot fails when run outside of a gear
+  (tiwillia@redhat.com)
+
 * Thu Mar 19 2015 Adam Miller <admiller@redhat.com> 1.36.1-1
 - bump_minor_versions for sprint 60 (admiller@redhat.com)
 - Don't delete archives if tar returns !0 (jolamb@redhat.com)
