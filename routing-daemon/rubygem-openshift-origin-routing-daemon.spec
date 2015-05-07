@@ -11,7 +11,7 @@
 
 Summary:       OpenShift daemon for routing integration
 Name:          rubygem-%{gem_name}
-Version: 0.24.1
+Version: 0.24.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -89,6 +89,9 @@ cp -a init/* %{buildroot}/etc/rc.d/init.d/
 %attr(0755,-,-) %{_var}/log/openshift
 
 %changelog
+* Thu May 07 2015 Troy Dawson <tdawson@redhat.com> 0.24.2-1
+- Attempting to fix BZ 1212020 (sferich888@gmail.com)
+
 * Fri Apr 10 2015 Wesley Hearn <whearn@redhat.com> 0.24.1-1
 - bump_minor_versions for sprint 62 (whearn@redhat.com)
 
