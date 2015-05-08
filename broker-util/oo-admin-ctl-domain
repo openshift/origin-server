@@ -23,7 +23,7 @@ Options:
    --new_namespace <Namespace>
     New namespace for application(s) (alphanumeric - max 16 chars) (required
       for --command update)
--c|--command (create|update|delete|info|env_add|env_del)
+-c|--command (create|update|delete|info|env_add|env_del|add_member|remove_member|update_member|list_members)
 -s|--ssh_key <ssh key>
     User\'s SSH key
 -t|--key_type <ssh key type>
@@ -34,6 +34,10 @@ Options:
 -v|--env_value <env var value>
    --allowed_gear_sizes <allowed gear sizes>
     A comma separated list of gear sizes allowed on the domain
+-m|--member <member>
+    User whose membership will be added, removed or updated
+-r|--role (view|edit|admin) (default: admin)
+    Role to be assigned to a member
 -h|--help:
     Show Usage info
 USAGE
@@ -52,6 +56,8 @@ opts = GetoptLong.new(
     ["--env_value",        "-v", GetoptLong::REQUIRED_ARGUMENT],
     ["--new_namespace"         , GetoptLong::REQUIRED_ARGUMENT],
     ["--allowed_gear_sizes"    , GetoptLong::REQUIRED_ARGUMENT],
+    ["--role",             "-r", GetoptLong::REQUIRED_ARGUMENT],
+    ["--member",           "-m", GetoptLong::REQUIRED_ARGUMENT],
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
 )
 
@@ -72,6 +78,8 @@ new_namespace = args["--new_namespace"]
 env_name = args["--env_name"]
 env_value = args["--env_value"]
 allowed_gear_sizes = args["--allowed_gear_sizes"]
+role = args["--role"]
+member = args["--member"]
 
 if login.nil? or args["--help"]
   usage
@@ -285,6 +293,174 @@ when "delete"
     user.delete
     reply.resultIO << "Successfully deleted user.\n"
   end
+
+when "add-member"
+  if namespace.nil?
+    puts "Please provide a namespace."
+    exit 1
+  end
+  if member.nil?
+    puts "Please provide a member to add to the domain"
+    exit 1
+  end
+  begin
+    owner = CloudUser.with(consistency: :eventual).find_by(login: login)
+  rescue Mongoid::Errors::DocumentNotFound
+    puts "User with login '#{login}' not found"
+    exit 1
+  end
+  begin
+    user = CloudUser.with(consistency: :eventual).find_by(login: member)
+  rescue Mongoid::Errors::DocumentNotFound
+    puts "Member with login '#{member}' not found"
+    exit 1
+  end
+  begin
+    domain = Domain.with(consistency: :eventual).find_by(owner: owner, canonical_namespace: namespace.downcase)
+  rescue Mongoid::Errors::DocumentNotFound
+    puts "Domain with namespace: #{namespace} not found for user #{owner.login}"
+    exit 1
+  end
+
+  if domain.members.include?(user)
+    puts "User \"#{member}\" is already a member of domain \"#{namespace}\"."
+    exit 1
+  end
+  if domain.members.length >= Rails.configuration.openshift[:max_members_per_resource]
+    puts "Cannot add \"#{member}\" to domain \"#{namespace}\". Domain already has maximum number of members."
+    puts "Domain members:  #{domain.members.length}"
+    puts "Maximum members: #{Rails.configuration.openshift[:max_members_per_resource]} (Defined with MAX_MEMBERS_PER_RESOURCE in the broker configuration)"
+    exit 1
+  end
+  role = "admin" if role.nil?
+  domain.add_members(user, Role.for(role))
+  begin
+    domain.save
+    domain.run_jobs
+  rescue
+    puts "Unable to add \"#{user.login}\" to domain \"#{domain.canonical_namespace}\" with role \"#{role}\"."
+    puts "Errors: #{domain.errors.messages}"
+    exit 3
+  end
+  reply.resultIO << "Successfully added \"#{user.login}\" to domain \"#{domain.canonical_namespace}\" with role \"#{role}\".\n"
+
+when "update-member"
+  if namespace.nil?
+    puts "Please provide a namespace."
+    exit 1
+  end
+  if member.nil?
+    puts "Please provide a member to update in the domain."
+    exit 1
+  end
+  if role.nil?
+    puts "Please provide a role for the updated member."
+    exit 1
+  end
+  begin
+    owner = CloudUser.with(consistency: :eventual).find_by(login: login)
+  rescue Mongoid::Errors::DocumentNotFound
+    puts "User with login '#{login}' not found"
+    exit 1
+  end
+  begin
+    user = CloudUser.with(consistency: :eventual).find_by(login: member)
+  rescue Mongoid::Errors::DocumentNotFound
+    puts "Member with login '#{member}' not found"
+    exit 1
+  end
+  begin
+    domain = Domain.with(consistency: :eventual).find_by(owner: owner, canonical_namespace: namespace.downcase)
+  rescue Mongoid::Errors::DocumentNotFound
+    puts "Domain with namespace: #{namespace} not found for user #{owner.login}"
+    exit 1
+  end
+
+  domain.add_members(user, Role.for(role))
+  begin
+    domain.save
+    domain.run_jobs
+  rescue
+    puts "Unable to update \"#{user.login}\" in domain \"#{domain.canonical_namespace}\" with role \"#{role}\"."
+    puts "Errors: #{domain.errors.messages}"
+    exit 3
+  end
+  reply.resultIO << "Successfully updated \"#{user.login}\" in domain \"#{domain.canonical_namespace}\" with role \"#{role}\".\n"
+
+when "remove-member"
+  if namespace.nil?
+    puts "Please provide a namespace."
+    exit 1
+  end
+  if member.nil?
+    puts "Please provide a member to add to the domain"
+    exit 1
+  end
+  if login == member
+    puts "Cannot remove domain owner \"#{member}\" from domain \"#{namespace}\"."
+    exit 1
+  end
+  begin
+    owner = CloudUser.with(consistency: :eventual).find_by(login: login)
+  rescue Mongoid::Errors::DocumentNotFound
+    puts "User with login '#{login}' not found"
+    exit 1
+  end
+  begin
+    user = CloudUser.with(consistency: :eventual).find_by(login: member)
+  rescue Mongoid::Errors::DocumentNotFound
+    puts "Member with login '#{member}' not found"
+    exit 1
+  end
+  begin
+    domain = Domain.with(consistency: :eventual).find_by(owner: owner, canonical_namespace: namespace.downcase)
+  rescue Mongoid::Errors::DocumentNotFound
+    puts "Domain with namespace: #{namespace} not found for user #{owner.login}"
+    exit 1
+  end
+
+  if !domain.members.include?(user)
+    puts "User \"#{member}\" is not a member of domain \"#{namespace}\""
+    exit 1
+  end
+  domain.remove_members(user)
+  begin
+    domain.save
+    domain.run_jobs
+  rescue
+    puts "Unable to remove \"#{user.login}\" from domain \"#{domain.canonical_namespace}\"."
+    puts "Errors: #{domain.errors.messages}"
+    exit 3
+  end
+  reply.resultIO << "Successfully removed \"#{user.login}\" from domain \"#{domain.canonical_namespace}\".\n"
+
+when "list-members"
+  if namespace.nil?
+    puts "Please provide a namespace."
+    exit 1
+  end
+  begin
+    user = CloudUser.with(consistency: :eventual).find_by(login: login)
+  rescue Mongoid::Errors::DocumentNotFound
+    puts "User with login '#{login}' not found"
+    exit 1
+  end
+  begin
+    domain = Domain.with(consistency: :eventual).find_by(owner: user, canonical_namespace: namespace.downcase)
+  rescue Mongoid::Errors::DocumentNotFound
+    puts "Domain with namespace: #{namespace} not found for user #{user.login}"
+    exit 1
+  end
+
+  puts "Members of the \"#{namespace}\" domain:"
+  domain.members.each_with_index do |member, i|
+    if (domain.members.length - 1) != i
+      print "#{member.name}(#{member.role}), "
+    else
+      print "#{member.name}(#{member.role})\n"
+    end
+  end
+
 else
   user = nil
   begin

@@ -71,3 +71,26 @@ Feature: Adding and deleting domain environment variable
 
     Then the domain environment variable TEST_VAR_1 will equal 'Foo' for all the applications in the namespace "randomNamespaceA"
     And the domain environment variable TEST_VAR_1 will not exist for the application "mock01app3"
+
+  @node_extended3
+  @domain_member_test_1
+  Scenario: Add and remove a member from a namespace
+
+    Given a new user with login "foo1" and namespace "bar1"
+    Given a new user with login "foo2" and namespace "bar2"
+    When the user "foo1" is added to the namespace "bar2"
+    Then the user "foo1" is a member of the domain "bar2"
+    When the user "foo1" is removed from the namespace "bar2"
+    Then the user "foo1" is not a member of the domain "bar2"
+
+  @node_extended3
+  @domain_member_test_2
+  Scenario: Add a member to a namespace and modify the members role
+
+    Given a new user with login "foo1" and namespace "bar1"
+    Given a new user with login "foo2" and namespace "bar2"
+    When the user "foo1" is added to the namespace "bar2"
+    Then the user "foo1" is a member of the domain "bar2"
+    When the "foo1" user's role is modified to "edit" in the namespace "bar2"
+    Then the user "foo1" has the role "edit" in the namespace "bar2"
+
