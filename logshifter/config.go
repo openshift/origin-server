@@ -66,6 +66,10 @@ func ParseConfig(file string) (*Config, error) {
 			break
 		}
 
+		if line == "\n" {
+			continue
+		}
+
 		c := strings.SplitN(line, "=", 2)
 
 		if len(c) != 2 {
