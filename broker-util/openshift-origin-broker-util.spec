@@ -8,7 +8,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.35.1
+Version: 1.35.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -110,6 +110,20 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Wed May 13 2015 Wesley Hearn <whearn@redhat.com> 1.35.2-1
+- Bump version for broker-util/openshift-origin-broker-util.spec
+  (whearn@redhat.com)
+- Merge pull request #6069 from tiwillia/bz1191238
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1216191 - oo-admin-ctl-district: look up district by server if not
+  specified (agrimm@redhat.com)
+- Added the '--all' option to oo-admin-ctl-cartridge, v2 (bedin@redhat.com)
+- Bug 1212614 - Various oo-admin-move issues (agrimm@redhat.com)
+- broker-util: allow oo-admin-move to eat a list of gears and add an final
+  output in json (mmahut@redhat.com)
+- Bug 1191238 Bugzilla Link https://bugzilla.redhat.com/show_bug.cgi?id=1191238
+  Allow domain to be specified in oo-admin-ctl-app (tiwillia@redhat.com)
+
 * Wed May 13 2015 Wesley Hearn <whearn@redhat.com> 1.35.1-1
 - bump minor version for sprint 62
 
