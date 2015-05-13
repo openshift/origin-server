@@ -34,6 +34,8 @@ Options:
 -v|--env_value <env var value>
    --allowed_gear_sizes <allowed gear sizes>
     A comma separated list of gear sizes allowed on the domain
+--remove_all_env
+    Confirm delete all environment variables
 -h|--help:
     Show Usage info
 USAGE
@@ -52,6 +54,7 @@ opts = GetoptLong.new(
     ["--env_value",        "-v", GetoptLong::REQUIRED_ARGUMENT],
     ["--new_namespace"         , GetoptLong::REQUIRED_ARGUMENT],
     ["--allowed_gear_sizes"    , GetoptLong::REQUIRED_ARGUMENT],
+    ["--remove_all_env"        , GetoptLong::REQUIRED_ARGUMENT],
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
 )
 
@@ -72,6 +75,7 @@ new_namespace = args["--new_namespace"]
 env_name = args["--env_name"]
 env_value = args["--env_value"]
 allowed_gear_sizes = args["--allowed_gear_sizes"]
+remove_all_env = args["--remove_all_env"]
 
 if login.nil? or args["--help"]
   usage
@@ -135,8 +139,13 @@ when "env_del"
     puts "Environment variable #{env_name} not found withing domain #{namespace}"
     exit 1
   end
-
-  domain.remove_env_variables([{"key" => env["key"], "value" => env["value"]}])
+  if env['component_id'].nil?
+    domain.remove_env_variables([{"key" => env["key"], "value" => env["value"]}])
+  elsif !remove_all_env.nil?
+    domain.remove_env_variables(env['component_id'])
+  else
+    print "NOTE: Please provide --remove_all_env argument if you want to remove all env variables\n"
+  end
   domain.reload
   domain.run_jobs
 when "create"
