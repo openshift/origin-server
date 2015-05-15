@@ -164,7 +164,7 @@ end
 
 def analyze_app(app, unresponsive_servers)
   framework = { :available => false, :scaled =>false, :unresponsive_gears => [],
-                :responsive_gears => [], :backup_available => false }
+                :responsive_gears => [], :backup_available => false, :ha_lost_head => false }
   db = { :available => false, :unresponsive_gears => [], :responsive_gears => [],
          :backup_available => false, :remove_features => [] }
   app_recoverable = false
@@ -201,6 +201,15 @@ def analyze_app(app, unresponsive_servers)
       end
     end
   end if app and app.gears.present?
+
+  # If the head gear of an HA application is missing, application cannot be recovered
+  if app.ha && framework[:available] == true
+    head_gear = app.gears.select{|g| g.app_dns}[0]
+    if unresponsive_servers.include?(head_gear.server_identity)
+      framework[:available] = false
+      framework[:ha_lost_head] = true
+    end
+  end
 
   if !framework[:available] and !db[:available]
     framework[:backup_available] = true if framework[:scaled]
@@ -716,12 +725,29 @@ def repair_removed_nodes(available_servers, unresponsive_servers, auto_confirm)
     end
 
     apps_not_recoverable = []
+    ha_apps_without_head = []
     app_reports.each do |app_id, app_info|
       app, recoverable, framework, db = app_info[0], app_info[1], app_info[2], app_info[3]
-      if !recoverable and !framework[:backup_available] and !db[:backup_available]
+      if !recoverable and framework[:ha_lost_head]
+        ha_apps_without_head << app_id
+      elsif !recoverable and !framework[:backup_available] and !db[:backup_available]
         apps_not_recoverable << app_id
       end 
     end
+
+    unless ha_apps_without_head.blank?
+      puts "Found #{ha_apps_without_head.size} HA applications that cannot be recovered due to missing head gear."
+      ha_apps_without_head.each { |app_id| puts "#{app_reports[app_id][0].name} (id: #{app_id})" }
+      puts ""
+      puts "These apps should be re-created and any existing aliases moved for recovery before deletion."
+      print "Do you want to delete all of them now [yes/no]: "
+      if auto_confirm or (auto_confirm.nil? and gets.chomp.to_b)
+        delete_apps(app_reports, ha_apps_without_head)
+      end
+      app_reports.delete_if { |k,v| ha_apps_without_head.include?(k) }
+      puts ""
+    end
+
     unless apps_not_recoverable.blank?
       puts "Found #{apps_not_recoverable.size} unresponsive scalable apps that can not be recovered."
       apps_not_recoverable.each { |app_id| puts "#{app_reports[app_id][0].name} (id: #{app_id})" }
