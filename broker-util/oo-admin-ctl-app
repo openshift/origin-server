@@ -117,17 +117,25 @@ def check_user_response
   end
 end
 
+
+begin
+  ci = app.component_instances.find_by(cartridge_name: cartridge)
+rescue Exception => e
+  puts "Cartridge #{cartridge} not found in the application #{app.name}"
+  exit 1
+end if cartridge
+
 reply = ResultIO.new
 begin
   case command
   when "start"
-    reply.append app.start
+    reply.append app.start(cartridge)
   when "stop"
-    reply.append app.stop  
+    reply.append app.stop(cartridge)
   when "force-stop"
-    reply.append app.stop(nil, true)
+    reply.append app.stop(cartridge, true)
   when "restart"
-    reply.append app.restart  
+    reply.append app.restart(cartridge)
   when "status"
     puts "Application UUID is #{app._id}"
     app.gears.each do |gear|
