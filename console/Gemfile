@@ -42,3 +42,17 @@ group :assets do
   gem 'sass-twitter-bootstrap',  '2.0.1'
 end
 
+# Load extra gems specified in the console configuration file
+conf_file_path = (ENV['OPENSHIFT_CONF_DIR'] || "/etc/openshift/") + 'console.conf'
+if File.exists?(conf_file_path)
+  conf_file = File.open(conf_file_path)
+  additional_gems = conf_file.read[/^ADDITIONAL_RUBYGEMS\s*=\s*(.+)/, 1]
+  if additional_gems
+    gem_list = additional_gems.split(" ").uniq
+    gem_list.each do |name|
+      gem name.gsub(/["']/, "")
+    end
+  end
+else
+  puts "Could not find console configuration file at #{conf_file_path}. Skipping loading additional gems."
+end

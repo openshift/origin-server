@@ -62,6 +62,21 @@ else
   end
 end
 
+# Load extra gems specified in the broker configuration file
+conf_file_path = (ENV['OPENSHIFT_CONF_DIR'] || "/etc/openshift/") + 'broker.conf'
+if File.exists?(conf_file_path)
+  conf_file = File.open(conf_file_path)
+  additional_gems = conf_file.read[/^ADDITIONAL_RUBYGEMS\s*=\s*(.+)/, 1]
+  if additional_gems
+    gem_list = additional_gems.split(" ").uniq
+    gem_list.each do |name|
+      gem name.gsub(/["']/, "")
+    end
+  end
+else
+  puts "Could not find broker configuration file at #{conf_file_path}. Skipping loading additional gems."
+end
+
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
 
