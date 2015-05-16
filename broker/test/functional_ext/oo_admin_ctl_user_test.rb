@@ -107,4 +107,21 @@ class OoAdminCtlUserTest < ActionDispatch::IntegrationTest
     assert_equal [true],                users.map(&:ha                              ).uniq, users.inspect
   end
 
+  def test_set_remove_usage_account_id
+    test_usageaccountid = "12345"
+
+    o,s = run_command "-f #{@file.path} --create --setusageaccountid #{test_usageaccountid}"
+    user = CloudUser.where(:login => @existing_login).first
+    assert_equal 0, s
+    assert_equal test_usageaccountid, user.usage_account_id
+
+    o,s = run_command "-f #{@file.path} --removeusageaccountid"
+    user = CloudUser.where(:login => @existing_login).first
+    assert_equal 0, s
+    assert_equal nil, user.usage_account_id
+
+    o,s = run_command "-f #{@file.path} --setusageaccountid #{test_usageaccountid} --removeusageaccountid"
+    assert_equal 255, s
+  end
+
 end
