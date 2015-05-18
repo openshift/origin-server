@@ -80,6 +80,9 @@ lc_messages = '<%= ENV['OPENSHIFT_POSTGRESQL_LOCALE'] || 'en_US.utf8'%>'
 lc_monetary = '<%= ENV['OPENSHIFT_POSTGRESQL_LOCALE'] || 'en_US.utf8'%>'
 lc_numeric = '<%= ENV['OPENSHIFT_POSTGRESQL_LOCALE'] || 'en_US.utf8'%>'
 lc_time = '<%= ENV['OPENSHIFT_POSTGRESQL_LOCALE'] || 'en_US.utf8'%>'
+<% if ENV['OPENSHIFT_POSTGRESQL_LOG_TIMEZONE'] %>
+log_timezone = '<%= ENV['OPENSHIFT_POSTGRESQL_LOG_TIMEZONE']%>'
+<% end %>
 default_text_search_config = 'pg_catalog.english'
 
 # Logging
