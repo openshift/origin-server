@@ -159,8 +159,8 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
 
     #test_scalable_app_ha_framework_gear_down_db_down
     assert_equal(0, Application.where(canonical_name: @appnames[5].downcase).count)
-    assert_equal(4, UsageRecord.where(user_id: @cu._id, app_name: @appnames[5]).count)
-    assert_equal(2, Usage.where(user_id: @cu._id, app_name: @appnames[5]).count)
+    assert_equal(6, UsageRecord.where(user_id: @cu._id, app_name: @appnames[5]).count)
+    assert_equal(3, Usage.where(user_id: @cu._id, app_name: @appnames[5]).count)
 
     #test_scalable_app_no_ha_scaled_up_head_gear_down
     assert_equal(0, Application.where(canonical_name: @appnames[6].downcase).count)
