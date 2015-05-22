@@ -182,7 +182,7 @@ module OpenShift
         begin
           yield
           break
-        rescue  OpenShift::DNSException => e
+        rescue OpenShift::DNSException => e
           raise if i >= retries
           logger.debug "Retrying #{method} after exception caught from DNS request: #{e.message}"
           i += 1
