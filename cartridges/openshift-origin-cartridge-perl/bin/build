@@ -43,7 +43,7 @@ then
 
   DEPS=$(find $OPENSHIFT_REPO_DIR -type f \( -name \*\.pm -o -name \*\.pl \); )
 
-  for f in $(( echo "$DEPS" | xargs /usr/lib/rpm/perl.req | awk '{ print $1 }' | sed 's/^perl(\(.*\))$/\1/'; cat ${CPAN_PATH} 2>/dev/null ) | sort -u | grep . )
+  for f in $(echo "$DEPS" | xargs /usr/lib/rpm/perl.req | awk '{ print $1 }' | sed 's/^perl(\(.*\))$/\1/' 2>/dev/null | awk '/./ && !seen[$0]++' "$CPAN_PATH"  - )
   do
     # Skipping well-known perl pragmas
     for element in ${EXCLUDED_PRAGMAS[@]}; do
