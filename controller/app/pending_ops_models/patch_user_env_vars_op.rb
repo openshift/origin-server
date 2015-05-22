@@ -46,7 +46,7 @@ class PatchUserEnvVarsOp < PendingAppOp
         Rails.logger.info "DNS gear not found. Skipping rollback for PatchUserEnvVarsOp."
         return result_io
       end
-  
+
       unless gear.nil? or gear.removed
         set_vars, unset_vars = Application.sanitize_user_env_variables(user_env_vars)
 
@@ -62,7 +62,7 @@ class PatchUserEnvVarsOp < PendingAppOp
       end
 
     end
-    
+
     result_io
   end
 
