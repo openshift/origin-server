@@ -435,6 +435,8 @@ module OpenShift
           @logger.info "Done."
         end
       end
+
+      @lb_model.update if @lb_model.respond_to?(:update)
     end
 
     # Returns a Hash representing the JSON response from the load balancer.
