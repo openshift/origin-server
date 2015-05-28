@@ -22,6 +22,7 @@ module OpenShift
       @https_vserver = cfg['VIRTUAL_HTTPS_SERVER'] || 'https-ose-vserver'
       @vserver = cfg['VIRTUAL_SERVER'] || 'ose-vserver'
       @ssh_private_key = cfg['BIGIP_SSHKEY'] || '/etc/openshift/bigip.key'
+      @device_group = cfg['BIGIP_DEVICE_GROUP']
     end
 
     def run cmd
@@ -331,6 +332,14 @@ module OpenShift
     def get_pool_certificates pool_name
       pool_certs = []
       return pool_certs
+    end
+
+    def update
+      post(url: "https://#{@host}/mgmt/tm/cm",
+           payload: {
+             "command" => "run",
+             "utilCmdArgs" => "config-sync to-group #{@device_group}",
+           }.to_json) unless @device_group.nil? || @device_group.empty?
     end
 
     def initialize logger, cfgfile
