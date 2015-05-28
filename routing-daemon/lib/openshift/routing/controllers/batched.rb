@@ -136,6 +136,7 @@ module OpenShift
       @lb_model.delete_pool_members dels.keys, dels.values unless dels.empty?
       @pending_add_member_ops = []
       @pending_delete_member_ops = []
+      @lb_model.update if @lb_model.respond_to?(:update)
     end
 
     def initialize lb_model_class, logger, cfgfile
