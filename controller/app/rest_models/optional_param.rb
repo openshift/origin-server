@@ -34,7 +34,7 @@
 # @!attribute [r] type
 #   @return [String] Parameter type
 # @!attribute [r] description
-#   @return [String] Parameter desctiption
+#   @return [String] Parameter description
 # @!attribute [r] valid_options
 #   @return [Array<String>] List of valid options
 # @!attribute [r] default_value

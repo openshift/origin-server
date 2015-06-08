@@ -11,6 +11,14 @@ module OpenShift
       return Rails.configuration.openshift[:gear_sizes]
     end
 
+    def self.hidden_gear_sizes
+      @proxy_provider.hidden_gear_sizes_impl
+    end
+
+    def self.hidden_gear_sizes_impl
+      return Rails.configuration.openshift[:hidden_gear_sizes]
+    end
+
     def self.provider=(provider_class)
       @proxy_provider = provider_class
     end
