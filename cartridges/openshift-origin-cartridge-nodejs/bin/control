@@ -19,6 +19,23 @@ function status() {
   fi
 }  #  End of function  status.
 
+# Check if the NodeJS server is up
+function ishttpup() {
+    local count=0
+    local timeout_seconds=60
+
+    echo "Waiting for application port (${OPENSHIFT_NODEJS_PORT}) become available ..."
+    while [ ${count} -lt ${timeout_seconds} ]; do
+      if echo 2> /dev/null > "/dev/tcp/${OPENSHIFT_NODEJS_IP}/${OPENSHIFT_NODEJS_PORT}"; then
+        echo "Found ${OPENSHIFT_NODEJS_IP}:${OPENSHIFT_NODEJS_PORT} listening port"
+        return 0
+      fi
+      let count=${count}+1
+      sleep 1
+    done
+    return 1
+}
+
 function start() {
   echo "Starting NodeJS cartridge"
 
@@ -81,6 +98,12 @@ function start() {
 
   # ensure file is created before printing it to show startup status
   sleep 2
+
+  # check that HTTP port is available
+  if ! ishttpup; then
+    echo "Application '$OPENSHIFT_APP_NAME' failed to start (port ${OPENSHIFT_NODEJS_PORT} not available)"
+    return 1
+  fi
 
   popd > /dev/null
   if [ -n "${cart_pid}" ]; then
