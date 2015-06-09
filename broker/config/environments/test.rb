@@ -84,6 +84,7 @@ Broker::Application.configure do
     :default_max_gears => (conf.get("DEFAULT_MAX_GEARS", "100")).to_i,
     :default_gear_size => conf.get("DEFAULT_GEAR_SIZE", "small"),
     :gear_sizes => conf.get("VALID_GEAR_SIZES", "small").split(","),
+    :hidden_gear_sizes => [],
     :cartridge_gear_sizes => OpenShift::Controller::Configuration.parse_tokens_hash("mock-no-small|medium,large,c9"),
     :default_gear_capabilities => conf.get("DEFAULT_GEAR_CAPABILITIES", "small").split(","),
     :default_allow_ha => conf.get_bool('DEFAULT_ALLOW_HA', "false"),

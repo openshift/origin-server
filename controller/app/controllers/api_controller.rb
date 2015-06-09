@@ -25,7 +25,7 @@ class ApiController < BaseController
       "ADD_DOMAIN" => Link.new("Create new domain", "POST", URI::join(get_url, "domains"), [
         Param.new(requested_api_version <= 1.5 ? "id" : "name", "string", "Name of the domain",nil,blacklisted_words)
       ], [
-        (OptionalParam.new("allowed_gear_sizes", "array", "A list of gear sizes that are allowed to be created on this domain", OpenShift::ApplicationContainerProxy.valid_gear_sizes) if requested_api_version >= 1.5),
+        (OptionalParam.new("allowed_gear_sizes", "array", "A list of gear sizes that are allowed to be created on this domain", OpenShift::ApplicationContainerProxy.valid_gear_sizes - OpenShift::ApplicationContainerProxy.hidden_gear_sizes) if requested_api_version >= 1.5),
       ].compact),
       "LIST_DOMAINS" => Link.new("List all domains you have access to", "GET", URI::join(get_url, "domains")),
       "LIST_DOMAINS_BY_OWNER" => Link.new("List domains by owner", "GET", URI::join(get_url, "domains"), [
