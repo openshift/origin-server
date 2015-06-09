@@ -47,14 +47,20 @@ function get_mountpoint() {
     df $1 | tail -1 | tr -s ' ' | cut -d' ' -f 6 | sort -u
 }
 
+# get a single fstab entry for a mount point
+# ignore commented lines (beggining with '#')
+function get_fstab_entry() {
+  egrep "^[^#].+\s+$1\s+" /etc/fstab
+}
+
 # find the filesystem type above a given file or directory
 function get_filesystem_type() {
-    egrep "\s+$1\s+" /etc/fstab | awk '{ print $3 }'
+    get_fstab_entry $1 | awk '{ print $3 }'
 }
 
 # get the fstab options for a given mount point
 function get_fstab_mount_options() {
-    cat /etc/fstab | tr -s ' ' | grep " $1 "| awk '{print $4;}'
+    get_fstab_entry $1 | awk '{ print $4 }'
 }
 
 # get the current mount options for a given mount point
@@ -73,7 +79,7 @@ QUOTA_OPTIONS=usrjquota=aquota.user,jqfmt=vfsv0
 function update_fstab() {
     # ORIGIN_MOUNTPOINT=$1
 
-    if ! tr -s ' ' </etc/fstab |egrep " $1 ext4 [^ ]+$QUOTA_OPTIONS "; then
+    if ! tr -s ' ' < /etc/fstab | egrep "^[^#].+ $1 ext4 [^ ]+$QUOTA_OPTIONS "; then
       FSTAB_OPTIONS=$(get_fstab_mount_options $1)
       NEW_OPTIONS=${FSTAB_OPTIONS},${QUOTA_OPTIONS}
       # NOTE: double quotes - Variables are shell-substituted before perl runs
