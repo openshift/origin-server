@@ -1254,7 +1254,7 @@ module OpenShift
           rescue => e
             result[:status] = RESULT_FAILURE
             result[:errors] ||= []
-            result[:errors] << "An exception occured restarting the gear: #{e.message}"
+            result[:errors] << "An exception occurred restarting the gear: #{e.message}"
             result[:errors] += e.backtrace
           end
 
@@ -1572,7 +1572,7 @@ module OpenShift
               status: RESULT_FAILURE,
               proxy_gear_uuid: proxy_gear.uuid,
               messages: [],
-              errors: ["An exception occured updating the proxy status: #{e.message}\n#{e.backtrace.join("\n")}"]
+              errors: ["An exception occurred updating the proxy status: #{e.message}\n#{e.backtrace.join("\n")}"]
             }
           end
 
@@ -1600,7 +1600,7 @@ module OpenShift
               proxy_gear_uuid: self.uuid,
               target_gear_uuid: target_gear,
               messages: [],
-              errors: ["An exception occured updating the proxy status: #{e.message}\n#{e.backtrace.join("\n")}"]
+              errors: ["An exception occurred updating the proxy status: #{e.message}\n#{e.backtrace.join("\n")}"]
             }
           end
 

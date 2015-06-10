@@ -103,7 +103,7 @@ if acc.save
 else
   errors = acc.read_errors
   if errors.nil? || errors.empty?
-    print "An unknown error has occured"
+    print "An unknown error has occurred"
   else
     print "#{errors[0]["text"]}\n"
   end
