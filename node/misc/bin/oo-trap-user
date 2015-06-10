@@ -38,7 +38,8 @@ commands_map = {
     "deploy.sh": "/bin/bash",
     "rhc-list-ports": "/bin/bash",
     "post_deploy.sh": "/bin/bash",
-    "quota": "/usr/bin/quota"
+    "quota": "/usr/bin/quota",
+    "sftp-server": "/usr/bin/oo-sftp-server"
 }
 
 comment_re = re.compile("#.*$")

@@ -477,6 +477,28 @@ command :deployments do |c|
   end
 end
 
+command :refresh_deployment do |c|
+  c.syntax = "#{name} refresh_deployment"
+
+  c.description = "Redistribute and activate a deployment"
+  c.action do |args, options|
+    do_command(c, options) do
+      current_id = @container.deployment_metadata_for(@container.current_deployment_datetime).id
+      puts "Refreshing deployment #{current_id}"
+
+      #@container.distribute(out: $stdout, err: $stderr, deployment_id: current_id)
+      @container.activate(deployment_id: current_id,
+                                   post_install: false,
+                                   all: true,
+                                   rotate: true,
+                                   report_deployments: false,
+                                   out: $stdout,
+                                   err: $stderr)
+      puts "Done"
+    end
+  end
+end
+
 command :start do |c|
   c.syntax = "#{name} start"
 
