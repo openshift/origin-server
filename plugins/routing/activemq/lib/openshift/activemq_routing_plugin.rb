@@ -96,7 +96,8 @@ module OpenShift
         :alias => fqdn,
         :ssl => ssl_cert,
         :private_key => pvt_key,
-        :pass_phrase => passphrase
+        :pass_phrase => passphrase,
+	:gear_size => app.default_gear_size,
       }
       send_msg msg.to_yaml
     end
@@ -106,7 +107,8 @@ module OpenShift
         :action => :remove_ssl,
         :app_name => app.name,
         :namespace => app.domain_namespace,
-        :alias => fqdn
+        :alias => fqdn,
+	:gear_size => app.default_gear_size,
       }
       send_msg msg.to_yaml
     end
@@ -116,7 +118,8 @@ module OpenShift
         :action => :add_alias,
         :app_name => app.name,
         :namespace => app.domain_namespace,
-        :alias => alias_str
+        :alias => alias_str,
+	:gear_size => app.default_gear_size,
       }
       send_msg msg.to_yaml
     end
@@ -126,7 +129,8 @@ module OpenShift
         :action => :remove_alias,
         :app_name => app.name,
         :namespace => app.domain_namespace,
-        :alias => alias_str
+        :alias => alias_str,
+	:gear_size => app.default_gear_size,
       }
       send_msg msg.to_yaml
     end
@@ -138,6 +142,7 @@ module OpenShift
         :namespace => app.domain.namespace,
         :scalable => app.scalable,
         :ha => app.ha,
+	:gear_size => app.default_gear_size,
       }
       send_msg msg.to_yaml
     end
@@ -149,6 +154,7 @@ module OpenShift
         :namespace => app.domain.namespace,
         :scalable => app.scalable,
         :ha => app.ha,
+	:gear_size => app.default_gear_size,
       }
       send_msg msg.to_yaml
     end
@@ -164,7 +170,8 @@ module OpenShift
         :public_port => public_port.to_i,
         :protocols => protocols,
         :types => types,
-        :mappings => mappings
+        :mappings => mappings,
+	:gear_size => app.default_gear_size,
       }
       send_msg msg.to_yaml
     end
@@ -176,7 +183,8 @@ module OpenShift
         :namespace => app.domain.namespace,
         :gear_id => gear._id.to_s,
         :public_address => public_ip,
-        :public_port => public_port.to_i
+        :public_port => public_port.to_i,
+	:gear_size => app.default_gear_size,
       }
       send_msg msg.to_yaml
     end
