@@ -8,7 +8,7 @@ Feature: Cartridge Lifecycle JBoss Unified Push Server Verification Tests
       #When 1 <cart_name> applications are created
       When I create a <cart_name> app
 
-    Given an existing <cart_name> application  
+    Given an existing <cart_name> application
       Then the application should be accessible
       And a mysqld process will be running
 
@@ -34,4 +34,4 @@ Feature: Cartridge Lifecycle JBoss Unified Push Server Verification Tests
 
   Scenarios: RHEL scenarios
     | cart_name |
-    | jboss-unified-push-1 |
+    | jboss-unified-push-2 |
