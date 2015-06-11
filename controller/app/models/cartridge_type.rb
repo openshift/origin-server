@@ -111,7 +111,10 @@ class CartridgeType
   def activate
     self.priority = Time.now
     if self.save
-      self.class.where(name: name, :priority.lt => self.priority).set(:priority, nil)
+      self.reload
+      # find all other types of the same name activated before this type and set their priority to nil
+      old_types = self.class.where(:name => name).select {|type| type.priority and type.priority < self.priority }
+      old_types.each {|type| type.set(:priority, nil)}
       if latest = self.class.where(name: name, :priority.ne => nil).only(:_id, :priority).first
         if latest._id == self._id
           true
