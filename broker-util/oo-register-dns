@@ -50,11 +50,11 @@ end
 opts = GetoptLong.new(
     ["--with-node-hostname",  "-h", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-node-ip",        "-n", GetoptLong::REQUIRED_ARGUMENT],
-    ["--domain",              "-d", GetoptLong::OPTIONAL_ARGUMENT],    
+    ["--domain",              "-d", GetoptLong::OPTIONAL_ARGUMENT],
     ["--dns-server",          "-s", GetoptLong::OPTIONAL_ARGUMENT],
-    ["--key-file",            "-k", GetoptLong::OPTIONAL_ARGUMENT],        
+    ["--key-file",            "-k", GetoptLong::OPTIONAL_ARGUMENT],
     ["--gss-tsig",            "-g", GetoptLong::NO_ARGUMENT],
-    ["--help",                "-?", GetoptLong::NO_ARGUMENT]
+    ["--help",                "-h", GetoptLong::NO_ARGUMENT]
 )
 
 args = {}

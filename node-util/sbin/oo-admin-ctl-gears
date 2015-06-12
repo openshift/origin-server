@@ -487,6 +487,7 @@ end
 
 command :listidle do |c|
   c.syntax = "#{$name} #{c.name}"
+  c.description = %q(list all the idle gears on node)
 
   c.action do
     OpenShift::Runtime::ApplicationContainer.all.each do |container|
