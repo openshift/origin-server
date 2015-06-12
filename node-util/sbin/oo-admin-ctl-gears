@@ -371,7 +371,7 @@ command :status do |c|
 end
 
 command :startgear do |c|
-  c.syntax      = "#{$name} #{c.name} <login name>"
+  c.syntax      = "#{$name} #{c.name} <gear uuid>"
   c.description = %q(start given gear)
 
   c.action do |args, options|
@@ -381,7 +381,7 @@ command :startgear do |c|
 end
 
 command :stopgear do |c|
-  c.syntax      = "#{$name} #{c.name} <login name>"
+  c.syntax      = "#{$name} #{c.name} <gear uuid>"
   c.description = %q(stop given gear ignoring stop_lock)
 
   c.action do |args, options|
@@ -391,7 +391,7 @@ command :stopgear do |c|
 end
 
 command :stoplockgear do |c|
-  c.syntax      = "#{$name} #{c.name} --message MESSAGE <login name>"
+  c.syntax      = "#{$name} #{c.name} --message MESSAGE <gear uuid>"
   c.description = %q(stop given gear creating stop_lock)
 
   c.option '-m', '--message MESSAGE', 'Reason why this gear is being stopped with a .stoplock'
@@ -409,7 +409,7 @@ command :stoplockgear do |c|
 end
 
 command :forcestopgear do |c|
-  c.syntax      = "#{$name} #{c.name} <login name>"
+  c.syntax      = "#{$name} #{c.name} <gear uuid>"
   c.description = %q(stop given gear ignoring stop_lock with prejudice)
 
   c.action do |args, options|
@@ -419,7 +419,7 @@ command :forcestopgear do |c|
 end
 
 command :condstopgear do |c|
-  c.syntax      = "#{$name} #{c.name} <login name>"
+  c.syntax      = "#{$name} #{c.name} <gear uuid>"
   c.description = %q(attempt to stop cartridge daemons for given gear)
 
   c.action do |args, options|
@@ -429,7 +429,7 @@ command :condstopgear do |c|
 end
 
 command :restartgear do |c|
-  c.syntax      = "#{$name} #{c.name} <login name>"
+  c.syntax      = "#{$name} #{c.name} <gear uuid>"
   c.description = %q(restart given gear ignoring stop_lock)
 
   c.action do |args, options|
@@ -440,7 +440,7 @@ end
 
 
 command :statusgear do |c|
-  c.syntax      = "#{$name} #{c.name} <login name>"
+  c.syntax      = "#{$name} #{c.name} <gear uuid>"
   c.description = %q(report status of cartridges for given gear)
 
   c.action do |args, options|
@@ -450,7 +450,7 @@ command :statusgear do |c|
 end
 
 command :idlegear do |c|
-  c.syntax      = "#{$name} #{c.name} <login name>"
+  c.syntax      = "#{$name} #{c.name} <gear uuid>"
   c.description = %q(change gear state to idle)
 
   c.action do |args, options|
@@ -460,7 +460,7 @@ command :idlegear do |c|
 end
 
 command :unidlegear do |c|
-  c.syntax      = "#{$name} #{c.name} <login name>"
+  c.syntax      = "#{$name} #{c.name} <gear uuid>"
   c.description = %q(change gear state to started)
 
   c.action do |args, options|
