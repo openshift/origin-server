@@ -3,9 +3,12 @@
 require 'rubygems'
 require 'stomp'
 
+require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
+
 def send_msg(msg)
   # Reinitializing connection to avoid a missing message in a failover
   # scenario https://bugzilla.redhat.com/show_bug.cgi?id=1128857
+  puts "Sending message '#{msg}' to hosts: #{@hosts}"
   @conn = Stomp::Connection.open({ :hosts => @hosts })
   @conn.publish @dest, msg
   @conn.disconnect
@@ -26,13 +29,15 @@ def notify_reinit_end()
 end
 
 # Initialize ActiveMQ
-Rails.logger.debug("Listening for routing events")
+puts "Initializing ActiveMQ Connection for Router Re-init"
+Rails.logger.debug("Initializing ActiveMQ Connection for Router Re-init")
 @dest = Rails.application.config.routing_activemq[:destination]
 @hosts = Rails.application.config.routing_activemq[:hosts]
 @mcollective_conf = Rails.application.config.routing_activemq[:mcollective_conf]
 
 # If the MCOLLECTIVE_CONFIG setting is found in the routing plugin config, read settings from MCollective client config
 unless @mcollective_conf.nil?
+  puts "ACTIVEMQ_HOSTS settings is now being overridden by MCollective client config settings because you set MCOLLECTIVE_CONFIG"
   Rails.logger.debug("ACTIVEMQ_HOSTS settings is now being overridden by MCollective client config settings because you set MCOLLECTIVE_CONFIG")
   @mcollective_conf = OpenShift::Config.new(@mcollective_conf)
   @plugin_prefix = "plugin.activemq.pool."
@@ -47,6 +52,7 @@ unless @mcollective_conf.nil?
     host[:ssl] = @mcollective_conf.get_bool("#{@plugin_prefix}#{poolnum}.ssl", "false")
     host[:ssl] = ssl_parameters(poolnum, @mcollective_conf.get_bool("#{@plugin_prefix}#{poolnum}.ssl.fallback", "false")) if host[:ssl]
 
+    puts "Adding #{host[:host]}:#{host[:port]} to the connection pool"
     Rails.logger.debug("Adding #{host[:host]}:#{host[:port]} to the connection pool")
     @hosts << host
   end
@@ -63,6 +69,7 @@ end
   if Rails.application.config.routing_activemq[:debug]
     @conn = Class.new(Object) do
       def publish(dest, msg)
+        puts "Destination #{dest} gets message:\n#{msg}"
         Rails.logger.debug("Destination #{dest} gets message:\n#{msg}")
       end
     end.new
@@ -71,10 +78,11 @@ end
 # Begin Script
 filter = {}
 
+puts "Beginning Router Re-Initialization"
 notify_reinit_start
 
 # Loop through all applications
-Application.where(filter).each do |app|
+Application.each do |app|
 
   # notify_create_application
   OpenShift::RoutingService.notify_create_application app
@@ -88,3 +96,4 @@ Application.where(filter).each do |app|
 end
 
 notify_reinit_end
+puts "Complete."
