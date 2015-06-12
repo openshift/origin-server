@@ -87,11 +87,19 @@ Application.each do |app|
   # notify_create_application
   OpenShift::RoutingService.notify_create_application app
 
-  # notify_create_public_endpoint
+  # notify_create_public_endpoint, app, gear, endpoint_name, public_ip, public_port, protocols, types, mappings
+  app.gears.where( { '_id' => app._id } ).each do |gear|
+    gear.port_interfaces.each do |pi|
+      OpenShift::RoutingService.notify_create_public_endpoint app, gear, pi.cartridge_name, pi.external_address, pi.external_port, pi.internal_address, pi.internal_port, pi.protocols, pi.type, pi.mappings
+    end
+  end
 
   # notify_ssl_cert_add
 
   # notify_add_alias
+  app.aliases.map { |al| al.fqdn }.each do |fqdn|
+    OpenShift::RoutingService.notify_add_alias(app, fqdn)
+  end
 
 end
 
