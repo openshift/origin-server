@@ -84,7 +84,7 @@ notify_reinit_start
 # Loop through all applications
 Application.each do |app|
 
-  # notify_create_application
+  # notify_create_application, app
   OpenShift::RoutingService.notify_create_application app
 
   # notify_create_public_endpoint, app, gear, endpoint_name, public_ip, public_port, protocols, types, mappings
@@ -94,9 +94,9 @@ Application.each do |app|
     end
   end
 
-  # notify_ssl_cert_add
+  # notify_ssl_cert_add, app, fqdn, ssl_cert, private_key, passphrase
 
-  # notify_add_alias
+  # notify_add_alias, app,alias_str
   app.aliases.map { |al| al.fqdn }.each do |fqdn|
     OpenShift::RoutingService.notify_add_alias(app, fqdn)
   end
