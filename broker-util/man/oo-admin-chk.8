@@ -18,8 +18,8 @@ It can be run without options on a broker as a check script.
 .SH OPTIONS
 \fB-l\fP
 Specify the level [0, 1] of the checks to be performed. 
-Level '0' is default, and checks to see if any gears are present in mongo but don't exist on the nodes and vice-versa.
-Level '1' performs checks for consumed_gears count mismatches, application data integrity in mongo, and checks for unused and unreserved gear UIDs
+Level '0' is default, and checks to see if any gears are present in the datastore but don't exist on the nodes and vice-versa.
+Level '1' performs checks for consumed_gears count mismatches, application data integrity, user plan and usage consistency, and checks for unused and unreserved gear UIDs
 .TP
 .B
 \fB-h\fP
