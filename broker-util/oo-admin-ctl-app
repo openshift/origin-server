@@ -236,7 +236,7 @@ begin
     app.run_connection_hooks
   when "set-multiplier"
     unless cartridge
-      puts "Cartridge is required to remove-dependency"
+      puts "Cartridge is required to set multiplier"
       exit 1
     end
     unless multiplier

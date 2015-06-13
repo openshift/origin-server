@@ -45,21 +45,20 @@ unless 'root' == Etc.getpwuid(Process::uid).name
 end
 
 global_option('-c', '--with-container-uuid UUID', 'Unique identifier for the gear, if provided must be first argument')
-global_option('-t', '--trace', 'Enable stack traces when reporting errors and additional diagnostic output') { $trace = true }
 default_command :help
 
-def execute
+def execute(trace)
   begin
     yield
   rescue OpenShift::Runtime::Utils::ShellExecutionException,
       OpenShift::Runtime::FrontendHttpServerExecException => e
     $stderr.puts("#{e.message}\n#{e.stdout}\n#{e.stderr}\n")
-    $stderr.puts(e.backtrace.join("\n")) if $trace
+    $stderr.puts(e.backtrace.join("\n")) if trace
     exit! e.rc
   rescue OpenShift::Runtime::FrontendHttpServerException,
       ::OpenShift::Runtime::UserCreationException => e
     $stderr.puts(e.message)
-    $stderr.puts(e.backtrace.join("\n")) if $trace
+    $stderr.puts(e.backtrace.join("\n")) if trace
     exit! 129
   rescue ::OpenShift::Runtime::GearCreationException => e
     $stderr.puts(e.message)
@@ -67,7 +66,7 @@ def execute
     exit! 146
   rescue Exception => e
     $stderr.puts(e.message)
-    $stderr.puts(e.backtrace.join("\n")) if $trace
+    $stderr.puts(e.backtrace.join("\n")) if trace
     exit! 2
   end
 end
@@ -99,7 +98,7 @@ command :'add-alias' do |c|
   c.action do |args, options|
     if options.with_alias_name
       frontend = new_frontend(options.with_container_uuid, c)
-      execute { frontend.add_alias(options.with_alias_name) }
+      execute(options.trace) { frontend.add_alias(options.with_alias_name) }
     else
       usage(c.syntax)
     end
@@ -114,7 +113,7 @@ command :'remove-alias' do |c|
   c.action do |args, options|
     if options.with_alias_name && !options.with_alias_name.empty?
       frontend = new_frontend(options.with_container_uuid, c)
-      execute { frontend.remove_alias(options.with_alias_name) }
+      execute(options.trace) { frontend.remove_alias(options.with_alias_name) }
     else
       usage(c.syntax)
     end
@@ -128,7 +127,7 @@ command :aliases do |c|
   c.option '-q', '--porcelain', 'format output as JSON'
   c.action do |args, options|
     frontend = new_frontend(options.with_container_uuid, c)
-    execute {
+    execute(options.trace) {
       server_aliases = frontend.aliases
 
       if $porcelain
@@ -176,7 +175,7 @@ command :'app-create' do |c|
         options.with_quota_blocks,
         options.with_quota_files
     )
-    execute { container.create(options.with_secret_token, options.with_generate_app_key) }
+    execute(options.trace) { container.create(options.with_secret_token, options.with_generate_app_key) }
   end
 end
 
@@ -187,7 +186,7 @@ command :'app-destroy' do |c|
   c.option '--skip-hooks', 'Skip running pre and post hooks for cartridge destroy'
   c.action do |args, options|
     container = new_container(options.with_container_uuid, c)
-    execute { container.destroy(options.skip_hooks) }
+    execute(options.trace) { container.destroy(options.skip_hooks) }
   end
 end
 
@@ -198,7 +197,7 @@ command :'app-state-show' do |c|
 
   c.action do |args, options|
     container = new_container(options.with_container_uuid, c)
-    execute { $stdout.puts container.state.value }
+    execute(options.trace) { $stdout.puts container.state.value }
   end
 end
 
@@ -213,7 +212,7 @@ command :'authorized-ssh-key-add' do |c|
   c.action do |args, options|
     if  options.with_ssh_key && options.with_ssh_key_type
       container = new_container(options.with_container_uuid, c)
-      execute {
+      execute(options.trace) {
         container.add_ssh_key(options.with_ssh_key, options.with_ssh_key_type, options.with_ssh_key_comment)
       }
     else
@@ -232,7 +231,7 @@ command :'authorized-ssh-key-batch-add' do |c|
     ssh_keys = JSON.parse(options.with_ssh_keys) rescue nil
     if ssh_keys
       container = new_container(options.with_container_uuid, c)
-      execute {
+      execute(options.trace) {
         container.add_ssh_keys(ssh_keys)
       }
     else
@@ -252,7 +251,7 @@ command :'authorized-ssh-key-remove' do |c|
   c.action do |args, options|
     if  options.with_ssh_key && options.with_ssh_key_type
       container = new_container(options.with_container_uuid, c)
-      execute { container.remove_ssh_key(options.with_ssh_key, options.with_ssh_key_type, options.with_ssh_key_comment) }
+      execute(options.trace) { container.remove_ssh_key(options.with_ssh_key, options.with_ssh_key_type, options.with_ssh_key_comment) }
     else
       usage(c.syntax)
     end
@@ -269,7 +268,7 @@ command :'authorized-ssh-key-batch-remove' do |c|
     ssh_keys = JSON.parse(options.with_ssh_keys) rescue nil
     if ssh_keys
       container = new_container(options.with_container_uuid, c)
-      execute {
+      execute(options.trace) {
         container.remove_ssh_keys(ssh_keys)
       }
     else
@@ -288,7 +287,7 @@ command :'broker-auth-key-add' do |c|
   c.action do |args, options|
     if options.with_iv && options.with_token
       container = new_container(options.with_container_uuid, c)
-      execute { container.add_broker_auth(options.with_iv, options.with_token) }
+      execute(options.trace) { container.add_broker_auth(options.with_iv, options.with_token) }
     else
       usage(c.syntax)
     end
@@ -301,7 +300,7 @@ command :'broker-auth-key-remove' do |c|
 
   c.action do |args, options|
     container = new_container(options.with_container_uuid, c)
-    execute { container.remove_broker_auth() }
+    execute(options.trace) { container.remove_broker_auth() }
   end
 end
 
@@ -312,7 +311,7 @@ command :'cartridge-list' do |c|
   c.option '-d', '--with-descriptors', 'Format return as descriptors'
   c.option '-q', '--porcelain', 'format output as JSON'
   c.action do |args, options|
-    execute {
+    execute(options.trace) {
       $stdout.puts OpenShift::Runtime::Node.get_cartridge_list(options.with_descriptors,
                                                                options.porcelain,
                                                                options.trace)
@@ -333,7 +332,7 @@ command :'connector-execute' do |c|
 
   c.action do |args, options|
     container = new_container(options.with_container_uuid, c)
-    execute {
+    execute(options.trace) {
       container.connector_execute(options.cartridge_name,
                                   options.publishing_cartridge_name,
                                   options.connection_type,
@@ -348,7 +347,7 @@ command :'get-quota' do |c|
   c.description = 'Gets the quota for a gear'
 
   c.action do |args, options|
-    execute {
+    execute(options.trace) {
       if options.with_container_uuid
         quota = OpenShift::Runtime::Node.get_quota(options.with_container_uuid)
 
@@ -378,7 +377,7 @@ command :'env-var-add' do |c|
   c.action do |args, options|
     if options.with_key && options.with_value
       container = new_container(options.with_container_uuid, c)
-      execute { container.add_env_var(options.with_key, options.with_value) }
+      execute(options.trace) { container.add_env_var(options.with_key, options.with_value) }
     else
       usage(c.syntax)
     end
@@ -393,7 +392,7 @@ command :'env-var-remove' do |c|
   c.action do |args, options|
     if options.with_key
       container = new_container(options.with_container_uuid, c)
-      execute { container.remove_env_var(options.with_key) }
+      execute(options.trace) { container.remove_env_var(options.with_key) }
     else
       usage(c.syntax)
     end
@@ -406,7 +405,7 @@ command :'force-stop' do |c|
 
   c.action do |args, options|
     container = new_container(options.with_container_uuid, c)
-    execute { container.force_stop }
+    execute(options.trace) { container.force_stop }
   end
 end
 
@@ -418,7 +417,7 @@ command :'set-quota' do |c|
   c.option '-f', '--inodes FILES', 'Sets the file quota for a gear'
   c.action do |args, options|
     if options.with_container_uuid && (options.blocks || options.inodes)
-      execute {
+      execute(options.trace) {
         OpenShift::Runtime::Node.set_quota(options.with_container_uuid,
                                            options.blocks,
                                            options.inodes)
@@ -444,7 +443,7 @@ command :'ssl-cert-add' do |c|
       key  = IO.read(options.with_priv_key)
 
       frontend = new_frontend(options.with_container_uuid, c)
-      execute {
+      execute(options.trace) {
         frontend.add_ssl_cert(cert, key, options.with_alias_name, options.with_passphrase)
       }
     else
@@ -461,7 +460,7 @@ command :'ssl-cert-remove' do |c|
   c.action do |args, options|
     if options.with_alias_name
       frontend = new_frontend(options.with_container_uuid, c)
-      execute { frontend.remove_ssl_cert(options.with_alias_name) }
+      execute(options.trace) { frontend.remove_ssl_cert(options.with_alias_name) }
     else
       usage(c.syntax)
     end
@@ -475,7 +474,7 @@ command :'ssl-certs' do |c|
   c.option '-q', '--porcelain', 'format output as JSON'
   c.action do |args, options|
     frontend = new_frontend(options.with_container_uuid, c)
-    execute {
+    execute(options.trace) {
       certs = frontend.ssl_certs
       if options.porcelain
         $stdout.puts certs.to_json
@@ -504,7 +503,7 @@ command :'user-var-add' do |c|
         memo[env['name']] = env['value']
       }
 
-      execute {
+      execute(options.trace) {
         rc, msg = container.user_var_add(options.with_variables, options.with_gears)
         if 0 == rc
           $stdout.puts msg
@@ -526,7 +525,7 @@ command :'user-var-list' do |c|
   c.option '-k', %Q(--with-keys KEYS), 'Optional list of keys to filter output'
   c.action do |args, options|
     container = new_container(options.with_container_uuid, c)
-    execute {
+    execute(options.trace) {
       options.with_keys = options.with_keys.split(' ') if options.with_keys
       variables = container.user_var_list(options.with_keys)
       variables.each_pair { |k, v| $stdout.puts "#{k}=#{v}" }
@@ -544,7 +543,7 @@ command :'user-var-remove' do |c|
   c.action do |args, options|
     if options.with_keys
       container = new_container(options.with_container_uuid, c)
-      execute {
+      execute(options.trace) {
         options.with_keys  = options.with_keys.split(' ')
         options.with_gears = options.with_gears ? options.with_gears.split(';') : []
 
@@ -562,7 +561,7 @@ command :'frontend-backup' do |c|
 
   c.action do |args, options|
     frontend = new_frontend(options.with_container_uuid, c)
-    execute { $stdout.puts(frontend.to_hash.to_json) }
+    execute(options.trace) { $stdout.puts(frontend.to_hash.to_json) }
   end
 end
 
@@ -572,7 +571,7 @@ command :'frontend-check-idle' do |c|
 
   c.action do |args, options|
     frontend = new_frontend(options.with_container_uuid, c)
-    execute {
+    execute(options.trace) {
       exit!(1) unless frontend.idle?
       exit!(0)
     }
@@ -611,7 +610,7 @@ command :'frontend-connect' do |c|
     opts['target-update'] = options.target_update
 
     frontend = new_frontend(options.with_container_uuid, c)
-    execute { frontend.connect(options.path, options.target, opts) }
+    execute(options.trace) { frontend.connect(options.path, options.target, opts) }
   end
 end
 
@@ -622,7 +621,7 @@ command :'frontend-connections' do |c|
   c.option '-q', '--porcelain', 'format output as JSON'
   c.action do |args, options|
     frontend = new_frontend(options.with_container_uuid, c)
-    execute {
+    execute(options.trace) {
       if $porcelain
         $stdout.puts frontend.connections.to_json
       else
@@ -644,7 +643,7 @@ command :'frontend-create' do |c|
 
   c.action do |args, options|
     frontend = new_frontend(options.with_container_uuid, c)
-    execute { frontend.create }
+    execute(options.trace) { frontend.create }
   end
 end
 
@@ -654,7 +653,7 @@ command :'frontend-destroy' do |c|
 
   c.action do |args, options|
     frontend = new_frontend(options.with_container_uuid, c)
-    execute { frontend.destroy }
+    execute(options.trace) { frontend.destroy }
   end
 end
 
@@ -667,7 +666,7 @@ command :'frontend-disconnect' do |c|
     options.default path: ''
 
     frontend = new_frontend(options.with_container_uuid, c)
-    execute { frontend.disconnect(options.path) }
+    execute(options.trace) { frontend.disconnect(options.path) }
   end
 end
 
@@ -679,7 +678,7 @@ command :'frontend-get-sts' do |c|
   c.action do |args, options|
     frontend = new_frontend(options.with_container_uuid, c)
 
-    execute {
+    execute(options.trace) {
       max_age = frontend.get_sts
       if max_age.nil?
         exit!(1)
@@ -699,7 +698,7 @@ command :'frontend-idle' do |c|
 
   c.action do |args, options|
     frontend = new_frontend(options.with_container_uuid, c)
-    execute { frontend.idle }
+    execute(options.trace) { frontend.idle }
   end
 end
 
@@ -709,7 +708,7 @@ command :'frontend-no-sts' do |c|
 
   c.action do |args, options|
     frontend = new_frontend(options.with_container_uuid, c)
-    execute { frontend.no_sts }
+    execute(options.trace) { frontend.no_sts }
   end
 end
 
@@ -725,7 +724,7 @@ command :'frontend-restore' do |c|
              IO.read(options.file)
            end
 
-    execute {
+    execute(options.trace) {
       OpenShift::Runtime::FrontendHttpServer.json_create('data' => JSON.parse(blob))
     }
   end
@@ -739,7 +738,7 @@ command :'frontend-sts' do |c|
   c.action do |args, options|
     if options.with_max_age
       frontend = new_frontend(options.with_container_uuid, c)
-      execute { frontend.sts(options.with_max_age) }
+      execute(options.trace) { frontend.sts(options.with_max_age) }
     else
       $stderr.puts c.syntax
     end
@@ -752,7 +751,7 @@ command :'frontend-to-json' do |c|
 
   c.action do |args, options|
     frontend = new_frontend(options.with_container_uuid, c)
-    execute { $stdout.puts(frontend.to_json) }
+    execute(options.trace) { $stdout.puts(frontend.to_json) }
   end
 end
 
@@ -762,7 +761,7 @@ command :'frontend-unidle' do |c|
 
   c.action do |args, options|
     frontend = new_frontend(options.with_container_uuid, c)
-    execute { frontend.unidle }
+    execute(options.trace) { frontend.unidle }
   end
 end
 
@@ -771,7 +770,7 @@ command :'frontend-purge' do |c|
   c.description = 'Purge a broken gear from the Frontend Http configuration'
 
   c.action do |args, options|
-    execute { ::OpenShift::Runtime::FrontendHttpServer.purge(options.with_container_uuid) }
+    execute(options.trace) { ::OpenShift::Runtime::FrontendHttpServer.purge(options.with_container_uuid) }
   end
 end
 
@@ -783,7 +782,7 @@ command :'create-endpoints' do |c|
   c.action do |args, options|
     if options.cartridge_name
       container = new_container(options.with_container_uuid, c)
-      execute { container.create_public_endpoints(options.cartridge_name) }
+      execute(options.trace) { container.create_public_endpoints(options.cartridge_name) }
     else
       $stderr.puts c.syntax
     end
@@ -800,7 +799,7 @@ command :'delete-endpoints' do |c|
   c.action do |args, options|
     if options.cartridge_name
       container = new_container(options.with_container_uuid, c)
-      execute { container.delete_public_endpoints(options.cartridge_name) }
+      execute(options.trace) { container.delete_public_endpoints(options.cartridge_name) }
     else
       $stderr.puts c.syntax
     end
@@ -815,7 +814,7 @@ command :'report-deployments' do |c|
   c.action do |args, options|
     container = new_container(options.with_container_uuid, c)
     env = ::OpenShift::Runtime::Utils::Environ::for_gear(container.container_dir)
-    execute { container.report_deployments(env, out: STDOUT) }
+    execute(options.trace) { container.report_deployments(env, out: STDOUT) }
     STDOUT.puts "Completed reporting deployments to Broker for gear #{options.with_container_uuid}"
   end
 end
