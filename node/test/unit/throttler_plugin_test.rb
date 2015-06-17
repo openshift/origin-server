@@ -23,6 +23,18 @@ require_relative '../../../node-util/conf/watchman/plugins.d/monitored_gear'
 class ThrottlerPluginTest < OpenShift::NodeTestCase
   def setup
     Syslog.open(File.basename($0), Syslog::LOG_PID, Syslog::LOG_DAEMON) unless Syslog.opened?
+
+    @cgroups_config = mock('OpenShift::Runtime::Utils::Cgroups::Config')
+    @cgroups_config.stubs(:get_group).
+        with('cg_template_throttled').
+        returns({
+                    cpu_shares:       128,
+                    cpu_cfs_quota_us: 30000,
+                    apply_period:     120,
+                    apply_percent:    30,
+                    restore_percent:  70,
+                })
+    OpenShift::Runtime::Utils::Cgroups::Config.stubs(:new).returns(@cgroups_config)
   end
 
   def test_apply
