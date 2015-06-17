@@ -161,7 +161,7 @@ module OpenShift
 
       def start(honor_lock = true)
         results = Parallel.map(gears(honor_lock), @options) do |gear|
-          gear_action(gear, "Starting gear #{gear.uuid} ... ") { |g| g.start_gear }
+          gear_action(gear, "Starting gear #{gear.uuid} ... ") { |g| g.start_gear({user_initiated: false}) }
         end
         report_failures(results.select { |h| 0 != h[:exitstatus] })
       end
