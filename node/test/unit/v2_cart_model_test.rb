@@ -555,7 +555,7 @@ module OpenShift
 
       assert_raise RuntimeError do
         @model.unlock_gear(cartridge) do |cartridge|
-          raise 'foo' 
+          raise 'foo'
         end
       end
     end
@@ -570,7 +570,7 @@ module OpenShift
 
       assert_raise RuntimeError do
         @model.unlock_gear(cartridge, false) do |cartridge|
-          raise 'foo' 
+          raise 'foo'
         end
       end
     end
@@ -731,7 +731,7 @@ module OpenShift
       args = "1 2 3"
 
       @model.expects(:get_cartridge).never()
-      
+
       assert_raise ArgumentError do
         @model.connector_execute(nil, pub_cart_name, connection_type, connector, args)
       end
@@ -742,7 +742,7 @@ module OpenShift
       pub_cart_name = 'mock-plugin-0.1'
       args = ['1', '2', '3', { 'gearuuid' => "A=B\nC=D\nE=F"}]
 
-      dest_dir = File.join(@container.container_dir, '.env', 'mock-plugin')      
+      dest_dir = File.join(@container.container_dir, '.env', 'mock-plugin')
 
       FileUtils.expects(:mkpath).with(is_a(String))
       @model.expects(:write_environment_variables).with(dest_dir, has_entries('A' => 'B', 'C' => 'D', 'E' => 'F'), false)
@@ -789,7 +789,7 @@ module OpenShift
       frontend = mock()
       hourglass = mock()
       hourglass.stubs(:remaining).returns(3600)
-      
+
       model = Runtime::V2CartridgeModel.new(mock(), container, state, hourglass)
       model.stubs(:primary_cartridge).returns(cart)
       model.stubs(:stop_lock?).returns(false)
@@ -797,9 +797,9 @@ module OpenShift
 
 
       Runtime::FrontendHttpServer.stubs(:new).with(container).returns(frontend)
-      
+
       yield cart, container, state, frontend, model
-      
+
     end
 
     def test_start_cartridge_start_as_gear_user
@@ -840,7 +840,7 @@ module OpenShift
         FileUtils.expects(:rm_f).with("stoplock").never
 
         state.expects(:value=).with(Runtime::State::STARTED)
-        frontend.expects(:unidle)
+        frontend.expects(:unidle).never
         frontend.expects(:unprivileged_unidle).never
         model.expects(:do_control).with('start', cart, user_initiated: false, hot_deploy: false)
 
