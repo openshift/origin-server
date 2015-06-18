@@ -230,6 +230,8 @@ module OpenShift
       end
 
       def get_sha1(ref)
+        return '' unless exist?
+
         @deployment_ref = ref
 
         out, _, rc = @container.run_in_container_context(ERB.new(GIT_GET_SHA1).result(binding),
