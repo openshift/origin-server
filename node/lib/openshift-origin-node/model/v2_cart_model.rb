@@ -1599,16 +1599,18 @@ module OpenShift
         end
 
         if cartridge.name == primary_cartridge.name
-          FileUtils.rm_f(stop_lock) if options[:user_initiated]
+          if options[:user_initiated]
+            FileUtils.rm_f(stop_lock)
 
-          # Unidle the application, preferring to use the privileged operation if possible
-          frontend = FrontendHttpServer.new(@container)
-          if Process.uid == @container.uid
-            frontend.unprivileged_unidle
-          else
-            frontend.unidle
+            # Unidle the application, preferring to use the privileged operation if possible
+            frontend = FrontendHttpServer.new(@container)
+            if Process.uid == @container.uid
+              frontend.unprivileged_unidle
+            else
+              frontend.unidle
+            end
+
           end
-
           @state.value = State::STARTED
         end
 
