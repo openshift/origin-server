@@ -29,7 +29,7 @@ class ThrottlerPlugin < OpenShift::Runtime::WatchmanPlugin
     # create thread here...
     @throttler = begin
       ::OpenShift::Runtime::Utils::Cgroups::Throttler.new
-    rescue Exception => e
+    rescue => e
       Syslog.warning("Warning node is running un-throttled!\nFailed to create Throttler: #{e.message}")
       nil
     end
@@ -40,7 +40,7 @@ class ThrottlerPlugin < OpenShift::Runtime::WatchmanPlugin
   def apply(iteration)
     begin
       @throttler.throttle(@gears)
-    rescue Exception => e
+    rescue => e
       Syslog.info("Throttler run failed: #{e.message}, will retry.")
     end
   end
@@ -168,8 +168,8 @@ module OpenShift
             vals = Hash[vals.map { |uuid, hash| [uuid, hash.select { |k, _| @wanted_keys.include? k }] }]
 
             update(vals)
-          rescue Exception => e
-            Syslog.info("Throttler: unhandled exception #{e.message}\n" + e.backtrace.join("\n"))
+          rescue => e
+            Syslog.info("Throttler: unhandled error #{e.message}\n" + e.backtrace.join("\n"))
           end
 
           # Update our MonitoredGears based on new data

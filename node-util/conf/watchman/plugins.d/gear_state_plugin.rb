@@ -148,7 +148,7 @@ class GearStatePlugin < OpenShift::Runtime::WatchmanPlugin
               reset_state(uuid)
             end
         end
-      rescue Exception => e
+      rescue => e
         Syslog.info %Q(watchman GearStatePlugin failed for gear #{uuid}: #{e.message}. Processing remaining gears.)
         @logger.info %Q(#{e.message}\n#{e.backtrace.join("\n")})
       end

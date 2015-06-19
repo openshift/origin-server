@@ -126,8 +126,8 @@ class OomPlugin < OpenShift::Runtime::WatchmanPlugin
           current = try_cgfetch(cgroup, MEMSW_USAGE)[MEMSW_USAGE].to_i
           oom_control = try_cgfetch(cgroup, 'memory.oom_control')['memory.oom_control']
         end
-      rescue Exception => e
-        Syslog.warning %Q(#{PLUGIN_NAME}: exception in OOM handling: #{e})
+      rescue => e
+        Syslog.warning %Q(#{PLUGIN_NAME}: error in OOM handling: #{e})
       ensure
         # Reset memory limit
         if not try_cgstore(cgroup, MEMSW_LIMIT, restore_memsw_limit)

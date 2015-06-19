@@ -31,6 +31,7 @@ Options = {
     log_dir:    '/var/log/openshift/node',
     multiple:   false,
     script:     '/usr/sbin/oo-watchman',
+    monitor:    true,
 }
 
 def daemon_running?

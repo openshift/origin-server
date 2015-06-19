@@ -91,7 +91,7 @@ module OpenShift
                        @logger,
                        @gears,
                        lambda { |op, uuid| cache_incident(op, uuid) })
-          rescue Exception => e
+          rescue => e
             Syslog.warning("Failed to instantiate Watchman Plugin #{plugin}: #{e.message}")
             nil
           end
@@ -168,8 +168,8 @@ module OpenShift
               msg = "SystemExit raised from Watchman plugin #{plugin}:\n#{e.backtrace.join("\n")}"
               Syslog.notice(msg)
               raise
-            rescue Exception => e
-              msg = "Unhandled exception (#{e}) from Watchman plugin #{plugin}: #{e.message}"
+            rescue => e
+              msg = "Unhandled error (#{e}) from Watchman plugin #{plugin}: #{e.message}"
               Syslog.notice(msg)
               @logger.debug(%Q{#{msg}\n#{e.backtrace.join("\n")}})
             end
