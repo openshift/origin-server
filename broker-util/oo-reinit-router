@@ -1,0 +1,130 @@
+#!/usr/bin/env oo-ruby
+
+require 'rubygems'
+require 'stomp'
+require 'net/ssh'
+
+require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
+
+def send_msg(msg)
+  # Reinitializing connection to avoid a missing message in a failover
+  # scenario https://bugzilla.redhat.com/show_bug.cgi?id=1128857
+  puts "Sending message '#{msg}' to hosts: #{@hosts}"
+  @conn = Stomp::Connection.open({ :hosts => @hosts })
+  @conn.publish @dest, msg
+  @conn.disconnect
+end
+
+def notify_reinit_start()
+  msg = {
+    :action => :reinit_start,
+  }
+  send_msg msg.to_yaml
+end
+
+def notify_reinit_end()
+  msg = {
+    :action => :reinit_end,
+  }
+  send_msg msg.to_yaml
+end
+
+# Initialize ActiveMQ
+puts "Initializing ActiveMQ Connection for Router Re-init"
+Rails.logger.debug("Initializing ActiveMQ Connection for Router Re-init")
+@dest = Rails.application.config.routing_activemq[:destination]
+@hosts = Rails.application.config.routing_activemq[:hosts]
+@mcollective_conf = Rails.application.config.routing_activemq[:mcollective_conf]
+
+# If the MCOLLECTIVE_CONFIG setting is found in the routing plugin config, read settings from MCollective client config
+unless @mcollective_conf.nil?
+  puts "ACTIVEMQ_HOSTS settings is now being overridden by MCollective client config settings because you set MCOLLECTIVE_CONFIG"
+  Rails.logger.debug("ACTIVEMQ_HOSTS settings is now being overridden by MCollective client config settings because you set MCOLLECTIVE_CONFIG")
+  @mcollective_conf = OpenShift::Config.new(@mcollective_conf)
+  @plugin_prefix = "plugin.activemq.pool."
+  pools = @mcollective_conf.get("#{@plugin_prefix}size").to_i
+  @hosts = []
+
+  1.upto(pools) do |poolnum|
+    host = {}
+
+    host[:host] = @mcollective_conf.get("#{@plugin_prefix}#{poolnum}.host")
+    host[:port] = @mcollective_conf.get("#{@plugin_prefix}#{poolnum}.port", 61613).to_i
+    host[:ssl] = @mcollective_conf.get_bool("#{@plugin_prefix}#{poolnum}.ssl", "false")
+    host[:ssl] = ssl_parameters(poolnum, @mcollective_conf.get_bool("#{@plugin_prefix}#{poolnum}.ssl.fallback", "false")) if host[:ssl]
+
+    puts "Adding #{host[:host]}:#{host[:port]} to the connection pool"
+    Rails.logger.debug("Adding #{host[:host]}:#{host[:port]} to the connection pool")
+    @hosts << host
+  end
+end
+
+# Credentials are read from the plugin configuration and not the MCollective client.cfg since these are the routing credentials.
+@hosts = @hosts.map do |host|
+  host.merge({
+    :login => Rails.application.config.routing_activemq[:username],
+    :passcode => Rails.application.config.routing_activemq[:password],
+    })
+  end
+
+  if Rails.application.config.routing_activemq[:debug]
+    @conn = Class.new(Object) do
+      def publish(dest, msg)
+        puts "Destination #{dest} gets message:\n#{msg}"
+        Rails.logger.debug("Destination #{dest} gets message:\n#{msg}")
+      end
+    end.new
+  end
+
+# Begin Script
+filter = {}
+
+puts "Beginning Router Re-Initialization"
+notify_reinit_start
+
+# Loop through all applications
+Application.each do |app|
+
+  node_ip = nil
+
+  # notify_create_application, app
+  OpenShift::RoutingService.notify_create_application app
+
+  # notify_create_public_endpoint, app, gear, endpoint_name, public_ip, public_port, protocols, types, mappings
+  app.gears.where( { '_id' => app._id } ).each do |gear|
+    gear.port_interfaces.each do |pi|
+      OpenShift::RoutingService.notify_create_public_endpoint app, gear, pi.cartridge_name, pi.external_address, pi.external_port, pi.internal_address, pi.internal_port, pi.protocols, pi.type, pi.mappings
+      node_ip = pi.external_address
+    end
+  end
+
+
+  base_cert_filepath = '/etc/httpd/conf.d/openshift/'
+  find_cmd = "find #{base_cert_filepath} -name '#{app._id}*' -type d"
+
+  app.aliases.map { |al|
+    # notify_add_alias, app,alias_str
+    OpenShift::RoutingService.notify_add_alias(app, al.fqdn)
+
+    if al.has_private_ssl_certificate
+      Net::SSH.start( node_ip, 'root', :keys => ['/etc/openshift/rsync_id_rsa'] ) do |session|
+        filepath = session.exec!(find_cmd)
+        crt_path = "#{filepath}/#{al.fqdn}.crt".gsub("\n",'')
+        key_path = "#{filepath}/#{al.fqdn}.key".gsub("\n",'')
+        puts "Grabbing cert: #{crt_path}"
+        ssl_cert = session.exec!("cat #{crt_path}")
+        puts "Grabbing key: #{key_path}"
+        private_key = session.exec!("cat #{key_path}")
+
+        # notify_ssl_cert_add, app, fqdn, ssl_cert, private_key, passphrase
+        OpenShift::RoutingService.notify_ssl_cert_add app, al.fqdn, ssl_cert, private_key, ''
+      end
+    end
+  }
+
+
+
+end
+
+notify_reinit_end
+puts "Complete."
