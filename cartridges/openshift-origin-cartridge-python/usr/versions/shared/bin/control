@@ -159,6 +159,7 @@ function build() {
         if curl -m 15 -f -s "$m" &>/dev/null
         then
             OPENSHIFT_PYTHON_MIRROR="-i $m"
+            OPENSHIFT_PIP_TRUSTED_HOST="--trusted-host $(echo ${OPENSHIFT_PYPI_MIRROR_URL} | awk -F/ '{print $3}')"
         fi
     fi
 
@@ -178,7 +179,7 @@ function build() {
     local requirements_file=${OPENSHIFT_PYTHON_REQUIREMENTS_PATH:-requirements.txt}
     if [ -f ${OPENSHIFT_REPO_DIR}${requirements_file} ]; then
         echo "Checking for pip dependency listed in ${requirements_file} file.."
-        ( cd $OPENSHIFT_REPO_DIR; pip install -r ${OPENSHIFT_REPO_DIR}${requirements_file} $OPENSHIFT_PYTHON_MIRROR )
+        ( cd $OPENSHIFT_REPO_DIR; pip install -r ${OPENSHIFT_REPO_DIR}${requirements_file} $OPENSHIFT_PYTHON_MIRROR $OPENSHIFT_PIP_TRUSTED_HOST )
     fi
 
     if [ -f ${OPENSHIFT_REPO_DIR}/setup.py ]; then
