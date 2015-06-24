@@ -2,6 +2,7 @@
 
 require 'rubygems'
 require 'stomp'
+require 'net/ssh'
 
 require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
 
@@ -84,6 +85,8 @@ notify_reinit_start
 # Loop through all applications
 Application.each do |app|
 
+  node_ip = nil
+
   # notify_create_application, app
   OpenShift::RoutingService.notify_create_application app
 
@@ -91,15 +94,35 @@ Application.each do |app|
   app.gears.where( { '_id' => app._id } ).each do |gear|
     gear.port_interfaces.each do |pi|
       OpenShift::RoutingService.notify_create_public_endpoint app, gear, pi.cartridge_name, pi.external_address, pi.external_port, pi.internal_address, pi.internal_port, pi.protocols, pi.type, pi.mappings
+      node_ip = pi.external_address
     end
   end
 
-  # notify_ssl_cert_add, app, fqdn, ssl_cert, private_key, passphrase
 
-  # notify_add_alias, app,alias_str
-  app.aliases.map { |al| al.fqdn }.each do |fqdn|
-    OpenShift::RoutingService.notify_add_alias(app, fqdn)
-  end
+  base_cert_filepath = '/etc/httpd/conf.d/openshift/'
+  find_cmd = "find #{base_cert_filepath} -name '#{app._id}*' -type d"
+
+  app.aliases.map { |al|
+    # notify_add_alias, app,alias_str
+    OpenShift::RoutingService.notify_add_alias(app, al.fqdn)
+
+    if al.has_private_ssl_certificate
+      Net::SSH.start( node_ip, 'root', :keys => ['/etc/openshift/rsync_id_rsa'] ) do |session|
+        filepath = session.exec!(find_cmd)
+        crt_path = "#{filepath}/#{al.fqdn}.crt".gsub("\n",'')
+        key_path = "#{filepath}/#{al.fqdn}.key".gsub("\n",'')
+        puts "Grabbing cert: #{crt_path}"
+        ssl_cert = session.exec!("cat #{crt_path}")
+        puts "Grabbing key: #{key_path}"
+        private_key = session.exec!("cat #{key_path}")
+
+        # notify_ssl_cert_add, app, fqdn, ssl_cert, private_key, passphrase
+        OpenShift::RoutingService.notify_ssl_cert_add app, al.fqdn, ssl_cert, private_key, ''
+      end
+    end
+  }
+
+
 
 end
 
