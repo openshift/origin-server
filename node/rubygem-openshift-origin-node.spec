@@ -115,6 +115,7 @@ mkdir -p %{buildroot}/usr/bin
 mkdir -p %{buildroot}/usr/sbin
 mkdir -p %{buildroot}%{appdir}/.tc_user_dir
 mkdir -p %{buildroot}%{_var}/log/openshift/node
+mkdir -p %{buildroot}%{_mandir}/man8/
 
 # Move the gem configs to the standard filesystem location
 mkdir -p %{buildroot}/etc/openshift
@@ -128,6 +129,8 @@ install -D -p -m 644 %{buildroot}%{gem_instdir}/misc/etc/openshift-origin-node.l
 %else
 install -D -p -m 644 %{buildroot}%{gem_instdir}/misc/etc/openshift-origin-node.logrotate.service %{buildroot}/etc/logrotate.d/%{name}
 %endif
+
+cp -p misc/man8/*.8 %{buildroot}%{_mandir}/man8/
 
 #move pam limit binaries to proper location
 mkdir -p %{buildroot}/usr/libexec/openshift/lib
@@ -283,6 +286,9 @@ fi
 %attr(0755,-,-) /etc/cron.weekly/openshift-origin-cron-weekly
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
+
+%{_mandir}/man8/oo-admin-ctl-tc.8.gz
+%{_mandir}/man8/oo-admin-ctl-iptables-port-proxy.8.gz
 
 %changelog
 * Thu May 07 2015 Troy Dawson <tdawson@redhat.com> 1.36.2-1

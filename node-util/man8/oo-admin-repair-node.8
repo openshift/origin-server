@@ -1,0 +1,25 @@
+.\" Process this file with
+.\" groff -man -Tascii oo-admin-repair-node.8
+.\"
+.de FN
+\fI\|\\$1\|\fP
+..
+.TH "oo-admin-repair-node" "8" "2015-06-24" "OpenShift" "OpenShift Management Commands"
+.SH NAME
+oo-admin-repair-node \- Remove expired upgrade metadata
+.SH SYNOPSIS
+.B "oo-admin-repair-node gear-clean-upgrade --gear UUID"
+.br
+.B "oo-admin-repair-node clean-upgrade"
+.SH DESCRIPTION
+.B "oo-admin-repair-node"
+Remove expired upgrade metadata from either a given gear or all gears on the node
+.SH FILES
+.TP
+.FN ~UUID/env/*
+Read \fBENVIRONMENT\fR variables for gear
+.TP
+.FN ~UUID/app-root/runtime/.upgrade*
+Files containing expired upgrade metadata
+.SH EXAMPLE
+.SH SEE ALSO
