@@ -74,7 +74,7 @@ class Gear
       proxy = OpenShift::ApplicationContainerProxy.find_one(gear_size)
       quota_blocks = proxy.get_quota_blocks
       # calculate the minimum storage in GB - blocks are 1KB each
-      quota_blocks / 1024 / 1024
+      [quota_blocks / 1048576, 1].max
     end
   end
 
