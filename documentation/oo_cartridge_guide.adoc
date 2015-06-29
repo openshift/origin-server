@@ -1110,6 +1110,8 @@ command.
 OPENSHIFT_PYTHON_REQUIREMENTS_PATH:: Set custom path to the pip requirements file,
 eg. using the `rhc env set OPENSHIFT_PYTHON_REQUIREMENTS_PATH=requirements/production.txt`
 command.
+PYCURL_SSL_LIBRARY:: Set this environment variable to `openssl` if you experience problems with building
+the pycurl module.
 
 For some frameworks (such as Django) it is possible to set the `DEBUG` user
 environment variable using the `rhc env set DEBUG=True` command.
