@@ -190,6 +190,8 @@ rm -rf %{buildroot}
 %{_mandir}/man8/oo-su.8.gz
 %{_mandir}/man8/oo-cartridge.8.gz
 %{_mandir}/man8/oo-watchman.8.gz
+%{_mandir}/man8/oo-admin-repair-node.8.gz
+%{_mandir}/man8/oo-admin-regenerate-gear-metadata.8.gz
 
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/oddjobd.conf.d/oddjobd-restorer.conf
 %attr(0644,-,-) %config(noreplace) %{_sysconfdir}/dbus-1/system.d/openshift-restorer.conf

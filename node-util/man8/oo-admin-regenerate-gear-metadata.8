@@ -1,0 +1,40 @@
+.\" Process this file with
+.\" groff -man -Tascii oo-admin-regenerate-gear-metadata.8
+.\"
+.de FN
+\fI\|\\$1\|\fP
+..
+.TH "oo-admin-regenerate-gear-metadata" "8" "2015-06-24" "OpenShift" "OpenShift Management Commands"
+.SH NAME
+oo-admin-regenerate-gear-metadata \(em regenerate missing gear(s) metadata
+.SH SYNOPSIS
+.B "oo-admin-regenerate-gear-metadata [-y] [-q] [--no-accept-node]"
+.SH DESCRIPTION
+.B "oo-admin-regenerate-gear-metadata"
+regenerate missing gear metadata from the gears on the filesystem
+.SH OPTIONS
+.TP
+.B "-y"
+Assume 'yes' for all prompts
+.TP
+.B "-q"
+Do not display progress messages
+.TP
+.B "--no-accept-node"
+Do not run oo-accept-node after updating the node with the gears' metadata
+.SH FILES
+.TP
+.FN /etc/passwd
+.TP
+.FN /etc/shadow
+.TP
+.FN /etc/group
+.TP
+.FN /etc/cgrules.conf
+.TP
+.FN /etc/cgconfig.conf
+.TP
+.FN /etc/security/limits.d
+.SH EXAMPLE
+.SH SEE ALSO
+\fBoo-accept-node\fR(8)

@@ -1,0 +1,50 @@
+.\" Process this file with
+.\" groff -man -Tascii oo-admin-ctl-iptables-port-proxy.8
+.\"
+.de FN
+\fI\|\\$1\|\fP
+..
+.TH "oo-admin-ctl-iptables-port-proxy" "8" "2015-06-24" "OpenShift" "OpenShift Management Commands"
+.SH NAME
+oo-admin-ctl-iptables-port-proxy \(em Safely update proxy information in iptables
+.SH SYNOPSIS
+\fBoo-admin-ctl-iptables-port-proxy\fR addproxy <proxy port> <backend ip:port>...
+.PP
+\fBoo-admin-ctl-iptables-port-proxy\fR removeproxy <proxy port>...
+.PP
+\fBoo-admin-ctl-iptables-port-proxy\fR showproxy  <proxy port>...
+.PP
+\fBoo-admin-ctl-iptables-port-proxy\fR fixaddr
+.SH DESCRIPTION
+.B "oo-admin-ctl-iptables-port-proxy"
+manipulates iptables to support proxying connections into the gears.
+.SH OPTIONS
+.TP
+.B "addproxy"
+Add entry for a new proxy mapping
+.TP
+.B "removeproxy"
+Remove the proxy mapping for the specified proxy port
+.TP
+.B "showproxy"
+Display the mapping for the specified proxy ports
+.TP
+.B "fixaddr"
+Using \fIEXTERNAL_ETH_DEV\fR, update iptables configurations when the node's IP address changes
+.SH ENVIRONMENT
+.TP
+.B  EXTERNAL_ETH_DEV
+Interface to use to determine IP address. default: eth0
+.SH FILES
+.TP
+.FN /etc/openshift/iptables.nat.rules
+ File to persist gears' iptables NAT rules
+.TP
+.FN /etc/openshift/iptables.filter.rules
+ File to persist gears' iptables filter rules
+.TP
+.FN /var/lock/oo-admin-ctl-iptables-port-proxy.rules.lock
+Lock file used to safely update iptables
+.SH EXAMPLE
+.SH SEE ALSO
+\fBiptables\fR(8)

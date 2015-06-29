@@ -1,0 +1,86 @@
+.\" Process this file with
+.\" groff -man -Tascii oo-admin-ctl-tc.8
+.\"
+.de FN
+\fI\|\\$1\|\fP
+..
+.TH "oo-admin-ctl-tc" "8" "2015-06-24" "OpenShift" "OpenShift Management Commands"
+.SH NAME
+oo-admin-ctl-tc \(em update traffic control (tc) settings
+.SH SYNOPSIS
+\fBoo-admin-ctl-tc\fR start
+.PP
+\fBoo-admin-ctl-tc\fR stop
+.PP
+\fBoo-admin-ctl-tc\fR restart
+.PP
+\fBoo-admin-ctl-tc\fR reload
+.PP
+\fBoo-admin-ctl-tc\fR startuser UUID
+.PP
+\fBoo-admin-ctl-tc\fR stopuser UUID
+.PP
+\fBoo-admin-ctl-tc\fR restartuser UUID
+.PP
+\fBoo-admin-ctl-tc\fR throttleuser UUID
+.PP
+\fBoo-admin-ctl-tc\fR nothrottleuser UUID
+.PP
+\fBoo-admin-ctl-tc\fR deluser UUID
+.PP
+\fBoo-admin-ctl-tc\fR status [UUID] [--v]
+.PP
+\fBoo-admin-ctl-tc\fR show UUID
+.PP
+.SH DESCRIPTION
+.B "oo-admin-ctl-tc"
+manipulates traffic control (tc) settings for a gear's usage or interface
+.SH OPTIONS
+.TP
+.B "start"
+Enable bandwidth shaping on interface \fIEXTERNAL_ETH_DEV\fR
+.TP
+.B "stop"
+Disable bandwidth shaping on interface \fIEXTERNAL_ETH_DEV\fR
+.TP
+.B "restart"
+Disable and the enable bandwidth shaping on interface \fIEXTERNAL_ETH_DEV\fR
+.TP
+.B "reload"
+Alias for \fIrestart\fR
+.TP
+.B  "startuser"
+Configure a gear's traffic control (tc) settings
+.TP
+.B  "stopuser"
+Deconfigure a gear's default traffic control (tc) settings
+.TP
+.B  "restartuser"
+Deconfigure and configure a gear's default traffic control (tc) settings
+.TP
+.B  "throttleuser"
+Configure gear's traffic control (tc) settings to throttle settings in resource_limits.conf.
+.TP
+.B  "nothrottleuser"
+Configure gear's traffic control (tc) settings to default settings in resource_limits.conf.
+.TP
+.B  "deluser"
+Remove gear from traffic control (tc)
+.TP
+.B  "status"
+If UUID is provided, display the traffic control (tc) bandwidth shaping status for that gear.
+Otherwise, display the traffic control (tc) status for \fIEXTERNAL_ETH_DEV\fR.
+.TP
+.B  "show"
+Alias for \fIstatus\fR
+.SH ENVIRONMENT
+.TP
+.B  EXTERNAL_ETH_DEV
+Interface to use when limiting bandwidth. default: eth0
+.SH FILES
+.TP
+.FN /etc/openshift/resource_limits.conf
+ File containing traffic control desired settings for each state
+.SH EXAMPLE
+.SH SEE ALSO
+\fBtc\fR(8)
