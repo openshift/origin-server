@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.36.2
+Version: 1.36.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -291,6 +291,28 @@ fi
 %{_mandir}/man8/oo-admin-ctl-iptables-port-proxy.8.gz
 
 %changelog
+* Tue Jun 30 2015 Wesley Hearn <whearn@redhat.com> 1.36.3-1
+- Bug 1031796 - Install missing man pages (jhonce@redhat.com)
+- Merge pull request #6173 from jwhonce/bug/1232907
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #6174 from jwhonce/bug/1130488
+  (dmcphers+openshiftbot@redhat.com)
+- Fix test_start_cartridge_system_initiated_no_stoplock (jhonce@redhat.com)
+- Bug 1130488 - Capture StandardError not Exception (jhonce@redhat.com)
+- Bug 1232907 - Only unidle on start by user (jhonce@redhat.com)
+- Bug 965364 - Restore creating gear with no git template (jhonce@redhat.com)
+- Merge pull request #6168 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1139538 (dmcphers@redhat.com)
+- Merge pull request #6165 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Fixes 1140552 and 1140558 (dmcphers@redhat.com)
+- Merge pull request #6091 from sdodson/bz1198777
+  (dmcphers+openshiftbot@redhat.com)
+- Fix spelling errors (dmcphers@redhat.com)
+- Change the priority number for openshift-tc (william17.burton@gmail.com)
+- Scale inodes by 80k per GB in example configs (sdodson@redhat.com)
+
 * Thu May 07 2015 Troy Dawson <tdawson@redhat.com> 1.36.2-1
 - Bug 1136425 Bug link https://bugzilla.redhat.com/show_bug.cgi?id=1136425
   Disable password aging for gear users (tiwillia@redhat.com)
