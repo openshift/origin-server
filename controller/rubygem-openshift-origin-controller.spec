@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.36.2
+Version: 1.36.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -86,6 +86,24 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Jun 30 2015 Wesley Hearn <whearn@redhat.com> 1.36.3-1
+- Merge pull request #6121 from kevinearls/ENTESB-2753
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #6047 from Filirom1/patch-4
+  (dmcphers+openshiftbot@redhat.com)
+- Adjust version of unified push cart (dmcphers@redhat.com)
+- Add hidden gear sizes concept (dmcphers@redhat.com)
+- Formatting fixes (dmcphers@redhat.com)
+- oo-admin-ctl-domain uses underscores in command options (tiwillia@redhat.com)
+- Merge pull request #6123 from tiwillia/bz1210489
+  (dmcphers+openshiftbot@redhat.com)
+- Add membership manipulation to oo-admin-ctl-domain (tiwillia@redhat.com)
+- BZ1210489 -  Enable-HA registers routing appliaction DNS twice, breaking
+  functionality for some custom DNS plugins (tiwillia@redhat.com)
+- ENTESB-2753 updated quick start name and location of test data for Fuse
+  smoketest (kevin@kevinearls.com)
+- update mongo read_preference for OpenShift Stats (filirom1@gmail.com)
+
 * Thu May 07 2015 Troy Dawson <tdawson@redhat.com> 1.36.2-1
 - Bug 1218841 - Adding the net-ssh requirement to the controller RPM
   (bleanhar@redhat.com)
