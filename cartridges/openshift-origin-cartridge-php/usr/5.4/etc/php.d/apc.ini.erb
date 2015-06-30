@@ -66,7 +66,7 @@ apc.mmap_file_mask=/tmp/apc.XXXXXX
 ;apc.max_file_size=1M
 
 ; Whether to stat the main script file and the fullpath includes.
-apc.stat=<%= (ENV['APPLICATION_ENV'] == "development") ? "1" : "0" %>
+apc.stat=1
 
 ; Vertification with ctime will avoid problems caused by programs such as svn or rsync by making
 ; sure inodes have not changed since the last stat. APC will normally only check mtime.
