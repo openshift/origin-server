@@ -3,7 +3,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.33.1
+Version: 1.33.2
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -56,6 +56,14 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Tue Jun 30 2015 Wesley Hearn <whearn@redhat.com> 1.33.2-1
+- Merge pull request #6180 from bparees/phplimits
+  (dmcphers+openshiftbot@redhat.com)
+- Missing the default value of ServerLimit and MaxClients in httpd.conf for php
+  cartridge (bparees@redhat.com)
+- Incorrect self-documents link in README.md for markers and cron under
+  .openshift (bparees@redhat.com)
+
 * Fri Apr 10 2015 Wesley Hearn <whearn@redhat.com> 1.33.1-1
 - bump_minor_versions for sprint 62 (whearn@redhat.com)
 
