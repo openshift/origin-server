@@ -72,6 +72,8 @@ fi
 
 BROKER_REST_API_BASE="https://localhost/broker/rest/"
 
+DATABASE_UNREACHABLE=false
+
 function safe_bundle() {
     bundle exec "$@"
 }
@@ -139,6 +141,57 @@ function probe_version() {
       fail "broker Rails app root ${OSO_BROKER_ROOT} does not exist: no broker package"
     else
       verbose "Broker package is: $BROKER_RPM"
+    fi
+}
+
+function check_mongo_connectivity() {
+    # To avoid hanging when trying to load the broker rails environment while
+    #   mongo databases are unreachable, we check beforehand.
+
+    verbose "checking Mongo host connectivity"
+    MONGO_HOST=$(grep -e "^MONGO_HOST_PORT=" $BROKER_CONF | cut -d= -f2)
+
+    # If the configuration entry includes commas, there is a mongo replica set
+    if [[ $MONGO_HOST == *,* ]]
+    then
+      unreachable_count=0
+      replica_count=0
+
+      for mongo_replicant in $(echo $MONGO_HOST | sed s/,/\ /g)
+      do
+        ((replica_count++))
+        host=$(echo $mongo_replicant | cut -d: -f1)
+        port=$(echo $mongo_replicant | cut -d: -f2)
+        timeout 1 bash -c "cat </dev/null > /dev/tcp/$host/$port" &> /dev/null
+
+        if [ $? != 0 ]
+        then
+          ((unreachable_count++))
+          verbose "Unable to connect to Mongo replicant: $mongo_replicant"
+        else
+          verbose "Connected to Mongo replicant: $mongo_replicant"
+        fi
+      done
+
+      if [ $unreachable_count == $replica_count ]
+      then
+        fail "Unable to connect to all Mongo replicants: $MONGO_HOST"
+        DATABASE_UNREACHABLE=true
+      else
+        verbose "At least one Mongo replicant is listening on the specified host and port."
+      fi
+    else
+      host=$(echo $MONGO_HOST | cut -d\: -f1)
+      port=$(echo $MONGO_HOST | cut -d\: -f2)
+      timeout 1 bash -c "cat </dev/null > /dev/tcp/$host/$port"
+
+      if [ $? != 0 ]
+      then
+        fail "Unable to connect to Mongo host: $MONGO_HOST"
+        DATABASE_UNREACHABLE=true
+      else
+        verbose "Connected to Mongo host: $MONGO_HOST"
+      fi
     fi
 }
 
@@ -223,6 +276,12 @@ function load_application_values() {
   # if there are any multiline values, we're in trouble.
   # Also if there are any errors this won't work. Which is why we
   # can't get all the values in one go - some exist conditionally.
+
+  if $DATABASE_UNREACHABLE
+  then
+    fail "Unable to load broker application values, broker database is unreachable."
+    return 1
+  fi
 
   ruby_program=""
   local keys=( ${!APP_VALUE_MAP[@]} )
@@ -982,6 +1041,7 @@ if [ -z "$container" ]; then
   check_firewall
 fi
 check_services
+check_mongo_connectivity
 
 # we will fill APP_VALUES with output from ruby commands corresponding to the map
 declare -A APP_VALUES
