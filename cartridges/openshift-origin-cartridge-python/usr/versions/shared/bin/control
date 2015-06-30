@@ -159,7 +159,7 @@ function build() {
         if curl -m 15 -f -s "$m" &>/dev/null
         then
             OPENSHIFT_PYTHON_MIRROR="-i $m"
-            OPENSHIFT_PIP_TRUSTED_HOST="--trusted-host $(echo ${OPENSHIFT_PYPI_MIRROR_URL} | awk -F/ '{print $3}')"
+            [ ${OPENSHIFT_PYTHON_VERSION} == "3.3" ] && OPENSHIFT_PIP_TRUSTED_HOST="--trusted-host $(echo ${OPENSHIFT_PYPI_MIRROR_URL} | awk -F/ '{print $3}')"
         fi
     fi
 
