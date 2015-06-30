@@ -10,7 +10,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.34.1
+Version: 1.34.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -168,6 +168,12 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Jun 30 2015 Wesley Hearn <whearn@redhat.com> 1.34.2-1
+- Specify addition rubygems in the openshift-console, rathen than the admin-
+  console (tiwillia@redhat.com)
+- Specify additional gems to be loaded in the broker and console
+  (tiwillia@redhat.com)
+
 * Thu Mar 19 2015 Adam Miller <admiller@redhat.com> 1.34.1-1
 - bump_minor_versions for sprint 60 (admiller@redhat.com)
 
