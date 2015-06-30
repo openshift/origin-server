@@ -634,6 +634,7 @@ def check_system_httpd_configs
   return unless http_plugins.include?('openshift-origin-frontend-nodejs-websocket')
 
   mod_rewrite = http_plugins.include? 'openshift-origin-frontend-apache-mod-rewrite'
+  mod_vhost = http_plugins.include? 'openshift-origin-frontend-apache-vhost'
   ['aliases.db', 'idler.db', 'nodes.db', 'sts.db'].each do |db|
     begin
       File.open(File.join($CONF.get('OPENSHIFT_HTTP_CONF_DIR'), db))
@@ -750,6 +751,29 @@ def check_system_httpd_configs
       httpconfs['geardb.json'].delete_if { |k, v| v["fqdn"] == fqdn }
     rescue
     end
+
+    if mod_vhost && has_framework
+      vhost_file = Dir.glob(File.join($CONF.get('OPENSHIFT_HTTP_CONF_DIR'), "#{u.name}_*_0_*.conf"))[0]
+      if vhost_file
+        vhost_dir = vhost_file.gsub(/(\.conf)$/, "").gsub("_0", "")
+        if File.directory?(vhost_dir)
+          vhost_dir_files = Dir.glob(File.join(vhost_dir, "*.conf"))
+          unless vhost_dir_files.empty?
+            proxy_file = File.join(vhost_dir, "599999_element-.conf")
+            unless vhost_dir_files.include?(proxy_file)
+              user_fail(u.name, "No vhost reverse proxy mappings exist for gear: #{u.name}")
+            end
+          else
+            user_fail(u.name, "No vhost endpoint mappings exist for gear: #{u.name}")
+          end
+        else
+          user_fail(u.name, "No vhost configuration directory exists for gear: #{u.name}")
+        end
+      else
+        user_fail(u.name, "No vhost base configuration exists for gear: #{u.name}")
+      end
+    end
+
   end
 
   fail_dns_names = Hash.new
