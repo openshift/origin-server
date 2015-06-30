@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 1.29.1
+Version: 1.29.2
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -54,6 +54,11 @@ Perl cartridge for OpenShift. (Cartridge Format V2)
 
 
 %changelog
+* Tue Jun 30 2015 Wesley Hearn <whearn@redhat.com> 1.29.2-1
+- Incorrect self-documents link in README.md for markers and cron under
+  .openshift (bparees@redhat.com)
+- Install cpan dependencies in listed order (miciah.masters@gmail.com)
+
 * Thu Mar 19 2015 Adam Miller <admiller@redhat.com> 1.29.1-1
 - bump_minor_versions for sprint 60 (admiller@redhat.com)
 
