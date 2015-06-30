@@ -8,7 +8,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.35.2
+Version: 1.35.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -110,6 +110,27 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Tue Jun 30 2015 Wesley Hearn <whearn@redhat.com> 1.35.3-1
+- Bug 1146941 (dmcphers@redhat.com)
+- Bug 1163648 (dmcphers@redhat.com)
+- Fixes 1140552 and 1140558 (dmcphers@redhat.com)
+- oo-admin-ctl-domain uses underscores in command options (tiwillia@redhat.com)
+- Merge pull request #6141 from brenton/BZ1221786
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #6140 from tiwillia/restartcarts
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #6139 from tiwillia/bz1218049
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1221786 - Provide a way for users to set a usage_account_id
+  (bleanhar@redhat.com)
+- Merge pull request #6137 from tiwillia/bz1145344
+  (dmcphers+openshiftbot@redhat.com)
+- Add membership manipulation to oo-admin-ctl-domain (tiwillia@redhat.com)
+- oo-admin-ctl-app: allow start/stop/restart of application cartridges
+  (tiwillia@redhat.com)
+- oo-admin-repair should properly handle HA apps with deleted head gears
+  (tiwillia@redhat.com)
+
 * Wed May 13 2015 Wesley Hearn <whearn@redhat.com> 1.35.2-1
 - Bump version for broker-util/openshift-origin-broker-util.spec
   (whearn@redhat.com)
