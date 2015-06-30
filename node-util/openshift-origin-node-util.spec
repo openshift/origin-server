@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.36.2
+Version: 1.36.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -207,6 +207,30 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Tue Jun 30 2015 Wesley Hearn <whearn@redhat.com> 1.36.3-1
+- Merge pull request #6170 from tiwillia/bz1230911
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1031796 - Install missing man pages (jhonce@redhat.com)
+- Validate gear frontend configurations for vhost plugin (tiwillia@redhat.com)
+- Merge pull request #6173 from jwhonce/bug/1232907
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1130488 - Capture StandardError not Exception (jhonce@redhat.com)
+- Bug 1232907 - Only unidle on start by user (jhonce@redhat.com)
+- Merge pull request #6167 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #6166 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1187841 (dmcphers@redhat.com)
+- Use gear uuid instead of login name to describe arg (dmcphers@redhat.com)
+- Merge pull request #6165 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Fixes 1140552 and 1140558 (dmcphers@redhat.com)
+- Bug 1140486 (dmcphers@redhat.com)
+- Merge pull request #6087 from getupcloud/patch-2
+  (dmcphers+openshiftbot@redhat.com)
+- oo-init-quota: Ignore commented lines in /etc/fstab (tiwillia@redhat.com)
+- Watchman retry delay delta is in seconds (getup@getupcloud.com)
+
 * Thu May 07 2015 Troy Dawson <tdawson@redhat.com> 1.36.2-1
 - Bug 1136425 Bug link https://bugzilla.redhat.com/show_bug.cgi?id=1136425
   Disable password aging for gear users (tiwillia@redhat.com)
