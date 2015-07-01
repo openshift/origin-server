@@ -3,7 +3,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.33.2
+Version: 1.33.3
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -56,6 +56,14 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Wed Jul 01 2015 Wesley Hearn <whearn@redhat.com> 1.33.3-1
+- Merge pull request #6186 from jhadvig/latest_versions
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #6185 from jhadvig/php_apc
+  (dmcphers+openshiftbot@redhat.com)
+- Bump cartridge versions for Sprint 64 (j.hadvig@gmail.com)
+- BZ1225327: Setting apc.stat on by default (j.hadvig@gmail.com)
+
 * Tue Jun 30 2015 Wesley Hearn <whearn@redhat.com> 1.33.2-1
 - Merge pull request #6180 from bparees/phplimits
   (dmcphers+openshiftbot@redhat.com)
