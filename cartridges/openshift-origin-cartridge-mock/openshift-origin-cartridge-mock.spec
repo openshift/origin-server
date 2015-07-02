@@ -2,7 +2,7 @@
 
 Summary:       Mock cartridge for V2 Cartridge SDK
 Name:          openshift-origin-cartridge-mock
-Version: 1.22.0
+Version: 1.22.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -43,6 +43,9 @@ test platform functionality. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jul 02 2015 Wesley Hearn <whearn@redhat.com> 1.22.1-1
+- bump_minor_versions for 2.0.65 (whearn@redhat.com)
+
 * Tue Jun 30 2015 Wesley Hearn <whearn@redhat.com> 1.21.2-1
 - Incorrect self-documents link in README.md for markers and cron under
   .openshift (bparees@redhat.com)
