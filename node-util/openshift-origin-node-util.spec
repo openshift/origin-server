@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.37.0
+Version: 1.37.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -207,6 +207,9 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Thu Jul 02 2015 Wesley Hearn <whearn@redhat.com> 1.37.1-1
+- bump_minor_versions for 2.0.65 (whearn@redhat.com)
+
 * Tue Jun 30 2015 Wesley Hearn <whearn@redhat.com> 1.36.3-1
 - Merge pull request #6170 from tiwillia/bz1230911
   (dmcphers+openshiftbot@redhat.com)
