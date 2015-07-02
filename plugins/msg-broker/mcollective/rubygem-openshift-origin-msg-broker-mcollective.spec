@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.35.0
+Version: 1.35.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,11 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Thu Jul 02 2015 Wesley Hearn <whearn@redhat.com> 1.35.1-1
+- bump_minor_versions for 2.0.65 (whearn@redhat.com)
+- Ignore least preferred servers if all servers are least preferred
+  (tiwillia@redhat.com)
+
 * Thu May 07 2015 Troy Dawson <tdawson@redhat.com> 1.34.2-1
 - Merge pull request #6116 from mmahut/oo-admin-move
   (dmcphers+openshiftbot@redhat.com)
