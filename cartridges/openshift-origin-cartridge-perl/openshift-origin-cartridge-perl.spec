@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 1.29.3
+Version: 1.30.0
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
