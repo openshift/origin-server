@@ -3,7 +3,7 @@
 %global import_path github.com/openshift
 
 Name:          openshift-origin-logshifter
-Version: 1.10.0
+Version: 1.10.1
 Release:       1%{?dist}
 Summary:       Log transport for OpenShift gear processes.
 License:       ASL 2.0
@@ -41,6 +41,9 @@ cp -p man/*.1 %{buildroot}%{_mandir}/man1/
 %{_mandir}/man1/*
 
 %changelog
+* Thu Jul 02 2015 Wesley Hearn <whearn@redhat.com> 1.10.1-1
+- bump_minor_versions for 2.0.65 (whearn@redhat.com)
+
 * Tue Jun 30 2015 Wesley Hearn <whearn@redhat.com> 1.9.2-1
 - logshifter/config.go: modify logshifter config reader such that blank lines
   (line == \n) don't cause reading to stop (abutcher@redhat.com)
