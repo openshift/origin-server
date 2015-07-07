@@ -72,7 +72,7 @@ module AdminHelper
   end
 
   def datastore_has_gear_uid?(gear_uid, server_identity_list)
-    query = {"group_instances.gears" => {"$elemMatch" => { "uid" => gear_uid, "server_identity" => {"$in" => server_identity_list}}}}
+    query = {"gears" => {"$elemMatch" => { "uid" => gear_uid, "server_identity" => {"$in" => server_identity_list}}}}
     return Application.where(query).exists?
   end
 
