@@ -34,6 +34,7 @@ The following issues can be fixed with this script:
   - apps due to server node down/decommissioned
   - domains containing invalid gear sizes in their allowed gear sizes list
   - users containing invalid gear sizes in their capabilities
+  - existing domain environment variables for components that no longer exist
 
 == Usage
 
@@ -54,6 +55,10 @@ Options:
     Fix or cleanup apps due to server node down/decommissioned
 --gear-sizes
     Fix gear sizes in domains users and to remove invalid gear sizes
+--orphaned-envs
+    Fix domains that have environment variables for missing components
+--domain
+    Specify a specific domain to fix (only used with --orphaned-envs)
 --usage
     Fix resource usage mismatches in mongo
 -h|--help
@@ -72,6 +77,8 @@ begin
     ["--consumed-gears",         GetoptLong::NO_ARGUMENT],
     ["--removed-nodes",          GetoptLong::NO_ARGUMENT],
     ["--gear-sizes",             GetoptLong::NO_ARGUMENT],
+    ["--orphaned-envs",          GetoptLong::NO_ARGUMENT],
+    ["--domain",                 GetoptLong::REQUIRED_ARGUMENT], # Only used with --orphaned-envs
     ["--confirm",                GetoptLong::REQUIRED_ARGUMENT], # Only used for test automation
     ["--usage",                  GetoptLong::NO_ARGUMENT],
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
@@ -90,9 +97,11 @@ fix_consumed_gears = args["--consumed-gears"]
 fix_removed_nodes = args["--removed-nodes"]
 fix_usage = args["--usage"]
 fix_gear_sizes = args["--gear-sizes"]
+fix_orphaned_envs = args["--orphaned-envs"]
 
 if fix_ssh_keys.nil? and fix_district_uids.nil? and fix_consumed_gears.nil? and
-   fix_removed_nodes.nil? and fix_usage.nil? and fix_gear_sizes.nil?
+   fix_removed_nodes.nil? and fix_usage.nil? and fix_gear_sizes.nil? and
+   fix_orphaned_envs.nil?
   puts "You must specify at least one item to fix."
   usage
 end
@@ -102,6 +111,12 @@ include AdminHelper
 
 # AdminHelper sets $verbose to false by default, so setting the $verbose flag after loading it
 $verbose = args["--verbose"]
+
+if args["--domain"]
+  orphaned_envs_domain = args["--domain"]
+else
+  orphaned_envs_domain = nil
+end
 
 if args["--confirm"]
   auto_confirm = args["--confirm"].to_b
@@ -401,6 +416,53 @@ def find_unresponsive_servers(available_servers, auto_confirm)
     print_message "Some servers are unresponsive: #{unresponsive_servers.join(', ')}"
   end
   unresponsive_servers
+end
+
+def find_orphaned_envs(namespace=nil)
+  orphaned_envs = []
+  domains = []
+  if namespace
+    begin
+      domain = Domain.find_by(:namespace => namespace)
+    rescue Mongoid::Errors::DocumentNotFound
+      print_message "Unable to find domain. The domain #{namespace} does not exist. Skipping..."
+    rescue Exception => e
+      print_message "Unable to find domain #{namespace} with error: #{e.message}."
+    end
+    # Find all component_ids for every application in this domain
+    component_ids = domain.applications.map {|a| a.component_instances.map {|ci| ci._id}}.flatten
+    domain.env_vars.each do |env|
+      # ignore env variable if no component id is set
+      if env["component_id"]
+        orphaned_envs << {:domain_id => domain.id, :component_id => env["component_id"]} unless component_ids.include?(env["component_id"])
+      end
+    end
+  else
+    # Get all cids specified as the component_id for an environment variable
+    all_envvar_cids = Domain.collection.aggregate(
+      { "$project" => { "cid" => '$env_vars.component_id' } },
+      { "$unwind" => "$cid" }
+    )
+    cid_list = all_envvar_cids.map {|cid| cid["cid"] }
+
+    # Get all existing component ids from cid_list
+    existing_cids = Application.collection.aggregate(
+      { "$match" => { 'component_instances._id' => { "$in" => cid_list } } },
+      { "$project" => { "cid" => '$component_instances._id' } },
+      { "$unwind" => "$cid" },
+      { "$group" => { "_id" => '$cid' } }
+    )
+    existing_cid_list = existing_cids.map{|cid| cid["_id"]}
+
+    # Difference the lists to get all component_id's specified by an env var for components that no longer exist
+    missing_cids = cid_list - existing_cid_list
+    orphaned_envs = all_envvar_cids.select {|document| missing_cids.include?(document["cid"]) }
+
+    orphaned_envs = orphaned_envs.map {|oe| {:domain_id => oe["_id"], :component_id => oe["cid"]} }
+  end
+
+  print_message "No orphaned domain environment variables found." if orphaned_envs.empty?
+  orphaned_envs.uniq
 end
 
 def repair_consumed_gears(user_ids)
@@ -865,6 +927,22 @@ def repair_domain_gear_sizes(invalid_gear_sizes)
   end
 end
 
+def repair_orphaned_envs(orphaned_envs)
+  return if orphaned_envs.blank?
+  failed_count = 0
+  orphaned_envs.each do |orphan|
+    domain = Domain.find(orphan[:domain_id])
+    begin
+      domain.remove_env_variables(orphan[:component_id])
+      puts "Removed envs with component id #{orphan[:component_id]} from domain \"#{domain.namespace}\""
+    rescue => e
+      print_message "Unable to remove envs with component id #{orphan[:component_id]} from domain \"#{domain.namespace}\": #{e.message}"
+      failed_count += 1
+      continue
+    end
+  end
+  print_message "Failed to repair all orphaned domain environment variables" if failed_count > 0
+end
 
 current_time = Time.now.utc
 puts "Started at: #{current_time}"
@@ -920,6 +998,9 @@ if fix_removed_nodes
   unresponsive_servers = run :find_unresponsive_servers, available_servers, auto_confirm
 end
 
+orphaned_envs = []
+orphaned_envs = run :find_orphaned_envs, orphaned_envs_domain if fix_orphaned_envs
+
 print_message "", true
 $total_errors = 0
 
@@ -935,6 +1016,7 @@ unless report_only
   run :repair_removed_nodes, available_servers, unresponsive_servers, auto_confirm
   run :repair_user_gear_sizes, invalid_user_gear_sizes
   run :repair_domain_gear_sizes, invalid_domain_gear_sizes
+  run :repair_orphaned_envs, orphaned_envs
 end
 
 end_time = Time.now.utc
