@@ -10,7 +10,7 @@ URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      rubygem(openshift-origin-node)
 #https://issues.jenkins-ci.org/browse/JENKINS-15047
-Requires:      java >= 1.6
+Requires:      java >= 1.7
 Requires:      jenkins
 Requires:      jenkins-plugin-openshift
 Requires:      openshift-origin-node-util
