@@ -11,7 +11,7 @@ password=$OPENSHIFT_MYSQL_DB_PASSWORD
 # TODO: Should be we running mysql_secure_installation
 
 echo "drop database test;
-create database \`${dbname}\` DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;" | mysql_context "/usr/bin/mysql -u root -S '$socket_file'" > /dev/null || error 'Failed to create database' 188
+create database \`${dbname}\` DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_unicode_ci;" | mysql_context "/usr/bin/mysql -u root -S '$socket_file'" > /dev/null || error 'Failed to create database' 188
 
 echo "
 delete from user;
