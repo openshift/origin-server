@@ -149,7 +149,7 @@ function build() {
             echo -n "Checking composer.json for Composer dependency... "
             if [ -f ${OPENSHIFT_REPO_DIR}composer.json ]; then
                 echo
-                composer install --no-interaction --no-ansi --no-scripts --optimize-autoloader --working-dir=${OPENSHIFT_REPO_DIR} || \
+                composer install --no-dev --no-interaction --no-ansi --no-scripts --optimize-autoloader --working-dir=${OPENSHIFT_REPO_DIR} || \
                 echo -e "\nSkipping Composer errors..\n\n  Please, fix the errors either locally or in development mode.\n"
                 if [ ! -f ${OPENSHIFT_REPO_DIR}composer.lock ]; then
                     echo -e $composer_lock_msg
