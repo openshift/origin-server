@@ -154,12 +154,14 @@ gear_uuid.split(',').each do |uuid|
       else
         puts ne.message
       end
+      rc |= 1
     rescue OpenShift::UserException => ue
       if json
         move_status[uuid].merge!({ :result => false, :message => ue.message, :trace => ue.backtrace })
       else
         puts ue.message
       end
+      rc |= 1
     end
 
     unless reply.nil?
