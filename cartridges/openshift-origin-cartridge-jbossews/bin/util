@@ -1,7 +1,9 @@
 #!/bin/bash
 
 function export_java_home() {
-  if marker_present "java7"; then
+  if marker_present "java8"; then
+    export JAVA_HOME=$OPENSHIFT_JBOSSEWS_JDK8
+  elif marker_present "java7"; then
     export JAVA_HOME=$OPENSHIFT_JBOSSEWS_JDK7
   else
     export JAVA_HOME=$OPENSHIFT_JBOSSEWS_JDK6
