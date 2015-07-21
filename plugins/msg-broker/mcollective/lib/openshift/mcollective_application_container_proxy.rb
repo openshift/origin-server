@@ -3173,15 +3173,6 @@ module OpenShift
       # Remove the restricted servers from the list
       server_infos.delete_if { |server_info| restricted_servers.include?(server_info.name) } if restricted_servers.present? and server_infos.present?
       unless server_infos.empty?
-        # Ignore least_preferred_servers if all servers are considered least preferred
-        ignore_least_preferred_servers = false
-        if least_preferred_servers.present?
-          server_identities = server_infos.map {|server_info| server_info.name}
-          if server_identities.all? {|identity| least_preferred_servers.include?(identity)}
-            ignore_least_preferred_servers = true
-          end
-        end
-
         if gear
           server = nil
           reloaded_app = Application.find_by(_id: gear.application._id)
@@ -3232,23 +3223,21 @@ module OpenShift
             end
 
             # Find least preferred zones
-            unless ignore_least_preferred_servers
-              least_preferred_zone_ids = []
-              least_preferred_servers.each do |server_identity|
-                next unless server_identity
-                server = District.find_server(server_identity, districts)
-                least_preferred_zone_ids << server.zone_id if server.zone_id
-              end if least_preferred_servers.present?
-              least_preferred_zone_ids = least_preferred_zone_ids.uniq
+            least_preferred_zone_ids = []
+            least_preferred_servers.each do |server_identity|
+              next unless server_identity
+              server = District.find_server(server_identity, districts)
+              least_preferred_zone_ids << server.zone_id if server.zone_id
+            end if least_preferred_servers.present?
+            least_preferred_zone_ids = least_preferred_zone_ids.uniq
 
-              if least_preferred_zone_ids.present?
-                available_zone_ids = zones_consumed_capacity.keys
-                # Consider least preferred zones only when we have no available zone that's not in least preferred zones.
-                unless (available_zone_ids - least_preferred_zone_ids).empty?
-                  # Remove least preferred zones from the list, ensuring there is at least one server remaining
-                  server_infos.delete_if { |server_info| (server_infos.length > 1) && least_preferred_zone_ids.include?(server_info.zone_id) }
-                  zones_consumed_capacity.delete_if { |zone_id, capacity| least_preferred_zone_ids.include?(zone_id) }
-                end
+            if least_preferred_zone_ids.present?
+              available_zone_ids = zones_consumed_capacity.keys
+              # Consider least preferred zones only when we have no available zone that's not in least preferred zones.
+              unless (available_zone_ids - least_preferred_zone_ids).empty?
+                # Remove least preferred zones from the list, ensuring there is at least one server remaining
+                server_infos.delete_if { |server_info| (server_infos.length > 1) && least_preferred_zone_ids.include?(server_info.zone_id) }
+                zones_consumed_capacity.delete_if { |zone_id, capacity| least_preferred_zone_ids.include?(zone_id) }
               end
             end
 
@@ -3262,9 +3251,11 @@ module OpenShift
         end
 
         # Remove the least preferred servers from the list, ensuring there is at least one server remaining
-        # Ignore least preferred servers if all servers are considered least preferred
-        if least_preferred_servers.present? && !ignore_least_preferred_servers
-          server_infos.delete_if { |server_info| least_preferred_servers.include?(server_info.name) }
+        if least_preferred_servers.present?
+          # Ignore least preferred servers if all servers are considered least preferred
+          unless server_infos.all? {|server| least_preferred_servers.include?(server.name) }
+            server_infos.delete_if { |server_info| (server_infos.length > 1) && least_preferred_servers.include?(server_info.name) }
+          end
         end
       end
 
