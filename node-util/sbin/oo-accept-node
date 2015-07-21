@@ -701,32 +701,19 @@ def check_system_httpd_configs
           mfile = File.join(p, mp, 'manifest.yml')
           next unless File.exists?(mfile)
           begin
-            manifest = YAML.load(File.read(mfile), :safe => true)
-
-            manifest["Categories"] ||= []
-            manifest["Endpoints"]  ||= []
-
-            if manifest["Categories"].include?('web_framework')
-              manifest["Endpoints"].each do |endpoint|
-                endpoint["Protocols"] ||= ["http"]
-
-                if endpoint["Mappings"]
-                  endpoint["Mappings"].each do |mapping|
-
-                    mapping["Options"] ||= {}
-
-                    if mapping["Options"]["websocket"]
-                      endpoint["Protocols"] << "ws"
-                    end
-
-                    has_framework = true if endpoint["Protocols"].include?("http")
-                    has_websocket = true if endpoint["Protocols"].include?("ws")
-                  end
-                end
+            manifest = OpenShift::Runtime::Manifest.new(mfile, nil, :file)
+            if manifest.categories.include?('web_framework')
+              manifest.endpoints.each do |endpoint|
+                has_framework = true
+                endpoint.mappings.each do |mapping|
+                  if mapping.options["websocket"]
+                    has_websocket = true
+                  end if mapping.options
+                end if endpoint.mappings
               end
             end
-
-          rescue
+          rescue => e
+            puts "#{e.class} error reading #{mfile}: #{e.message}"
           end
         }
       }
