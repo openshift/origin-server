@@ -22,10 +22,19 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
       @appnames[i] = "app#{i}" + gen_uuid[0..9]
     end
     @apps = []
+    @lost_gears = []
   end
 
   def teardown
-    # delete all applications
+    # Remove gears no longer in database
+    @lost_gears.each do |gear_hash|
+      gear = gear_hash[:gear]
+      gear.server_identity = gear_hash[:server_identity]
+      gear.save!
+      gear.destroy_gear
+    end
+
+    # delete all applications from the database
     @apps.each do |app|
       Application.where(_id: app._id).delete
     end
@@ -81,6 +90,7 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
     assert_equal(2, @apps[4].group_instances[0].gears.size)
     assert_equal(true, @apps[4].ha)
     gear = @apps[4].group_instances[0].gears[0]
+    @lost_gears << {:server_identity => gear.server_identity, :gear => gear}
     gear.server_identity = @unresponsive_server
     gear.save!
     gear4 = gear._id
@@ -94,6 +104,7 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
     assert_equal(2, @apps[5].group_instances.size)
     assert_equal(1, @apps[5].group_instances[1].gears.size)
     gear = @apps[5].group_instances[0].gears[0]
+    @lost_gears << {:server_identity => gear.server_identity, :gear => gear}
     gear.server_identity = @unresponsive_server
     gear.save!
     gear5_1 = gear._id
