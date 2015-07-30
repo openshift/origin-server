@@ -156,7 +156,7 @@ module OpenShift
                 # Secondary haproxy gear: if the @fqdn is the app dns, then it won't start with
                 # @container_name (as that should be the gear's uuid). If the ha conf file
                 # doesn't exist, create it
-                if !@fqdn.start_with?(@container_name) and !File.size?(ha_conf_path)
+                if !@fqdn.start_with?(@container_name.downcase) and !File.size?(ha_conf_path)
                   write_base_config(ha_conf_path)
                 end
 
