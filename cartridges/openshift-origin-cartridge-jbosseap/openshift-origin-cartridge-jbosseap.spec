@@ -14,6 +14,8 @@ Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 Requires:      java-1.7.0-openjdk
 Requires:      java-1.7.0-openjdk-devel
+Requires:      java-1.8.0-openjdk
+Requires:      java-1.8.0-openjdk-devel
 Requires:      jbossas-appclient
 Requires:      jbossas-bundles
 Requires:      jbossas-core
