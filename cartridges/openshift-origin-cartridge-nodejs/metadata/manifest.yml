@@ -1,16 +1,17 @@
 ---
 Name: nodejs
 Cartridge-Short-Name: NODEJS
-Display-Name: Node.js 0.10
+Display-Name: Node.js 0.12
 Description: Node.js is a platform built on Chrome's JavaScript runtime for easily
   building fast, scalable network applications. Node.js is perfect for data-intensive
   real-time applications that run across distributed devices.
-Version: '0.10'
+Version: '0.12'
 Versions:
+- '0.12'
 - '0.10'
 - '0.6'
 License: MIT License
-License-Url: https://raw.github.com/joyent/node/v0.10/LICENSE
+License-Url: https://raw.github.com/joyent/node/v0.12/LICENSE
 Vendor: www.nodejs.org
 Website: http://www.nodejs.org/
 Cartridge-Version: 0.0.24
@@ -32,7 +33,7 @@ Categories:
 Help-Topics:
   Developer Center: https://www.openshift.com/developers
 Provides:
-- nodejs-0.10
+- nodejs-0.12
 - nodejs
 Scaling:
   Min: 1
@@ -69,7 +70,7 @@ Endpoints:
     Backend: ''
     Options:
       health: true
-Install-Build-Required: false
+Install-Build-Required: true
 Version-Overrides:
   '0.6':
     Display-Name: Node.js 0.6
@@ -78,4 +79,12 @@ Version-Overrides:
     - nodejs-0.6
     - nodejs
     License-Url: https://raw.github.com/joyent/node/v0.6/LICENSE
+    Install-Build-Required: false
+  '0.10':
+    Display-Name: Node.js 0.10
+    Obsolete: true
+    Provides:
+    - nodejs-0.10
+    - nodejs
+    License-Url: https://raw.github.com/joyent/node/v0.10/LICENSE
     Install-Build-Required: false
