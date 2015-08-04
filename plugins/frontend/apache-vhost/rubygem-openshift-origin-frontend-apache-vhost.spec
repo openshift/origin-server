@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.12.1
+Version: 0.12.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -111,6 +111,9 @@ mv httpd/openshift-vhost-logconf.include %{buildroot}/etc/httpd/conf.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Tue Aug 04 2015 Wesley Hearn <whearn@redhat.com> 0.12.2-1
+- Bug 1243532 - Downcase legacy app names in vhost setup (agrimm@redhat.com)
+
 * Mon Nov 24 2014 Adam Miller <admiller@redhat.com> 0.12.1-1
 - bump_minor_versions for sprint 54 (admiller@redhat.com)
 
