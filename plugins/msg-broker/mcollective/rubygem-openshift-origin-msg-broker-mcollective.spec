@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.34.3
+Version: 1.34.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Tue Aug 04 2015 Wesley Hearn <whearn@redhat.com> 1.34.4-1
+- Bug 1241660 Ensure ignored servers does not include all servers only after
+  filtering (tiwillia@redhat.com)
+
 * Thu Jul 02 2015 Wesley Hearn <whearn@redhat.com> 1.34.3-1
 - Ignore least preferred servers if all servers are least preferred
   (tiwillia@redhat.com)
