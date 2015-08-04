@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.36.4
+Version: 1.36.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -207,6 +207,9 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Tue Aug 04 2015 Wesley Hearn <whearn@redhat.com> 1.36.5-1
+- oo-accept-node: Parse manifest with Manifest class (miciah.masters@gmail.com)
+
 * Tue Jul 14 2015 Wesley Hearn <whearn@redhat.com> 1.36.4-1
 - oo-accept-node: honor application names starting with 0 (mmahut@redhat.com)
 
