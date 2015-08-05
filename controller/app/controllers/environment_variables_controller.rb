@@ -40,7 +40,7 @@ class EnvironmentVariablesController < BaseController
       return render_error(:unprocessable_entity, "Name must be 128 characters or less.", 188, "name") if name.length > 128
       return render_error(:unprocessable_entity, "Value not specified for environment variable '#{name}'", 190, "value") unless params.has_key?(:value)
       value = params[:value]
-      return render_error(:unprocessable_entity, "Value must be 512 characters or less.", 190, "value") if value.length > 512
+      return render_error(:unprocessable_entity, "Value must be 4096 characters or less.", 190, "value") if value.length > 4096
       return render_error(:unprocessable_entity, "Value cannot contain null characters.", 190, "value") if value.include? "\\000"
       env_hash = @application.list_user_env_variables([name])
       return render_error(:unprocessable_entity, "Environment variable named '#{name}' already exists in application", 188) if env_hash[name]
