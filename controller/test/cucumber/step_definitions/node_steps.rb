@@ -113,7 +113,7 @@ end
 
 When /^I delete the guest account$/ do
   # call /usr/libexec/openshift/cartridges  @table.hashes.each do |row|
-  
+
   command = $controller_deconfig_format % [@account['accountname']]
   runcon(command, $selinux_user, $selinux_role, $selinux_type)
 
