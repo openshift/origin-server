@@ -4,6 +4,7 @@
 
 function update-configuration {
     # Native installations of python
-    echo "$OPENSHIFT_PYTHON_DIR/virtenv/bin:$OPENSHIFT_PYTHON_DIR/bin" > $OPENSHIFT_PYTHON_DIR/env/OPENSHIFT_PYTHON_PATH_ELEMENT
-    echo "$OPENSHIFT_PYTHON_DIR/virtenv" > $OPENSHIFT_PYTHON_DIR/env/VIRTUAL_ENV
+    echo "${OPENSHIFT_PYTHON_DIR}virtenv/bin:${OPENSHIFT_PYTHON_DIR}bin" > ${OPENSHIFT_PYTHON_DIR}/env/OPENSHIFT_PYTHON_PATH_ELEMENT
+    echo "${OPENSHIFT_PYTHON_DIR}virtenv" > ${OPENSHIFT_PYTHON_DIR}/env/VIRTUAL_ENV
 }
+
