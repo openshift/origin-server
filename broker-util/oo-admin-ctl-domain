@@ -335,11 +335,14 @@ when "add_member"
   role = "admin" if role.nil?
   domain.add_members(user, Role.for(role))
   begin
-    domain.save
+    unless domain.save
+      puts "An error occurred during domain modification. Errors: #{domain.errors.messages}"
+      exit 3
+    end
     domain.run_jobs
-  rescue
+  rescue Exception => e
     puts "Unable to add \"#{user.login}\" to domain \"#{domain.canonical_namespace}\" with role \"#{role}\"."
-    puts "Errors: #{domain.errors.messages}"
+    puts "Errors: #{domain.errors.messages.present? ? domain.errors.messages : e.message}"
     exit 3
   end
   reply.resultIO << "Successfully added \"#{user.login}\" to domain \"#{domain.canonical_namespace}\" with role \"#{role}\".\n"
@@ -378,11 +381,14 @@ when "update_member"
 
   domain.add_members(user, Role.for(role))
   begin
-    domain.save
+    unless domain.save
+      puts "An error occurred during domain modification. Errors: #{domain.errors.messages}"
+      exit 3
+    end
     domain.run_jobs
-  rescue
+  rescue Exception => e
     puts "Unable to update \"#{user.login}\" in domain \"#{domain.canonical_namespace}\" with role \"#{role}\"."
-    puts "Errors: #{domain.errors.messages}"
+    puts "Errors: #{domain.errors.messages.present? ? domain.errors.messages : e.message}"
     exit 3
   end
   reply.resultIO << "Successfully updated \"#{user.login}\" in domain \"#{domain.canonical_namespace}\" with role \"#{role}\".\n"
@@ -425,11 +431,14 @@ when "remove_member"
   end
   domain.remove_members(user)
   begin
-    domain.save
+    unless domain.save
+      puts "An error occurred during domain modification. Errors: #{domain.errors.messages}"
+      exit 3
+    end
     domain.run_jobs
-  rescue
+  rescue Exception => e
     puts "Unable to remove \"#{user.login}\" from domain \"#{domain.canonical_namespace}\"."
-    puts "Errors: #{domain.errors.messages}"
+    puts "Errors: #{domain.errors.messages.present? ? domain.errors.messages : e.message}"
     exit 3
   end
   reply.resultIO << "Successfully removed \"#{user.login}\" from domain \"#{domain.canonical_namespace}\".\n"
