@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.28.1
+Version: 1.28.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -50,6 +50,9 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Aug 11 2015 Wesley Hearn <whearn@redhat.com> 1.28.2-1
+- Require java7 for latest jenkins (tiwillia@redhat.com)
+
 * Thu Jul 02 2015 Wesley Hearn <whearn@redhat.com> 1.28.1-1
 - bump_minor_versions for 2.0.65 (whearn@redhat.com)
 
