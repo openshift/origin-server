@@ -8,7 +8,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.36.1
+Version: 1.36.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -110,6 +110,13 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Tue Aug 11 2015 Wesley Hearn <whearn@redhat.com> 1.36.2-1
+- Bug 1214087 - return non-zero on all exceptions in oo-admin-move
+  (agrimm@redhat.com)
+- Merge pull request #6162 from tiwillia/bz1171815
+  (dmcphers+openshiftbot@redhat.com)
+- Add fixing orphaned domain environment variables (tiwillia@redhat.com)
+
 * Thu Jul 02 2015 Wesley Hearn <whearn@redhat.com> 1.36.1-1
 - bump_minor_versions for 2.0.65 (whearn@redhat.com)
 
