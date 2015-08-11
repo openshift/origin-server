@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.37.1
+Version: 1.37.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -86,6 +86,22 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Aug 11 2015 Wesley Hearn <whearn@redhat.com> 1.37.2-1
+- Merge pull request #6213 from abhgupta/bug_1244126
+  (dmcphers+openshiftbot@redhat.com)
+- Fix formatting (dmcphers@redhat.com)
+- Bug 1244126: Allowing 4096 char limit for env variable values
+  (abhgupta@redhat.com)
+- Merge pull request #6182 from tiwillia/bz1197123
+  (dmcphers+openshiftbot@redhat.com)
+- Round up if base filesystem quota is less than 1Gb (tiwillia@redhat.com)
+- Bug 1238816: Fixing mongo query that referenced older app structure
+  (abhgupta@redhat.com)
+- Merge pull request #6164 from tiwillia/bz1191283
+  (dmcphers+openshiftbot@redhat.com)
+- Resolve race condition where cartridges activated within the same second
+  conflicted (tiwillia@redhat.com)
+
 * Thu Jul 02 2015 Wesley Hearn <whearn@redhat.com> 1.37.1-1
 - bump_minor_versions for 2.0.65 (whearn@redhat.com)
 
