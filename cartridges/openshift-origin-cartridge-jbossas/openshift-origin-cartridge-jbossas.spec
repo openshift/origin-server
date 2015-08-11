@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.33.1
+Version: 1.33.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -109,6 +109,10 @@ fi
 
 
 %changelog
+* Tue Aug 11 2015 Wesley Hearn <whearn@redhat.com> 1.33.2-1
+- updating java cartridges to include the java8 marker and JDK8 path
+  (cdaley@redhat.com)
+
 * Thu Jul 02 2015 Wesley Hearn <whearn@redhat.com> 1.33.1-1
 - bump_minor_versions for 2.0.65 (whearn@redhat.com)
 
