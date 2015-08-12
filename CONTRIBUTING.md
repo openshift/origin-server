@@ -66,7 +66,7 @@ Follow [@openshift](https://twitter.com/openshift) on Twitter.
 
 ### Trello ###
 
-OpenShift Origin development is coordinated in [Trello](https://trello.com/openshift).
+OpenShift Origin development is coordinated in [Trello](https://trello.com/atomicopenshift).
 
 Using git and github
 ====================
