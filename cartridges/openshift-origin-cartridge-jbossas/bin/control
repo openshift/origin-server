@@ -207,11 +207,12 @@ function ismgmtup() {
 function build() {
   CONFIG_DIR="${OPENSHIFT_JBOSSAS_DIR}/standalone/configuration"
   OPENSHIFT_MAVEN_MIRROR="${CONFIG_DIR}/settings.base.xml"
-  if [[ $OPENSHIFT_GEAR_DNS =~ .*\.rhcloud\.com$ ]]
-  then
-      OPENSHIFT_MAVEN_MIRROR="${CONFIG_DIR}/settings.rhcloud.xml"
-  fi
-
+  if [[ -z OPENSHIFT_MAVEN_MIRROR ]]; then                     ## Allows for the mirror configuraiton file to be overwitten.
+      if [[ $OPENSHIFT_GEAR_DNS =~ .*\.rhcloud\.com$ ]]
+      then
+          OPENSHIFT_MAVEN_MIRROR="${CONFIG_DIR}/settings.rhcloud.xml"
+      fi
+  fi 
   max_memory_mb=${OPENSHIFT_GEAR_MEMORY_MB}
 
   # If hot deploy is enabled, we need to restrict the Maven memory size to fit
