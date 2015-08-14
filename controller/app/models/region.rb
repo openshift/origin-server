@@ -11,7 +11,7 @@ class Region
   index({:name => 1}, {:unique => true})
   create_indexes
 
-  REGION_NAME_REGEX = /\A[\w\.\-]+\z/
+  REGION_NAME_REGEX = /\A[\w\.\-]*[a-zA-Z0-9]+[\w\.\-]*\z/
   def self.check_name!(name)
     if name.blank? or name !~ REGION_NAME_REGEX
       raise OpenShift::OOException.new("Invalid region name '#{name}'")
@@ -43,7 +43,7 @@ class Region
 
   def remove_zone(name)
     raise OpenShift::OOException.new("Zone name is required") unless name
-    unless zones.where(name: Zone.check_name!(name)).exists?
+    unless zones.where(name: name).exists?
       raise OpenShift::OOException.new("Zone '#{name}' not found in region '#{self.name}'")
     end
     zone = zones.find_by(name: name)
