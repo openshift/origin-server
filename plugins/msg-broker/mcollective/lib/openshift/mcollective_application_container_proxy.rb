@@ -1992,19 +1992,49 @@ module OpenShift
         raise OpenShift::UserException.new("Error moving gear. Move gear only allowed from non-districted/districted node to districted node.")
       end
 
+      # get the quota usage and limits from the existing gear
+      gear_quota = get_quota(gear)
+
       destination_node_profile = destination_container.get_node_profile
-      if source_container.get_node_profile != destination_node_profile and app.scalable
-        log_debug "Cannot change node_profile for *scalable* application gear - this operation is not supported. The destination container's node profile is #{destination_node_profile}, while the gear's node_profile is #{gear.group_instance.gear_size}"
-        raise OpenShift::UserException.new("Error moving gear. Cannot change node profile for *scalable* app.", 1)
+      if source_container.get_node_profile != destination_node_profile
+        if app.scalable
+          log_debug "Cannot change node_profile for *scalable* application gear - this operation is not supported. The destination container's node profile is #{destination_node_profile}, while the gear's node_profile is #{gear.group_instance.gear_size}"
+          raise OpenShift::UserException.new("Error moving gear. Cannot change node profile for *scalable* app.", 1)
+        else
+          # get the base quota blocks and files destination container
+          destination_quota = destination_container.rpc_get_facts_direct(["quota_blocks", "quota_files"])
+
+          # set destination container quotas
+          quota_blocks = Integer(destination_quota[:quota_blocks])
+          quota_files = Integer(destination_quota[:quota_files])
+
+          # determine additional storage, if any
+          # subtract source container quota from source node quota
+          # add the difference to destination quota
+          additional_blocks = Integer(gear_quota[3]) - source_container.get_quota_blocks
+          additional_files = Integer(gear_quota[6]) - source_container.get_quota_files
+          quota_blocks += additional_blocks if additional_blocks > 0
+          quota_files += additional_files if additional_files > 0
+
+          # get current block and file usage from the source container
+          blocks_used = Integer(gear_quota[1])
+          inodes_used = Integer(gear_quota[4])
+
+          # ensure the destination container has space available for the gear contents
+          if blocks_used > quota_blocks || inodes_used > quota_files
+            log_debug "Cannot move #{gear.group_instance.gear_size} size gear to #{destination_node_profile} size while the gear exceeds quota limits for the new size."
+            log_debug "Files used: #{inodes_used}, #{destination_node_profile} profile file limit: #{quota_files}. Blocks used: #{blocks_used}, #{destination_node_profile} profile block limit: #{quota_blocks}."
+            raise OpenShift::UserException.new("Error moving gear. Cannot move gear to #{destination_node_profile} node profile while gear exceeds profile quota limits.")
+          end
+        end
+      else
+        # leave quota the same if node profile does not change
+        quota_blocks = Integer(gear_quota[3])
+        quota_files = Integer(gear_quota[6])
       end
 
       # get the application state
       idle, leave_stopped = get_app_status(app)
-
-      # get the quota blocks and files from the gear
-      gear_quota = get_quota(gear)
-      quota_blocks = Integer(gear_quota[3])
-      quota_files = Integer(gear_quota[6])
 
       gear.component_instances.each do |cinst|
         state_map[cinst.cartridge_name] = [idle, leave_stopped]
