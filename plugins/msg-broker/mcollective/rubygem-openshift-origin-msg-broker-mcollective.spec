@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.35.2
+Version: 1.35.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,12 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Mon Aug 17 2015 Wesley Hearn <whearn@redhat.com> 1.35.3-1
+- Merge pull request #6172 from tiwillia/bz1229300
+  (dmcphers+openshiftbot@redhat.com)
+- Ensure proper quota is used when moving gears across node profiles
+  (tiwillia@redhat.com)
+
 * Tue Aug 11 2015 Wesley Hearn <whearn@redhat.com> 1.35.2-1
 - Bug 1241660 Ensure ignored servers does not include all servers only after
   filtering (tiwillia@redhat.com)
