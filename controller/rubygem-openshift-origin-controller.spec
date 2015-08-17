@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.37.2
+Version: 1.37.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -86,6 +86,11 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Aug 17 2015 Wesley Hearn <whearn@redhat.com> 1.37.3-1
+- Bug 1095610: Additional validations for region/zone names  - an alphanumeric
+  character anywhere in the name is now required  - there is no regex
+  validation for zone name during deletion (abhgupta@redhat.com)
+
 * Tue Aug 11 2015 Wesley Hearn <whearn@redhat.com> 1.37.2-1
 - Merge pull request #6213 from abhgupta/bug_1244126
   (dmcphers+openshiftbot@redhat.com)
