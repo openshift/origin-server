@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.33.2
+Version: 1.33.3
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -97,6 +97,9 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %exclude %{cartridgedir}/usr/versions/*/template/*.pyo
 
 %changelog
+* Thu Aug 20 2015 Wesley Hearn <whearn@redhat.com> 1.33.3-1
+- Bumping cartridge versions (abhgupta@redhat.com)
+
 * Tue Aug 11 2015 Wesley Hearn <whearn@redhat.com> 1.33.2-1
 - Removed Double backslashes in variables (parth.kolekar@students.iiit.ac.in)
 
