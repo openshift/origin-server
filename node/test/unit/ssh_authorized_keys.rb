@@ -603,6 +603,38 @@ EOF
 
   end
 
+  def test_replace_keys_with_empty_list
+    # define the temporary file locations
+    lockfile = Tempfile.new ['openshift-origin-node-test-ssh_authkey-replace-empty',
+                             '-lock']
+    keyfile = Tempfile.new ['openshift-origin-node-test-ssh_authkey-replace-empty',
+                            '-keyfile']
+    keyfile_name = keyfile.path
+
+    # create a one-line file for replacement
+    open(keyfile_name, 'w') {|f|
+      f.write 'command="/bin/false",no-X11-fowarding ssh-rsa aabbccddeeffgg0011223344556677889900 OPENSHIFT-testuser1-keyid1' + "\n"
+    }
+
+    # create the AuthorizedKeysFile object
+    auth_keys = AuthorizedKeysFile.new(@container, keyfile_name)
+    auth_keys.lockfile = lockfile
+    auth_keys.owner = nil
+    auth_keys.group = nil
+    auth_keys.mode = nil
+
+    new_keys = []
+
+    auth_keys.replace_keys(new_keys)
+
+    assert(File.exists? keyfile_name)
+    lines = open(keyfile_name) {|f|
+      f.readlines { |l| l.strip }
+    }
+
+    assert_equal(0, lines.length)
+  end
+
   def test_validate_keys
 
     a = AuthorizedKeysFile.new(@container)

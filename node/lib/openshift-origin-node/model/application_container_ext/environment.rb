@@ -248,8 +248,10 @@ module OpenShift
           krb5_principals = ssh_keys.select {|k| k['type'] == 'krb5-principal'}
 
           self.class.notify_observers(:before_replace_ssh_keys, self)
-          AuthorizedKeysFile.new(self).replace_keys(authorized_keys) if authorized_keys.count > 0
-          K5login.new(self).replace_principals(krb5_principals) if krb5_principals.count > 0
+          # If an empty ssh_keys list is passed, this will intentionally replace the ssh keys with an empty list
+          # The broker should pass all keys available for the application to this method
+          AuthorizedKeysFile.new(self).replace_keys(authorized_keys)
+          K5login.new(self).replace_principals(krb5_principals)
           self.class.notify_observers(:after_replace_ssh_keys, self)
 
         end
