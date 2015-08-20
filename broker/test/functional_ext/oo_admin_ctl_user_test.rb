@@ -33,12 +33,12 @@ class OoAdminCtlUserTest < ActionDispatch::IntegrationTest
   end
 
   def run_command(*args)
-    result = `oo-broker --non-interactive env "RAILS_ENV=test" oo-admin-ctl-user #{args.join(' ')} 2>&1`
+    result = `env "RAILS_ENV=test" oo-admin-ctl-user #{args.join(' ')} 2>&1`
     [result, $?.exitstatus]
   end
 
   def run_command_stderr(*args)
-    result = `oo-broker --non-interactive env "RAILS_ENV=test" oo-admin-ctl-user #{args.join(' ')} 2>&1 > /dev/null`
+    result = `env "RAILS_ENV=test" oo-admin-ctl-user #{args.join(' ')} 2>&1 > /dev/null`
     [result, $?.exitstatus]
   end
 

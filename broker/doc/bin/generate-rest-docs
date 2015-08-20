@@ -59,8 +59,8 @@ def set_up
   request = RestClient::Request.new(:method => :get, :url => "https://#{options[:server]}/broker/rest/user", :user => "team.member@mycompany.com", :password => @password, :headers => @headers, :timeout => @timeout, :open_timeout => @timeout)
   response = send_request(request)
   #add private cert capability and additional storage capability
-  system("oo-broker oo-admin-ctl-user -l #{@user} --allowprivatesslcertificates true --setmaxtrackedstorage 20 --setmaxteams 10 --allowha true --allowviewglobalteams true") if options[:server]=="localhost"
-  system("oo-broker oo-admin-ctl-team -c create --name engineering-team --maps-to cn=engineering-team,ou=Groups,dc=example,dc=com")
+  system("oo-admin-ctl-user -l #{@user} --allowprivatesslcertificates true --setmaxtrackedstorage 20 --setmaxteams 10 --allowha true --allowviewglobalteams true") if options[:server]=="localhost"
+  system("oo-admin-ctl-team -c create --name engineering-team --maps-to cn=engineering-team,ou=Groups,dc=example,dc=com")
   
   if options[:version]
     @headers = {:accept => "application/json; version=#{@version}"}
@@ -229,9 +229,9 @@ def process_resource(request, resource)
 end
 
 def tear_down
-  system("oo-broker oo-admin-ctl-app    -l #{@user} -c force-destroy -b -a myapp")
-  system("oo-broker oo-admin-ctl-domain -l #{@user} -c delete -n mydomain")
-  system("oo-broker oo-admin-ctl-domain -l #{@user} -c delete")
+  system("oo-admin-ctl-app    -l #{@user} -c force-destroy -b -a myapp")
+  system("oo-admin-ctl-domain -l #{@user} -c delete -n mydomain")
+  system("oo-admin-ctl-domain -l #{@user} -c delete")
 end
 
 if __FILE__ == $0

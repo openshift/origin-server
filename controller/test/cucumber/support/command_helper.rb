@@ -564,7 +564,7 @@ module CommandHelper
   end
 
   def oo_admin_broker_auth_find_gears
-    command = 'oo-broker --non-interactive oo-admin-broker-auth --find-gears'
+    command = 'oo-admin-broker-auth --find-gears'
     $logger.debug("oo-admin-broker-auth: executing #{command}")
 
     stdin, stdout, stderr = Open3.popen3(command)

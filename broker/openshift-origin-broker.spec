@@ -165,9 +165,6 @@ cp conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker-dev.conf
 cp conf/quickstarts.json %{buildroot}%{_sysconfdir}/openshift/quickstarts.json
 cp conf/plugins.d/README %{buildroot}%{_sysconfdir}/openshift/plugins.d/README
 
-mkdir -p %{buildroot}%{_sbindir}
-cp bin/oo-broker %{buildroot}%{_sbindir}/oo-broker
-
 # BZ986300
 rm -f %{buildroot}%{brokerdir}/COPYRIGHT
 rm -f %{buildroot}%{brokerdir}/.gitignore
@@ -212,7 +209,6 @@ sed -i -e '/NON-RUNTIME BEGIN/,/NON-RUNTIME END/d' %{buildroot}%{brokerdir}/Gemf
 %attr(0750,-,-) %{brokerdir}/tmp/pids
 %attr(0750,-,-) %{brokerdir}/tmp/sessions
 %attr(0750,-,-) %{brokerdir}/tmp/sockets
-%attr(0750,root,root) %{_sbindir}/oo-broker
 %dir %attr(0750,-,-) %{brokerdir}/httpd/conf.d
 %{brokerdir}
 %{htmldir}/broker
