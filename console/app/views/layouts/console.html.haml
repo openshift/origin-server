@@ -11,6 +11,12 @@
     = render "layouts/console/stylesheets"
 
   %body{ :class => "console #{controller.controller_name} #{controller.action_name}" }
+    = render('shared/tracking',
+      :controller => controller.controller_name,
+      :action => controller.action_name,
+      :event => @event ||= '',
+      :evar8 => @evar8 ||= '',
+      :data_layer => @data_layer ||= '') if Rails.env.production?
 
     %a.skip-navigation{:href => '#content', :accesskey => '2'} Skip to main content
 
@@ -40,10 +46,3 @@
       = render 'layouts/footer'
 
     = render 'layouts/console/javascripts'
-
-    = render('shared/tracking',
-      :controller => controller.controller_name,
-      :action => controller.action_name,
-      :event => @event ||= '',
-      :evar8 => @evar8 ||= '',
-      :google_conversion_label => @google_conversion_label ||= '') if Rails.env.production?
