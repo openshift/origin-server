@@ -10,7 +10,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.35.1
+Version: 1.35.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -168,6 +168,9 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Aug 24 2015 Wesley Hearn <whearn@redhat.com> 1.35.2-1
+- Updates web analytics for web console (jacoblucky@gmail.com)
+
 * Thu Jul 02 2015 Wesley Hearn <whearn@redhat.com> 1.35.1-1
 - bump_minor_versions for 2.0.65 (whearn@redhat.com)
 
