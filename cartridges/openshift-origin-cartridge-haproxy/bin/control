@@ -29,7 +29,7 @@ function isrunning() {
 function ping_server_gears() {
     #  Ping the server gears and wake 'em up on startup.
     for geardns in $(web_gears | cut -f 3 -d ','); do
-          [ -z "$geardns" ]  ||  curl "http://$geardns/" > /dev/null 2>&1  ||  :
+          [ -z "$geardns" ]  ||  (curl "http://$geardns/" > /dev/null 2>&1 &) ||  :
     done
 }
 
