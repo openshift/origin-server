@@ -185,7 +185,7 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
   end
 
   def repair_apps(confirm=true)
-    output = `oo-broker --non-interactive env "RAILS_ENV=test" oo-admin-repair --removed-nodes --verbose --confirm #{confirm} 2>&1`
+    output = `env "RAILS_ENV=test" oo-admin-repair --removed-nodes --verbose --confirm #{confirm} 2>&1`
     exit_code = $?.exitstatus
     puts output if exit_code != 0
   end

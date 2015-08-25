@@ -11,7 +11,7 @@ end
 
 When /^the (?:user|member) "([^\"]*)" is added to the (?:domain|namespace) "([^\"]*)"$/ do |new_member, namespace|
     app_login = get_app_login_from_namespace(namespace)
-    command = "oo-broker --non-interactive oo-admin-ctl-domain -l \"#{app_login}\" -n #{namespace} -c add_member -m #{new_member}"
+    command = "oo-admin-ctl-domain -l \"#{app_login}\" -n #{namespace} -c add_member -m #{new_member}"
     $logger.info("Executing the command: #{command}")
     output_buffer = []
     exit_code = run(command, output_buffer)
@@ -20,7 +20,7 @@ end
 
 When /^the (?:user|member) "([^\"]*)" is removed from the (?:domain|namespace) "([^\"]*)"$/ do |removed_member, namespace|
     app_login = get_app_login_from_namespace(namespace)
-    command = "oo-broker --non-interactive oo-admin-ctl-domain -l \"#{app_login}\" -n #{namespace} -c remove_member -m #{removed_member}"
+    command = "oo-admin-ctl-domain -l \"#{app_login}\" -n #{namespace} -c remove_member -m #{removed_member}"
     $logger.info("Executing the command: #{command}")
     output_buffer = []
     exit_code = run(command, output_buffer)
@@ -29,27 +29,27 @@ end
 
 Then /^the (?:user|member) "([^\"]*)" is a member of the (?:domain|namespace) "([^\"]*)"$/ do |member, namespace|
     app_login = get_app_login_from_namespace(namespace)
-    command = "oo-broker --non-interactive oo-admin-ctl-domain -l \"#{app_login}\" -n #{namespace} -c list_members"
+    command = "oo-admin-ctl-domain -l \"#{app_login}\" -n #{namespace} -c list_members"
     $logger.info("Executing the command: #{command}")
     output_buffer = []
     exit_code = run(command, output_buffer)
     raise "Failed to list members of namespace #{namespace}. Exit code: #{exit_code} and output message: #{output_buffer}" if exit_code != 0
-    output_buffer[0].split("\n")[1].should == "#{app_login}(admin), #{member}(admin)\r"
+    output_buffer[0].split("\n")[1].should == "#{app_login}(admin), #{member}(admin)"
 end
 
 Then /^the (?:user|member) "([^\"]*)" is not a member of the (?:domain|namespace) "([^\"]*)"$/ do |member, namespace|
     app_login = get_app_login_from_namespace(namespace)
-    command = "oo-broker --non-interactive oo-admin-ctl-domain -l \"#{app_login}\" -n #{namespace} -c list_members"
+    command = "oo-admin-ctl-domain -l \"#{app_login}\" -n #{namespace} -c list_members"
     $logger.info("Executing the command: #{command}")
     output_buffer = []
     exit_code = run(command, output_buffer)
     raise "Failed to list members of namespace #{namespace}. Exit code: #{exit_code} and output message: #{output_buffer}" if exit_code != 0
-    output_buffer[0].split("\n")[1].should == "#{app_login}(admin)\r"
+    output_buffer[0].split("\n")[1].should == "#{app_login}(admin)"
 end
 
 When /^the "([^\"]*)" (?:user|member)'s role is modified to "([^\"]*)" in the namespace "([^\"]*)"$/ do |member, role, namespace|
     app_login = get_app_login_from_namespace(namespace)
-    command = "oo-broker --non-interactive oo-admin-ctl-domain -l \"#{app_login}\" -n #{namespace} -c update_member -m #{member} -r #{role}"
+    command = "oo-admin-ctl-domain -l \"#{app_login}\" -n #{namespace} -c update_member -m #{member} -r #{role}"
     $logger.info("Executing the command: #{command}")
     output_buffer = []
     exit_code = run(command, output_buffer)
@@ -58,12 +58,12 @@ end
 
 Then /^the (?:user|member) "([^\"]*)" has the role "([^\"]*)" in the (?:namespace|domain) "([^\"]*)"$/ do |member, role, namespace|
     app_login = get_app_login_from_namespace(namespace)
-    command = "oo-broker --non-interactive oo-admin-ctl-domain -l \"#{app_login}\" -n #{namespace} -c list_members"
+    command = "oo-admin-ctl-domain -l \"#{app_login}\" -n #{namespace} -c list_members"
     $logger.info("Executing the command: #{command}")
     output_buffer = []
     exit_code = run(command, output_buffer)
     raise "Failed to list members of namespace #{namespace}. Exit code: #{exit_code} and output message: #{output_buffer}" if exit_code != 0
-    output_buffer[0].split("\n")[1].should == "#{app_login}(admin), #{member}(edit)\r"
+    output_buffer[0].split("\n")[1].should == "#{app_login}(admin), #{member}(edit)"
 end
 
 def get_app_login_from_namespace(namespace)

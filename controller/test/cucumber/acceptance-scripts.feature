@@ -13,7 +13,7 @@ Feature: Acceptance scripts for sanity checking infrastructure
   @not-enterprise
   Scenarios: Acceptance script scenarios
     |     script                                   |   output   | exitcode |
-    | oo-broker-attach /usr/sbin/oo-accept-systems |   PASS     |     0    |
+    | /usr/sbin/oo-accept-systems |   PASS     |     0    |
 
   @not-online
   Scenarios: Acceptance script scenarios
