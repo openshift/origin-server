@@ -2,9 +2,9 @@
 Name: python
 Cartridge-Short-Name: PYTHON
 Display-Name: Python 2.6
-Description: 'Python is a general-purpose, high-level programming language whose design
+Description: Python is a general-purpose, high-level programming language whose design
   philosophy emphasizes code readability. Popular development frameworks include:
-  Django, Bottle, Pylons, Zope and TurboGears.'
+  Django, Bottle, Pylons, Zope and TurboGears.
 Version: '2.6'
 Versions:
 - '2.6'
