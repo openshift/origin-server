@@ -49,6 +49,7 @@ module OpenShift
     # * node_profile: string identifier for a set of node characteristics
     # * district_uuid: identifier for the district
     # * least_preferred_servers: list of server identities that are least preferred. These could be the ones that won't allow the gear group to be highly available
+    # * existing_gears_hosting: map of server identities to the number of gears (of the application that the gear being scheduled belongs to) hosted on them
     # * gear_exists_in_district: true if the gear belongs to a node in the same district
     # * required_uid: the uid that is required to be available in the destination district
     #
@@ -2227,7 +2228,6 @@ module OpenShift
           required_uid = nil
         end
 
-        least_preferred_servers = [source_container.id]
         opts = { :node_profile => destination_gear_size, :district_uuid => destination_district_uuid,
                  :gear => gear, :gear_exists_in_district => gear_exists_in_district, :required_uid => required_uid }
 
@@ -3060,6 +3060,7 @@ module OpenShift
     # * node_profile: String identifier for a set of node characteristics
     # * district_uuid: String identifier for the district
     # * least_preferred_servers: list of server identities that are least preferred. These could be the ones that won't allow the gear group to be highly available
+    # * existing_gears_hosting: map of server identities to the number of gears (of the application that the gear being scheduled belongs to) hosted on them
     # * force_rediscovery: Boolean
     # * gear_exists_in_district: Boolean - true if the gear belongs to a node in the same district
     # * required_uid: String - the uid that is required to be available in the destination district
@@ -3085,6 +3086,7 @@ module OpenShift
       district_uuid = opts[:district_uuid]
       least_preferred_servers = opts[:least_preferred_servers]
       restricted_servers = opts[:restricted_servers]
+      existing_gears_hosting = opts[:existing_gears_hosting]
       gear = opts[:gear]
       force_rediscovery = opts[:force_rediscovery] if opts[:force_rediscovery]
       gear_exists_in_district = opts[:gear_exists_in_district] if opts[:gear_exists_in_district]
@@ -3221,11 +3223,15 @@ module OpenShift
 
             # Check if we have min zones for app gear group
             zones_consumed_capacity = {}
+            zone_app_gears_map = {}
             server_infos.each do |server_info|
               zone_id = server_info.zone_id
               if zone_id
                 zones_consumed_capacity[zone_id] = 0 unless zones_consumed_capacity[zone_id]
                 zones_consumed_capacity[zone_id] += server_info.node_consumed_capacity
+                # initialize zone_app_gears_map
+                # it holds the number of existing gears for this particular app in a given zone
+                zone_app_gears_map[zone_id] = 0 unless zone_app_gears_map[server.zone_id]
               end
             end
             available_zones_count = zones_consumed_capacity.keys.length
@@ -3252,31 +3258,58 @@ module OpenShift
               end
             end
 
-            # Find least preferred zones
-            least_preferred_zone_ids = []
-            least_preferred_servers.each do |server_identity|
+            # Find the zones that have existing gears
+            existing_gears_zone_ids = []
+            existing_gears_hosting.each do |server_identity, gear_count|
               next unless server_identity
               server = District.find_server(server_identity, districts)
-              least_preferred_zone_ids << server.zone_id if server.zone_id
-            end if least_preferred_servers.present?
-            least_preferred_zone_ids = least_preferred_zone_ids.uniq
+              if server.zone_id
+                existing_gears_zone_ids << server.zone_id
+                # set the number of existing gears for this particular app for a given zone
+                zone_app_gears_map[server.zone_id] = 0 unless zone_app_gears_map[server.zone_id]
+                zone_app_gears_map[server.zone_id] += gear_count
+              end
+            end if existing_gears_hosting.present?
+            existing_gears_zone_ids = existing_gears_zone_ids.uniq
 
-            if least_preferred_zone_ids.present?
+            if existing_gears_zone_ids.present?
               available_zone_ids = zones_consumed_capacity.keys
-              # Consider least preferred zones only when we have no available zone that's not in least preferred zones.
-              unless (available_zone_ids - least_preferred_zone_ids).empty?
+              # Consider removing zones with existing gears (for this app) only when we have other available zones that are not in this list.
+              unless (available_zone_ids - existing_gears_zone_ids).empty?
                 # Remove least preferred zones from the list, ensuring there is at least one server remaining
-                server_infos.delete_if { |server_info| (server_infos.length > 1) && least_preferred_zone_ids.include?(server_info.zone_id) }
-                zones_consumed_capacity.delete_if { |zone_id, capacity| least_preferred_zone_ids.include?(zone_id) }
+                server_infos.delete_if { |server_info| (server_infos.length > 1) && existing_gears_zone_ids.include?(server_info.zone_id) }
+                zones_consumed_capacity.delete_if { |zone_id, capacity| existing_gears_zone_ids.include?(zone_id) }
               end
             end
 
-            # Distribute zones evenly, pick zones that are least consumed/have max available capacity
-            min_consumed_capacity = zones_consumed_capacity.values.min
-            preferred_zones = zones_consumed_capacity.select { |zone_id, capacity| capacity <= min_consumed_capacity }.keys
+            # Distribute gears for this app across zones evenly
+            # identify zones that have the least number of gears for this app
+            min_zone_gears = zone_app_gears_map.values.min || 0
+            preferred_zones = zone_app_gears_map.map { |server_identity, gears| server_identity if gears <= min_zone_gears }.compact
 
-            # Remove the servers from the list that does not belong to preferred zones
+            # find the selected zones in the zones_consumed_capacity map
+            zones_consumed_capacity.select! { |zone_id, _| preferred_zones.include? zone_id }
+
+            # Distribute all gears (across all apps) across zones evenly
+            # identify the least consumed zones (have max available capacity)
+            min_consumed_capacity = zones_consumed_capacity.values.min
+            preferred_zones = zones_consumed_capacity.map { |zone_id, capacity| zone_id if capacity <= min_consumed_capacity }.compact
+
+            # Remove the servers from the list that do not belong to preferred zones
             server_infos.delete_if { |server_info| (server_infos.length > 1) && !preferred_zones.include?(server_info.zone_id) }
+          end
+
+          if existing_gears_hosting.present?
+            # find out the minimum number of gears for this app that are present on any node
+            # filter out the nodes that have more gears on them than this minimum number
+            if server_infos.all? {|server| existing_gears_hosting.keys.include?(server.name) }
+              min_app_gears_on_nodes = existing_gears_hosting.values.min || 0
+              existing_gears_hosting.select! {|_, gear_count| gear_count > min_app_gears_on_nodes}
+              server_infos.delete_if { |server_info| (server_infos.length > 1) && existing_gears_hosting.keys.include?(server_info.name) }
+              server_infos
+            else
+              server_infos.delete_if { |server_info| (server_infos.length > 1) && existing_gears_hosting.keys.include?(server_info.name) }
+            end
           end
         end
 

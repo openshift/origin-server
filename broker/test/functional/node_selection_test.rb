@@ -103,7 +103,7 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
   test "least preferred node selection" do
     OpenShift::ApplicationContainerProxy.node_selector_plugin = nil
     begin
-      p = OpenShift::ApplicationContainerProxy.find_available(:node_profile => "small", :least_preferred_servers => [@@server_id])
+      p = OpenShift::ApplicationContainerProxy.find_available(:node_profile => "small", :existing_gears_hosting => {@@server_id => 1})
       assert p.id == @@server_id, "The expected node was not returned"
     rescue OpenShift::NodeUnavailableException
       assert false, "The least preferred node was not selected and NodeUnavailableException was raised"
@@ -136,7 +136,7 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
     # test when multiple web proxies are allowed on the same node
     begin
       assert Rails.configuration.openshift[:allow_multiple_haproxy_on_node] == true, "Broker configuration for allowing multiple web proxies on the same node is not as expected"
-      OpenShift::ApplicationContainerProxy.find_available(:node_profile => "small", :least_preferred_servers => new_gear.non_ha_server_identities, :restricted_servers => new_gear.restricted_server_identities, :gear => new_gear)
+      OpenShift::ApplicationContainerProxy.find_available(:node_profile => "small", :existing_gears_hosting => new_gear.server_identities_gears_map, :restricted_servers => new_gear.restricted_server_identities, :gear => new_gear)
     rescue OpenShift::NodeUnavailableException
       assert false, "NodeUnavailableException was raised even though multiple web proxies are allowed on the same node"
     end
@@ -144,7 +144,7 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
     # test when multiple web proxies are not allowed on the same node
     # this is being simulated by setting the restricted server identities directly instead of relying on the gear
     begin
-      OpenShift::ApplicationContainerProxy.find_available(:node_profile => "small", :least_preferred_servers => new_gear.non_ha_server_identities, :restricted_servers => [@@server_id], :gear => new_gear)
+      OpenShift::ApplicationContainerProxy.find_available(:node_profile => "small", :existing_gears_hosting => new_gear.server_identities_gears_map, :restricted_servers => [@@server_id], :gear => new_gear)
     rescue OpenShift::NodeUnavailableException
       #this is expected
     else
