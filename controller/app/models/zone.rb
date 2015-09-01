@@ -7,7 +7,7 @@ class Zone
 
   validates :name, :presence => true
 
-  ZONE_NAME_REGEX = /\A[\w\.\-]+\z/
+  ZONE_NAME_REGEX = /\A[\w\.\-]*[a-zA-Z0-9]+[\w\.\-]*\z/
   def self.check_name!(name)
     if name.blank? or name !~ ZONE_NAME_REGEX
       raise OpenShift::OOException.new("Invalid zone name '#{name}'")
