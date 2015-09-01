@@ -1,95 +1,35 @@
-#!/usr/bin/ruby
+#!/usr/bin/env oo-ruby
 #
-# Test the SecureShell::AuthorizedKeysFile
+# Test the SecureShell::AuthorizedKeysFile model
 #
 #
-require 'test/unit'
-require 'mocha/setup'
-
+require_relative '../test_helper'
 require 'tempfile'
 require 'fileutils'
 
-require 'openshift-origin-node/model/application_container_ext/ssh_authorized_keys'
-
-include OpenShift::Runtime::ApplicationContainerExt::SecureShell
-
-module OpenShift::Runtime::Utils
-  # used to set the SELinux context of the k5login file
-  # stub for testing
-  def self.oo_spawn(command)
-    # noop
-    #puts "called oo_spawn with command #{command}"
-  end
-end
-
-module PathUtils
-  def self.join(string, *smth)
-    File.join(string, smth)
-  end
-end
-
-#
-# The AuthorizedKeys class depends on the ApplicationContainer instance
-# Specifically it uses the uuid and container_dir attributes
-#
-# This should be mocked properly MAL 20131017
-#
-#class OpenShift::Runtime::ApplicationContainer
-class Container
-
-  attr_reader :uuid, :container_dir, :container_plugin
-
-  def initialize(uuid, container_dir, container_plugin = nil)
-    @uuid = uuid
-    @container_dir = container_dir
-    # let container_plugin.gear_shell default if not provided
-    if container_plugin
-      @container_plugin = container_plugin
-    else
-      @container_plugin = Object.new
-      def @container_plugin.gear_shell
-        "/bin/bash"
-      end
-    end
-  end
-
-  def set_ro_permission(filename)
-
-  end
-
-end
-
-#OpenShift::Runtime::ApplicationContainerExt::SecureShell::K5login
-module OpenShift
-  module Runtime
-    class ApplicationContainer
-
-      attr_reader :uuid, :container_dir, :container_plugin
-      def initialize
-
-      end
-
-      def set_ro_permission(authorized_keys_file)
-
-      end
-
-    end
-
-    module ApplicationContainerExt
-    end
-
-  end
-end
-
-class TestAuthorizedKeysFile < Test::Unit::TestCase
-
-  # Define the location of an initial input file and
-  # the default test values
+class TestAuthorizedKeysFile < OpenShift::NodeTestCase
   def setup
+    @config.stubs(:get).with("GEAR_BASE_DIR").returns("/tmp")
+
+    # Set up the container
+    @gear_uuid = '5504'
+    @user_uid  = '5504'
+    @app_name  = 'AuthoizedKeysFileTestCase'
+    @namespace = 'jwh201204301647'
+
+    Etc.stubs(:getpwnam).returns(
+        OpenStruct.new(
+            uid:   @user_uid.to_i,
+            gid:   @user_uid.to_i,
+            gecos: "OpenShift guest",
+            dir:   "/var/lib/openshift/#{@gear_uuid}"
+        )
+    )
+
     @initfile = File.expand_path "test/unit/data/ssh_authorized_keys_init"
-    @username = 'aabbccddeeff00112233445566778899'
-    @homedir = '/home/' + @username
-    @container = Container.new(@username, @homedir)
+    @homedir = "/var/lib/openshift/#{@gear_uuid}/"
+    @container = OpenShift::Runtime::ApplicationContainer.new(@gear_uuid, @gear_uuid, @user_uid,
+                                                              @app_name, @gear_uuid, @namespace, nil, nil, nil)
   end
 
   # Verify that new AuthorizedKeysFile objects are initialized correctly
@@ -98,7 +38,7 @@ class TestAuthorizedKeysFile < Test::Unit::TestCase
     keyfile = AuthorizedKeysFile.new(@container)
     assert_same(@container, keyfile.container, 
                 'AuthorizedKeysFile container not set correctly')
-    assert_equal(@username, keyfile.username, 
+    assert_equal(@gear_uuid, keyfile.username, 
                  'AuthorizedKeysFile username not set correctly')
     assert_equal(@homedir + "/.ssh/authorized_keys", keyfile.filename, 
                  'AuthorizedKeysFile filename not set correctly')
@@ -110,13 +50,10 @@ class TestAuthorizedKeysFile < Test::Unit::TestCase
     filename = File.expand_path "test/unit/tmp/test_authorized_keys"
 
     keyfile = AuthorizedKeysFile.new(@container, filename)
-    keyfile.owner = nil
-    keyfile.group = nil
-    keyfile.mode = nil
 
     assert_same(@container, keyfile.container, 
                 'AuthorizedKeysFile container not set correctly')
-    assert_equal(@username, keyfile.username, 
+    assert_equal(@gear_uuid, keyfile.username, 
                  'AuthorizedKeysFile username not set correctly')
     assert_equal(filename, keyfile.filename, 
                  'AuthorizedKeysFile filename not set correctly')
@@ -141,9 +78,6 @@ class TestAuthorizedKeysFile < Test::Unit::TestCase
       # create the AuthorizedKeysFile object
       auth_keys = AuthorizedKeysFile.new(@container, keyfile_name)
       auth_keys.lockfile = lockfile
-      auth_keys.owner = nil
-      auth_keys.group = nil
-      auth_keys.mode = nil
 
       # pick three relatively at random
       assert_equal("command=\"/bin/false\",no-X11-fowarding ssh-rsa aabbccddeeffgg0011223344556677889900 OPENSHIFT-testuser1-keyid1",
@@ -177,7 +111,7 @@ class TestAuthorizedKeysFile < Test::Unit::TestCase
     }
     
     key_entry_sample = 
-      'command="/bin/bash",no-X11-forwarding ssh-rsa testkey OPENSHIFT-aabbccddeeff00112233445566778899-id1'
+      'command="/bin/bash",no-X11-forwarding ssh-rsa testkey OPENSHIFT-5504-id1'
 
     # Ensure the file does not exist before adding the first entry
     File.delete keyfile.path
@@ -185,9 +119,6 @@ class TestAuthorizedKeysFile < Test::Unit::TestCase
     begin
       auth_keys = AuthorizedKeysFile.new(@container, keyfile.path)
       auth_keys.lockfile = lockfile
-      auth_keys.owner = nil
-      auth_keys.group = nil
-      auth_keys.mode = nil
 
       # a sample key for input
 
@@ -196,13 +127,13 @@ class TestAuthorizedKeysFile < Test::Unit::TestCase
       assert(File.exists?(keyfile.path), 
              "key file does not exist after add: #{keyfile.path}")
 
-      assert_equal(101, File.size(keyfile.path))
+      assert_equal(73, File.size(keyfile.path))
 
-      open(keyfile.path) {|f|
+      File.open(keyfile.path) {|f|
         lines = f.readlines.map {|l| l.strip }
         assert_equal(1, lines.length,
                      "incorrect number of entries after one add")
-        assert_equal(100, lines[0].length,
+        assert_equal(72, lines[0].length,
                      "incorrect number of characters in key entry 0")
         assert_equal(key_entry_sample, lines[0],
                      "key entry does not match")
@@ -228,7 +159,7 @@ class TestAuthorizedKeysFile < Test::Unit::TestCase
     }
     
     key_entry_sample = 
-      'command="/bin/bash",no-X11-forwarding ssh-rsa testkey OPENSHIFT-aabbccddeeff00112233445566778899-'
+      'command="/bin/bash",no-X11-forwarding ssh-rsa testkey OPENSHIFT-5504-'
 
     # Ensure the file does not exist before adding the first entry
     File.delete keyfile.path
@@ -236,9 +167,6 @@ class TestAuthorizedKeysFile < Test::Unit::TestCase
     begin
       auth_keys = AuthorizedKeysFile.new(@container, keyfile.path)
       auth_keys.lockfile = lockfile
-      auth_keys.owner = nil
-      auth_keys.group = nil
-      auth_keys.mode = nil
 
       # a sample key for input
 
@@ -247,14 +175,12 @@ class TestAuthorizedKeysFile < Test::Unit::TestCase
       assert(File.exists?(keyfile.path), 
              "key file does not exist after add: #{keyfile.path}")
 
-      assert_equal(98, File.size(keyfile.path))
-
-      open(keyfile.path) {|f|
+      File.open(keyfile.path) {|f|
         lines = f.readlines.map {|l| l.strip }
         assert_equal(1, lines.length,
                      "incorrect number of entries after one add")
-        assert_equal(97, lines[0].length,
-                     "incorrect number of characters in key entry 0")
+        assert_equal(key_entry_sample.length, lines[0].length,
+                     "incorrect number of characters in key entry0")
         assert_equal(key_entry_sample, lines[0],
                      "key entry does not match")
       }
@@ -288,8 +214,8 @@ class TestAuthorizedKeysFile < Test::Unit::TestCase
     
     key_entry_sample = 
       [
-       'command="/bin/bash",no-X11-forwarding ssh-rsa testkey1 OPENSHIFT-aabbccddeeff00112233445566778899-id1',
-       'command="/bin/bash",no-X11-forwarding ssh-rsa testkey2 OPENSHIFT-aabbccddeeff00112233445566778899-id2'
+       'command="/bin/bash",no-X11-forwarding ssh-rsa testkey1 OPENSHIFT-5504-id1',
+       'command="/bin/bash",no-X11-forwarding ssh-rsa testkey2 OPENSHIFT-5504-id2'
       ]
        
     # Ensure the file does not exist before adding the first entry
@@ -298,9 +224,6 @@ class TestAuthorizedKeysFile < Test::Unit::TestCase
     begin
       auth_keys = AuthorizedKeysFile.new(@container, keyfile.path)
       auth_keys.lockfile = lockfile
-      auth_keys.owner = nil
-      auth_keys.group = nil
-      auth_keys.mode = 0660
 
       # a sample key for input
 
@@ -308,21 +231,18 @@ class TestAuthorizedKeysFile < Test::Unit::TestCase
 
       assert(File.exists?(keyfile.path), 
              "key file does not exist after add: #{keyfile.path}")
-      # Mask in only the standard permissions bits: rwx{3}
-      assert_equal(auth_keys.mode, File::Stat.new(keyfile.path).mode & 0777,
-             "incorrect file mode")
       assert(File.writable?(keyfile.path),
              "key file not writable after create: #{keyfile.path}")
 
       auth_keys.add_key(new_key[1]['key'], new_key[1]['type'], new_key[1]['id'])
 
-      assert_equal(204, File.size(keyfile.path))
+      assert_equal(148, File.size(keyfile.path))
 
-      open(keyfile.path) {|f|
+      File.open(keyfile.path) {|f|
         lines = f.readlines.map {|l| l.strip }
         assert_equal(2, lines.length,
                      "incorrect number of entries after one add")
-        assert_equal(101, lines[0].length,
+        assert_equal(73, lines[0].length,
                      "incorrect number of characters in key entry 0")
         assert_equal(key_entry_sample[0], lines[0],
                      "key entry does not match")
@@ -357,8 +277,8 @@ class TestAuthorizedKeysFile < Test::Unit::TestCase
     
     key_entry_sample = 
       [
-       'command="/bin/bash",no-X11-forwarding ssh-rsa testkey1 OPENSHIFT-aabbccddeeff00112233445566778899-id1',
-       'command="/bin/bash",no-X11-forwarding ssh-rsa testkey1 OPENSHIFT-aabbccddeeff00112233445566778899-id2'
+       'command="/bin/bash",no-X11-forwarding ssh-rsa testkey1 OPENSHIFT-5504-id1',
+       'command="/bin/bash",no-X11-forwarding ssh-rsa testkey1 OPENSHIFT-5504-id2'
       ]
        
     # Ensure the file does not exist before adding the first entry
@@ -367,9 +287,6 @@ class TestAuthorizedKeysFile < Test::Unit::TestCase
     begin
       auth_keys = AuthorizedKeysFile.new(@container, keyfile.path)
       auth_keys.lockfile = lockfile
-      auth_keys.owner = nil
-      auth_keys.group = nil
-      auth_keys.mode = 0660
 
       # a sample key for input
 
@@ -377,21 +294,18 @@ class TestAuthorizedKeysFile < Test::Unit::TestCase
 
       assert(File.exists?(keyfile.path), 
              "key file does not exist after add: #{keyfile.path}")
-      # Mask in only the standard permissions bits: rwx{3}
-      assert_equal(auth_keys.mode, File::Stat.new(keyfile.path).mode & 0777,
-             "incorrect file mode")
       assert(File.writable?(keyfile.path),
              "key file not writable after create: #{keyfile.path}")
 
       auth_keys.add_key(new_key[1]['key'], new_key[1]['type'], new_key[1]['id'])
 
-      assert_equal(204, File.size(keyfile.path))
+      assert_equal(148, File.size(keyfile.path))
 
-      open(keyfile.path) {|f|
+      File.open(keyfile.path) {|f|
         lines = f.readlines.map {|l| l.strip }
         assert_equal(2, lines.length,
                      "incorrect number of entries after one add")
-        assert_equal(101, lines[0].length,
+        assert_equal(73, lines[0].length,
                      "incorrect number of characters in key entry 0")
         assert_equal(key_entry_sample[0], lines[0],
                      "key entry does not match")
@@ -412,7 +326,7 @@ class TestAuthorizedKeysFile < Test::Unit::TestCase
 
     begin 
       # create a one-line file for replacement
-      open(keyfile.path, 'w') {|f|
+      File.open(keyfile.path, 'w') {|f|
         f.write <<EOF
 command="/bin/false",no-X11-fowarding ssh-rsa aabbccddeeffgg0011223344556677889900 OPENSHIFT-#{@container.uuid}-keyid1
 command="/bin/false",no-X11-fowarding ssh-rsa aabbccddeeffgg0011223344556677889900 OPENSHIFT-#{@container.uuid}-keyid2
@@ -423,9 +337,6 @@ EOF
       
       auth_keys = AuthorizedKeysFile.new(@container, keyfile.path)
       auth_keys.lockfile = lockfile
-      auth_keys.owner = nil
-      auth_keys.group = nil
-      auth_keys.mode = 0660
 
       assert_equal(4, auth_keys.authorized_keys.length,
                    "incorrect number of remaining keys before remove")
@@ -463,7 +374,7 @@ EOF
 
     begin 
       # create a one-line file for replacement
-      open(keyfile.path, 'w') {|f|
+      File.open(keyfile.path, 'w') {|f|
         f.write <<EOF
 command="/bin/false",no-X11-fowarding ssh-rsa aabbccddeeffgg0011223344556677889900 OPENSHIFT-#{@container.uuid}-keyid1
 command="/bin/false",no-X11-fowarding ssh-rsa aabbccddeeffgg0011223344556677889900
@@ -474,9 +385,6 @@ EOF
       
       auth_keys = AuthorizedKeysFile.new(@container, keyfile.path)
       auth_keys.lockfile = lockfile
-      auth_keys.owner = nil
-      auth_keys.group = nil
-      auth_keys.mode = 0660
 
       assert_equal(4, auth_keys.authorized_keys.length,
                    "incorrect number of remaining keys before remove")
@@ -508,7 +416,7 @@ EOF
 
     begin 
       # create a one-line file for replacement
-      open(keyfile.path, 'w') {|f|
+      File.open(keyfile.path, 'w') {|f|
         f.write <<EOF
 command="/bin/false",no-X11-fowarding ssh-rsa aabbccddeeffgg0011223344556677889900 OPENSHIFT-#{@container.uuid}-keyid1
 EOF
@@ -516,9 +424,6 @@ EOF
       
       auth_keys = AuthorizedKeysFile.new(@container, keyfile.path)
       auth_keys.lockfile = lockfile
-      auth_keys.owner = nil
-      auth_keys.group = nil
-      auth_keys.mode = 0660
 
       assert_equal(1, auth_keys.authorized_keys.length,
                    "incorrect number of remaining keys before remove")
@@ -553,7 +458,7 @@ EOF
 
     begin 
       # create a one-line file for replacement
-      open(keyfile_name, 'w') {|f|
+      File.open(keyfile_name, 'w') {|f|
         f.write 'command="/bin/false",no-X11-fowarding ssh-rsa aabbccddeeffgg0011223344556677889900 OPENSHIFT-testuser1-keyid1' + "\n"
       }
 
@@ -562,9 +467,6 @@ EOF
       # create the AuthorizedKeysFile object
       auth_keys = AuthorizedKeysFile.new(@container, keyfile_name)
       auth_keys.lockfile = lockfile
-      auth_keys.owner = nil
-      auth_keys.group = nil
-      auth_keys.mode = nil
 
       new_keys = [
                  {'key' => 'AAA', 
@@ -583,7 +485,7 @@ EOF
       auth_keys.replace_keys(new_keys)
 
       assert(File.exists? keyfile_name)
-      lines = open(keyfile_name) {|f|
+      lines = File.open(keyfile_name) {|f|
         f.readlines { |l| l.strip }
       }
 
@@ -612,27 +514,25 @@ EOF
     keyfile_name = keyfile.path
 
     # create a one-line file for replacement
-    open(keyfile_name, 'w') {|f|
+    File.open(keyfile_name, 'w') {|f|
       f.write 'command="/bin/false",no-X11-fowarding ssh-rsa aabbccddeeffgg0011223344556677889900 OPENSHIFT-testuser1-keyid1' + "\n"
     }
 
     # create the AuthorizedKeysFile object
     auth_keys = AuthorizedKeysFile.new(@container, keyfile_name)
     auth_keys.lockfile = lockfile
-    auth_keys.owner = nil
-    auth_keys.group = nil
-    auth_keys.mode = nil
 
     new_keys = []
 
     auth_keys.replace_keys(new_keys)
 
     assert(File.exists? keyfile_name)
-    lines = open(keyfile_name) {|f|
-      f.readlines { |l| l.strip }
-    }
+    auth_file = File.open(keyfile_name)
+    content = auth_file.read
+    auth_file.close
 
-    assert_equal(0, lines.length)
+    assert_match(/^\n*$/, content,
+                  "Authorized keys file is not empty")
   end
 
   def test_validate_keys
@@ -698,7 +598,7 @@ EOF
 
     comment_string = 'testcomment'
     key_id = a.send(:key_id, comment_string)
-    assert_equal("OPENSHIFT-#{@username}-#{comment_string}", key_id,
+    assert_equal("OPENSHIFT-#{@gear_uuid}-#{comment_string}", key_id,
                  "invalid key id produced")
   end
 
@@ -708,7 +608,7 @@ EOF
     key_string = 'AAAAAverylongstringofcharacters'
     key_type = 'ssh-rsa'
     comment_string = 'testcomment'
-    key_entry = a.send(:key_entry, key_string, key_type, comment_string)
+    key_entry = a.send(:key_entry, key_string, key_type, comment_string, nil)
 
     expected_key_entry = 
       "command=\"#{@container.container_plugin.gear_shell}\"" +
