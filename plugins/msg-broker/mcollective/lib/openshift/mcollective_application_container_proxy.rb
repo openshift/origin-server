@@ -3162,9 +3162,9 @@ module OpenShift
         found_district = false
         districts.each do |district|
           # skip district servers in these cases:
-          # - if required uid is not availabe in the district
+          # - if required uid is not available in the district
           # - server is not active
-          # - server can not accomodate any more gears
+          # - server can not accommodate any more gears
           # - server not part of any zone when user requested zone
           # - if request region is not available
           next if required_uid and !district.available_uids.include?(required_uid)
