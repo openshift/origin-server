@@ -99,7 +99,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     e = RuntimeError.new("Failure")
     Application.any_instance.expects(:save!).raises(e)
     assert_difference "@user.consumed_gears", 0 do
-      assert_difference "Application.all.count", 0 do
+      assert_difference "Application.where(:domain => @domain).count", 0 do
         assert_raises(RuntimeError){ Application.create_app(@appname, cartridge_instances_for(:php), @domain) }
       end
     end
