@@ -50,7 +50,7 @@ module SetupHelper
 
     # Remove all temporary data
     #FileUtils.rm_rf Dir.glob(File.join($temp, "*"))
-    
+
     # Setup the logger
     $logger = Logger.new(File.join($temp, "cucumber.log"))
     $logger.level = Logger::DEBUG
@@ -97,7 +97,7 @@ module SetupHelper
     `mkdir -m 700 -p ~/.ssh`
     `touch ~/.ssh/config`
     `chmod 600 ~/.ssh/config`
-    
+
     # Test we can load environments if .rpmnew files exist
     entries = Dir['/etc/openshift/env/*.rpmnew']
     IO.write('/etc/openshift/env/OPENSHIFT_TEST.rpmnew', 'Cucumber tests are fun') if entries.empty?
