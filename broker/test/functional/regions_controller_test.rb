@@ -3,7 +3,6 @@ require 'test_helper'
 class RegionsControllerTest < ActionController::TestCase
 
   def setup
-    Region.delete_all
     @random = rand(1000000000)
     @region = Region.create("region_#{@random}")
     @controller = RegionsController.new
@@ -31,8 +30,10 @@ class RegionsControllerTest < ActionController::TestCase
     get :index
     assert_response :success
     assert json = JSON.parse(response.body)
-    assert_equal 1, json['data'].length, response.body
-    assert_equal @region.id.to_s, json['data'][0]['id'], json['data'][0].inspect
+    assert json['data'].length > 0
+    this_region = json['data'].select {|entry| entry["name"] == "region_#{@random}"}
+    assert_equal this_region.length, 1, json['data']
+    assert_equal @region.id.to_s, this_region[0]['id'], this_region[0].inspect
 
     get :show, {"id" => @region.id}
     assert_response :success
