@@ -142,17 +142,17 @@ class DomainsControllerTest < ActionController::TestCase
   test "user can create multiple domains" do
     CloudUser.any_instance.stubs(:max_domains).returns(2)
 
-    assert_difference("Domain.count", 1) do
+    assert_difference("@user.domains.count", 1) do
       post :create, {"name" => "ns1#{@random}"}
       assert_response :success
     end
 
-    assert_difference("Domain.count", 1) do
+    assert_difference("@user.domains.count", 1) do
       post :create, {"name" => "ns2#{@random}"}
       assert_response :success
     end
 
-    assert_difference("Domain.count", 0) do
+    assert_difference("@user.domains.count", 0) do
       post :create, {"name" => "ns3#{@random}"}
       assert_response :conflict
     end
