@@ -46,17 +46,22 @@ module OpenShift
         open_timeout: @open_timeout,
         user: @username,
         password: @password,
+        wrap_exceptions: true,
       }
 
       expected_code = options.delete(:expected_code) || 200
 
+      options.merge!(defaults) {|_,option,default| option}
+
       begin
-        RestClient::Request.execute(defaults.merge(options)).tap do |response|
+        RestClient::Request.execute(options).tap do |response|
           unless response.code == expected_code
             raise LBModelException.new "Expected HTTP #{expected_code} but got #{response.code} instead"
           end
         end
       rescue => e
+        raise unless options.wrap_exceptions
+
         msg = "got #{e.class} exception: #{e.message}"
         begin
           resp = JSON.parse e.response
@@ -64,6 +69,7 @@ module OpenShift
           msg += " (#{m})" unless m.empty?
         rescue
         end
+
         raise LBModelException.new msg
       end
     end
@@ -354,7 +360,8 @@ module OpenShift
       # the application-specific rules to and from the latter.
       policy = 'openshift_application_aliases'
       begin
-        get(url: "https://#{@host}/mgmt/tm/ltm/policy/#{policy}")
+        get(url: "https://#{@host}/mgmt/tm/ltm/policy/#{policy}",
+            wrap_exceptions: false)
       rescue RestClient::ResourceNotFound
         @logger.info "No #{policy} policy exists.  Creating..."
         post(url: "https://#{@host}/mgmt/tm/ltm/policy",
