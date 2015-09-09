@@ -104,7 +104,8 @@ class Gear
   def reserve_uid(gear_size = nil, region_id = nil)
     gear_size = group_instance.gear_size unless gear_size
     opts = { :node_profile => gear_size, :least_preferred_servers => non_ha_server_identities,
-             :restricted_servers => restricted_server_identities, :gear => self, :platform => group_instance.platform, :region_id => region_id}
+             :restricted_servers => restricted_server_identities, :existing_gears_hosting => server_identities_gears_map,
+             :gear => self, :platform => group_instance.platform, :region_id => region_id}
     @container = OpenShift::ApplicationContainerProxy.find_available(opts)
     reserved_uid = @container.reserve_uid
     Application.where({"_id" => application._id, "gears.uuid" => self.uuid}).update({"$set" => {"gears.$.server_identity" => @container.id, "gears.$.uid" => reserved_uid}})
@@ -313,6 +314,21 @@ class Gear
   # @return [Array] List of server identities where gears from this gear's group instance are hosted.
   def non_ha_server_identities
     group_instance.server_identities.uniq
+  end
+
+  # Gets the map of server identities to the number of gears (for this particular app) hosted on them
+  # == Returns:
+  # @return [Array] List of server identities where gears from this gear's group instance are hosted.
+  # @return Hash of server identities => number of gears for this application that are hosted on them
+  def server_identities_gears_map
+    si_map = {}
+    group_instance.gears.each do |gear|
+      if gear.server_identity.present?
+        si_map[gear.server_identity] = 0 unless si_map[gear.server_identity]
+        si_map[gear.server_identity] += 1
+      end
+    end
+    si_map
   end
 
   # Gets the list of server identities where this gear cannot be hosted

@@ -203,12 +203,6 @@ module OpenShift
 
     attr_reader :ops # [Operation]
 
-    def read_config cfgfile
-      cfg = ParseConfig.new(cfgfile)
-
-      @virtual_server_name = cfg['VIRTUAL_SERVER']
-    end
-
     # Set the @blocked_on_cnt of the given Operation to the size of the given
     # Array of Operations, add the Operation to @blocked_ops of each of those
     # operations, and finally add the Operation to @ops.
@@ -441,6 +435,8 @@ module OpenShift
           @logger.info "Done."
         end
       end
+
+      @lb_model.update if @lb_model.respond_to?(:update)
     end
 
     # Returns a Hash representing the JSON response from the load balancer.
@@ -508,8 +504,6 @@ module OpenShift
       @logger = logger
 
       @logger.info 'Initializing asynchronous controller...'
-
-      read_config cfgfile
 
       @lb_model = lb_model_class.new @logger, cfgfile
 

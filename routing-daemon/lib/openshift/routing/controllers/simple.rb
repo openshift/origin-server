@@ -80,12 +80,6 @@ module OpenShift
       end
     end
 
-    def read_config cfgfile
-      cfg = ParseConfig.new(cfgfile)
-
-      @virtual_server_name = cfg['VIRTUAL_SERVER']
-    end
-
     def create_pool pool_name, monitor_name=nil
       raise LBControllerException.new "Pool already exists: #{pool_name}" if pools.include? pool_name
 
@@ -150,8 +144,6 @@ module OpenShift
       @logger = logger
 
       @logger.info 'Initializing controller...'
-
-      read_config cfgfile
 
       @lb_model = lb_model_class.new @logger, cfgfile
       @lb_model.authenticate

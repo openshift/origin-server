@@ -9,7 +9,7 @@ HTTPD_PASSENV_FILE=$HTTPD_CFG_DIR/passenv.conf
 HTTPD_PID_FILE=$OPENSHIFT_PHP_DIR/run/httpd.pid
 
 # construct the configuration directives for httpd
-HTTPD_CMD_CONF="-C 'Include $HTTPD_CFG_DIR/*.conf' -f $HTTPD_CFG_FILE"
+HTTPD_CMD_CONF="-c 'Include $HTTPD_CFG_DIR/*.conf' -f $HTTPD_CFG_FILE"
 for dir in /etc/openshift/cart.conf.d/httpd{,/php} ; do
     [ -d $dir ] && HTTPD_CMD_CONF="$HTTPD_CMD_CONF -c 'Include $dir/*.conf'"
 done

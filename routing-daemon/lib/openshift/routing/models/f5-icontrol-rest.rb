@@ -22,6 +22,19 @@ module OpenShift
       @https_vserver = cfg['VIRTUAL_HTTPS_SERVER'] || 'https-ose-vserver'
       @vserver = cfg['VIRTUAL_SERVER'] || 'ose-vserver'
       @ssh_private_key = cfg['BIGIP_SSHKEY'] || '/etc/openshift/bigip.key'
+      @device_group = cfg['BIGIP_DEVICE_GROUP']
+    end
+
+    def run cmd
+      # Using exec 2>&1 ensures that we redirect any error output from /bin/sh
+      # (such as syntax errors in the command) in addition to any error output
+      # from the command itself.
+      output = `exec 2>&1; #{cmd}`
+
+      if $?.exitstatus != 0
+        raise LBModelException.new "Command `#{cmd}`" \
+          " returned exit code #{$?.exitstatus}, output: #{output}"
+      end
     end
 
     # Send a REST request to the given URL and return the response.
@@ -33,17 +46,22 @@ module OpenShift
         open_timeout: @open_timeout,
         user: @username,
         password: @password,
+        wrap_exceptions: true,
       }
 
       expected_code = options.delete(:expected_code) || 200
 
+      options.merge!(defaults) {|_,option,default| option}
+
       begin
-        RestClient::Request.execute(defaults.merge(options)).tap do |response|
+        RestClient::Request.execute(options).tap do |response|
           unless response.code == expected_code
             raise LBModelException.new "Expected HTTP #{expected_code} but got #{response.code} instead"
           end
         end
       rescue => e
+        raise unless options.wrap_exceptions
+
         msg = "got #{e.class} exception: #{e.message}"
         begin
           resp = JSON.parse e.response
@@ -51,6 +69,7 @@ module OpenShift
           msg += " (#{m})" unless m.empty?
         rescue
         end
+
         raise LBModelException.new msg
       end
     end
@@ -237,18 +256,24 @@ module OpenShift
 
       begin
         # write temp cert and key
-        certfname = Tempfile.new('bigip-ssl-cert')
-        keyfname = Tempfile.new('bigip-ssl-key')
+        certfile = Tempfile.new('bigip-ssl-cert')
+        keyfile = Tempfile.new('bigip-ssl-key')
 
-        certfname.write(ssl_cert)
-        certfname.close
-        keyfname.write(private_key)
-        keyfname.close
+        certfile.write(ssl_cert)
+        certfile.close
+        keyfile.write(private_key)
+        keyfile.close
 
-        # scp cert and to F5 LTM (requires ssh key to be in authorized_keys on the F5 LTM
-        @logger.debug("Copying certificate and key for alias #{alias_str} for pool #{pool_name} to LTM host")
-        result = `scp -o StrictHostKeyChecking=no -o PasswordAuthentication=no -o VerifyHostKeyDNS=no -o UserKnownHostsFile=/dev/null -i #{@ssh_private_key} #{certfname.path} admin@#{@host}:/var/tmp/#{alias_str}.crt`
-        result = `scp -o StrictHostKeyChecking=no -o PasswordAuthentication=no -o VerifyHostKeyDNS=no -o UserKnownHostsFile=/dev/null -i #{@ssh_private_key} #{keyfname.path} admin@#{@host}:/var/tmp/#{alias_str}.key`
+        sshflags = "-o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
+          " -o VerifyHostKeyDNS=no -o UserKnownHostsFile=/dev/null" \
+          " -i \"#{@ssh_private_key}\""
+
+        # scp cert and key to F5 LTM (requires ssh key to be in authorized_keys on the F5 LTM).
+        @logger.debug("Copying certificate for alias #{alias_str} for pool #{pool_name} to LTM host")
+        run("scp #{sshflags} #{certfile.path} #{@username}@#{@host}:/var/tmp/#{alias_str}.crt")
+
+        @logger.debug("Copying key for alias #{alias_str} for pool #{pool_name} to LTM host")
+        run("scp #{sshflags} #{keyfile.path} #{@username}@#{@host}:/var/tmp/#{alias_str}.key")
 
         @logger.debug("LTM cert to be installed /var/tmp/#{alias_str}.crt")
         post(url: "https://#{@host}/mgmt/tm/sys/crypto/cert",
@@ -283,15 +308,16 @@ module OpenShift
                  }.to_json)
 
         # Requires LTM System->Users->admin terminal setting to be set to advanced (bash)
-        @logger.debug("LTM removing temporary alias certificate. rm -f /var/tmp/#{alias_str}.crt")
-        result = `ssh -o StrictHostKeyChecking=no -o PasswordAuthentication=no -o VerifyHostKeyDNS=no -o UserKnownHostsFile=/dev/null -i #{@ssh_private_key} admin@#{@host} 'rm -f /var/tmp/#{alias_str}.crt'`
-        @logger.debug("LTM removing temporary alias key. rm -f /var/tmp/#{alias_str}.key")
-        result = `ssh -o StrictHostKeyChecking=no -o PasswordAuthentication=no -o VerifyHostKeyDNS=no -o UserKnownHostsFile=/dev/null -i #{@ssh_private_key} admin@#{@host} 'rm -f /var/tmp/#{alias_str}.key'`
+        @logger.debug("LTM removing temporary alias certificate")
+        run("ssh #{sshflags} #{@username}@#{@host} 'rm -f /var/tmp/#{alias_str}.crt'")
+
+        @logger.debug("LTM removing temporary alias key")
+        run("ssh #{sshflags} #{@username}@#{@host} 'rm -f /var/tmp/#{alias_str}.key'")
       rescue Errno::ENOENT
         # Nothing to do;
       ensure
-        certfname.unlink
-        keyfname.unlink
+        certfile.unlink
+        keyfile.unlink
       end
     end
 
@@ -314,6 +340,14 @@ module OpenShift
       return pool_certs
     end
 
+    def update
+      post(url: "https://#{@host}/mgmt/tm/cm",
+           payload: {
+             "command" => "run",
+             "utilCmdArgs" => "config-sync to-group #{@device_group}",
+           }.to_json) unless @device_group.nil? || @device_group.empty?
+    end
+
     def initialize logger, cfgfile
       @logger = logger
 
@@ -326,7 +360,8 @@ module OpenShift
       # the application-specific rules to and from the latter.
       policy = 'openshift_application_aliases'
       begin
-        get(url: "https://#{@host}/mgmt/tm/ltm/policy/#{policy}")
+        get(url: "https://#{@host}/mgmt/tm/ltm/policy/#{policy}",
+            wrap_exceptions: false)
       rescue RestClient::ResourceNotFound
         @logger.info "No #{policy} policy exists.  Creating..."
         post(url: "https://#{@host}/mgmt/tm/ltm/policy",
