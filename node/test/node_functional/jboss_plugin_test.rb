@@ -26,10 +26,6 @@ class JbossPluginTest < OpenShift::NodeBareTestCase
   # Time format => 2012/02/08 17:57:11,034
   TEMPLATE = "%s ERROR [org.apache.catalina.core.ContainerBase.[jboss.web].[default-host].[/].[HelloWorldServlet]] (http--127.0.250.1-8080-1) Servlet.service() for servlet HelloWorldServlet threw exception: java.lang.OutOfMemoryError: Java heap space\n"
 
-  def jboss_name
-    %w(JBOSSEAP JBOSSEWS JBOSSAS).sample
-  end
-
   def setup
     @uuid = 'bfc83ec2b49444fba1c657b0462eddb9'
     @testdir = '/tmp/jboss_plugin_test'
