@@ -136,9 +136,10 @@ class ApplicationTypesController < ConsoleController
       owner = true
     end
 
-    render :inline => gear_increase_indicator(cartridges, scales, application.gear_profile, false, capabilities, usage_rates, owner)
+    render :text => gear_increase_indicator(cartridges, scales, application.gear_profile, false, capabilities, usage_rates, owner)
   rescue => e
-    render :inline => e.message, :status => 500
+    logger.error $!
+    render :text => "An error has occurred", :status => 500
   end
 
   protected
