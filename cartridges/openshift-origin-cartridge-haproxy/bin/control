@@ -26,13 +26,6 @@ function isrunning() {
     return 1
 }
 
-function ping_server_gears() {
-    #  Ping the server gears and wake 'em up on startup.
-    for geardns in $(web_gears | cut -f 3 -d ','); do
-          [ -z "$geardns" ]  ||  curl "http://$geardns/" > /dev/null 2>&1  ||  :
-    done
-}
-
 function wait_to_start() {
    ep=$(grep "listen stats" $OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg | sed 's#listen\s*stats\s*\(.*\)#\1#')
    i=0
@@ -78,7 +71,6 @@ function print_disable_as_marker_notice() {
 
 function _launch_haproxy_bg() {
     [ -n "$1" ]  &&  zopts="-sf $1"
-    ping_server_gears
     _load_user_configs
     LOGPIPE=${OPENSHIFT_HOMEDIR}/app-root/runtime/logshifter-haproxy
     rm -f $LOGPIPE && mkfifo $LOGPIPE
