@@ -17,6 +17,18 @@ OpenShift is, by its nature, a multi-host system. While Puppet works well on a h
 
 So even if you ultimately want to run Puppet by hand, consider using `oo-install` to help you generate your puppet config files. You can learn more about it at https://install.openshift.com[install.openshift.com].
 
+[NOTE]
+====
+**Supported Operating Systems**
+
+OpenShift Origin M4, and this Puppet module by extension, are only supported on these Linux distributions:
+
+* CentOS 6.x
+* RHEL 6.x
+
+If you need to use different or more current RPM-based Linux distributions, have a look at https://openshift.org/[OpenShift 3].
+====
+
 == System Prerequisites
 Before you can succesfully run a puppet deployment, you will need to install the `puppet` RPM, and possibly also the `bind` RPM, on your target system. The PuppetLabs site has more information on http://docs.puppetlabs.com/guides/puppetlabs_package_repositories.html#for-red-hat-enterprise-linux-and-derivatives[installing puppet from the PuppetLabs repo], and `bind` can be installed using the following command:
 
