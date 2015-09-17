@@ -11,7 +11,7 @@
 
 Summary:       OpenShift daemon for routing integration
 Name:          rubygem-%{gem_name}
-Version: 0.25.1
+Version: 0.25.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -89,6 +89,15 @@ cp -a init/* %{buildroot}/etc/rc.d/init.d/
 %attr(0755,-,-) %{_var}/log/openshift
 
 %changelog
+* Thu Sep 17 2015 Unknown name 0.25.2-1
+- routing-daemon: F5: Fix initialization (miciah.masters@gmail.com)
+- routing-daemon: F5: Sync device-group on update (miciah.masters@gmail.com)
+- routing-daemon: controllers: invoke model update (miciah.masters@gmail.com)
+- routing-daemon: Delete read_config in controllers (miciah.masters@gmail.com)
+- routing-daemon: F5: Fix variable names & comments (miciah.masters@gmail.com)
+- routing-daemon: F5: check for and log SSH errors (miciah.masters@gmail.com)
+- routing-daemon: F5: Use configured SSH user (rhowe@redhat.com)
+
 * Thu Jul 02 2015 Wesley Hearn <whearn@redhat.com> 0.25.1-1
 - bump_minor_versions for 2.0.65 (whearn@redhat.com)
 
