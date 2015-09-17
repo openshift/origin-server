@@ -12,7 +12,7 @@ if [ ! -f $OPENSHIFT_MAVEN_MIRROR ]; then
   OPENSHIFT_MAVEN_MIRROR="${OPENSHIFT_JBOSSEWS_DIR}/usr/versions/shared/configuration/settings.base.xml"
 fi
 
-if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`; then 
+if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`&& [ $OPENSHIFT_MAVEN_MIRROR != "${OPENSHIFT_REPO_DIR}/.openshift/config/settings.base.xml" ]; then 
   OPENSHIFT_MAVEN_MIRROR="${OPENSHIFT_REPO_DIR}/.openshift/config/settings.rhcloud.xml"
 
   if [ ! -f $OPENSHIFT_MAVEN_MIRROR ]; then
