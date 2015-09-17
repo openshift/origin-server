@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.37.1
+Version: 1.37.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -291,6 +291,15 @@ fi
 %{_mandir}/man8/oo-admin-ctl-iptables-port-proxy.8.gz
 
 %changelog
+* Thu Sep 17 2015 Unknown name 1.37.2-1
+- Merge pull request #6220 from tiwillia/bz1250904
+  (dmcphers+openshiftbot@redhat.com)
+- Fixed AuthorizedKeyFile model test to run with other unit tests successfully
+  (tiwillia@redhat.com)
+- Bug 1250904 - Allow ssh keys to be replaced with an empty list
+  (tiwillia@redhat.com)
+- Removing oo-broker prefixes for admin commands (abhgupta@redhat.com)
+
 * Thu Jul 02 2015 Wesley Hearn <whearn@redhat.com> 1.37.1-1
 - bump_minor_versions for 2.0.65 (whearn@redhat.com)
 
