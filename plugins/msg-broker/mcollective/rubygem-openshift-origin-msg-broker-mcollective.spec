@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.35.3
+Version: 1.35.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,11 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Thu Sep 17 2015 Unknown name 1.35.4-1
+- Fix typos (dmcphers@redhat.com)
+- Bug 1234603: spreading gears for an app evenly across zones
+  (abhgupta@redhat.com)
+
 * Mon Aug 17 2015 Wesley Hearn <whearn@redhat.com> 1.35.3-1
 - Merge pull request #6172 from tiwillia/bz1229300
   (dmcphers+openshiftbot@redhat.com)
