@@ -8,7 +8,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.36.2
+Version: 1.36.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -110,6 +110,16 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Thu Sep 17 2015 Unknown name 1.36.3-1
+- Merge pull request #6216 from tiwillia/memberDomainErrors
+  (dmcphers+openshiftbot@redhat.com)
+- Improve error reporting for member add/remove/update through oo-admin-ctl-
+  domain (tiwillia@redhat.com)
+- Merge pull request #6187 from tiwillia/bz1152524
+  (dmcphers+openshiftbot@redhat.com)
+- Check MongoDB hosts connectivty prior to loading broker rails environment
+  (tiwillia@redhat.com)
+
 * Tue Aug 11 2015 Wesley Hearn <whearn@redhat.com> 1.36.2-1
 - Bug 1214087 - return non-zero on all exceptions in oo-admin-move
   (agrimm@redhat.com)
