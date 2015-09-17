@@ -11,7 +11,7 @@
 
 Summary:       OpenShift daemon for routing integration
 Name:          rubygem-%{gem_name}
-Version: 0.25.2
+Version: 0.26.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0

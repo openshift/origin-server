@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 1.34.4
+Version: 1.35.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
