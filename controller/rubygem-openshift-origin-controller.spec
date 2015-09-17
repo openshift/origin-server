@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.37.3
+Version: 1.37.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -86,6 +86,15 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Sep 17 2015 Unknown name 1.37.4-1
+- Merge pull request #6230 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Fix formatting (dmcphers@redhat.com)
+- Bug 1095610: Validation for zone names (abhgupta@redhat.com)
+- Bug 1234603: spreading gears for an app evenly across zones
+  (abhgupta@redhat.com)
+- Removing oo-broker prefixes for admin commands (abhgupta@redhat.com)
+
 * Mon Aug 17 2015 Wesley Hearn <whearn@redhat.com> 1.37.3-1
 - Bug 1095610: Additional validations for region/zone names  - an alphanumeric
   character anywhere in the name is now required  - there is no regex
