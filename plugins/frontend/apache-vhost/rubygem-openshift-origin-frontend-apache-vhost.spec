@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.13.0
+Version: 0.13.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -111,6 +111,9 @@ mv httpd/openshift-vhost-logconf.include %{buildroot}/etc/httpd/conf.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Thu Sep 17 2015 Unknown name 0.13.1-1
+- bump_minor_versions for sprint 103 (sedgar@jhancock.ose.phx2.redhat.com)
+
 * Tue Aug 11 2015 Wesley Hearn <whearn@redhat.com> 0.12.4-1
 - openshift-origin-frontend-apache-vhost: Bumping version due to error in
   building (whearn@redhat.com)
