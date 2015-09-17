@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.38.0
+Version: 1.38.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -207,6 +207,9 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Thu Sep 17 2015 Unknown name 1.38.1-1
+- bump_minor_versions for sprint 103 (sedgar@jhancock.ose.phx2.redhat.com)
+
 * Thu Sep 17 2015 Unknown name 1.37.3-1
 - Bug 1260204 - Only write newer timestamps to last_access files
   (agrimm@redhat.com)
