@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.38.0
+Version: 1.38.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -291,6 +291,9 @@ fi
 %{_mandir}/man8/oo-admin-ctl-iptables-port-proxy.8.gz
 
 %changelog
+* Thu Sep 17 2015 Unknown name 1.38.1-1
+- bump_minor_versions for sprint 103 (sedgar@jhancock.ose.phx2.redhat.com)
+
 * Thu Sep 17 2015 Unknown name 1.37.2-1
 - Merge pull request #6220 from tiwillia/bz1250904
   (dmcphers+openshiftbot@redhat.com)
