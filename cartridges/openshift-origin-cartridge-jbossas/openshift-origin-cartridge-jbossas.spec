@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.33.3
+Version: 1.33.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -111,6 +111,9 @@ fi
 
 
 %changelog
+* Thu Sep 17 2015 Unknown name 1.33.4-1
+- Add java-1.6.0-openjdk requirment to jboss cartridges (tiwillia@redhat.com)
+
 * Thu Aug 20 2015 Wesley Hearn <whearn@redhat.com> 1.33.3-1
 - Bumping cartridge versions (abhgupta@redhat.com)
 
