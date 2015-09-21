@@ -60,7 +60,7 @@ module OpenShift
           end
         end
       rescue => e
-        raise unless options.wrap_exceptions
+        raise unless options[:wrap_exceptions]
 
         msg = "got #{e.class} exception: #{e.message}"
         begin
