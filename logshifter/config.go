@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -34,7 +35,7 @@ const (
 	// output types
 	Syslog = "syslog"
 	File   = "file"
-	Multi = "multi"
+	Multi  = "multi"
 
 	DefaultConfigFile = "/etc/openshift/logshifter.conf"
 )
@@ -62,7 +63,7 @@ func ParseConfig(file string) (*Config, error) {
 
 	for {
 		line, err := reader.ReadString('\n')
-		if err != nil || len(line) == 0 {
+		if (err != nil && err != io.EOF) || len(line) == 0 {
 			break
 		}
 
