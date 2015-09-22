@@ -1,2 +1,2 @@
-SLOW_HOST='node.example.com'
+SLOW_HOSTS='node.example.com'
 PINNED_USER='gshipley'
