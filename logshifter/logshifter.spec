@@ -3,7 +3,7 @@
 %global import_path github.com/openshift
 
 Name:          openshift-origin-logshifter
-Version: 1.10.1
+Version: 1.10.2
 Release:       1%{?dist}
 Summary:       Log transport for OpenShift gear processes.
 License:       ASL 2.0
@@ -41,6 +41,10 @@ cp -p man/*.1 %{buildroot}%{_mandir}/man1/
 %{_mandir}/man1/*
 
 %changelog
+* Tue Sep 22 2015 Stefanie Forrester <sedgar@redhat.com> 1.10.2-1
+- Bug 1264039: Read all lines even if file does not end in '\n' or EOL
+  (tiwillia@redhat.com)
+
 * Thu Jul 02 2015 Wesley Hearn <whearn@redhat.com> 1.10.1-1
 - bump_minor_versions for 2.0.65 (whearn@redhat.com)
 
