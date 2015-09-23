@@ -8,7 +8,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.37.1
+Version: 1.37.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -110,6 +110,9 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Wed Sep 23 2015 Stefanie Forrester <sedgar@redhat.com> 1.37.2-1
+- oo-admin-broker-cache: Delete --console flag (miciah.masters@gmail.com)
+
 * Thu Sep 17 2015 Unknown name 1.37.1-1
 - bump_minor_versions for sprint 103 (sedgar@jhancock.ose.phx2.redhat.com)
 
