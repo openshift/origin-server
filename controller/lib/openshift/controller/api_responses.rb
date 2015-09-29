@@ -42,10 +42,12 @@ module OpenShift
             event_name = nil
             if internal_error
               event_name = 'render_error'
+              err_context = OpenShift::OOException::system_error_context(err_code)
             else
               event_name = 'render_user_error'
+              err_context = OpenShift::OOException::user_error_context(err_code)
             end
-            @analytics_tracker.track_event(event_name, @domain, @application, {'request_path' => request.fullpath, 'request_method' => request.method, 'status_code' => status, 'error_code' => err_code, 'error_field' => field})
+            @analytics_tracker.track_event(event_name, @domain, @application, {'request_path' => request.fullpath, 'request_method' => request.method, 'status_code' => status, 'error_code' => err_code, 'error_field' => field, 'error_context' => err_context})
           end
           respond_with reply, :status => reply.status
         end
