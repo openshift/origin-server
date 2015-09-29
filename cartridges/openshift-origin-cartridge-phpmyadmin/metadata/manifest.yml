@@ -8,7 +8,7 @@ License: GPLv2
 Vendor: Red4sis
 Cartridge-Version: 0.0.13
 Compatible-Versions: []
-Cartridge-Vendor: redhat
+Cartridge-Vendor: red4sis
 Website: http://www.phpmyadmin.net/
 Categories:
 - embedded
