@@ -417,7 +417,7 @@ module OpenShift
           itinerary.each_cartridge do |cartridge_name, upgrade_info|
             begin
               cartridge_model.cartridge_directory(cartridge_name)
-            rescue Exception => e
+            rescue Exception
               removed << cartridge_name
             end
           end
@@ -467,7 +467,6 @@ module OpenShift
         state                = OpenShift::Runtime::Utils::ApplicationState.new(container)
         cartridge_model      = OpenShift::Runtime::V2UpgradeCartridgeModel.new(config, container, state, hourglass)
         cartridge_repository = OpenShift::Runtime::CartridgeRepository.instance
-        restart_required     = false
         restart_time         = 0
 
         reset_quota, reset_block_quota, reset_inode_quota = relax_quota
@@ -870,9 +869,9 @@ module OpenShift
                 begin
                   response = http.request(request)
                   response_code = response.code
-                rescue Timeout::Error => e
+                rescue Timeout::Error
                   timeout = true
-                rescue Exception => e
+                rescue Exception
                   # ignore it
                 end
 
