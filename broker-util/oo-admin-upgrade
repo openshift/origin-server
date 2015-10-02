@@ -491,8 +491,10 @@ class Upgrader
 
       gears.each do |gear|
         if gear_whitelist && gear_whitelist.length > 0
-          puts "Gear #{gear[:uuid]} is not in the whitelist and will be skipped"
-          next unless gear_whitelist.include?(gear[:uuid])
+          unless gear_whitelist.include?(gear[:uuid])
+            puts "Gear #{gear[:uuid]} is not in the whitelist and will be skipped"
+            next
+          end
         end
 
         if active_gears_map.include?(server_identity) && active_gears_map[server_identity].include?(gear[:uuid])
