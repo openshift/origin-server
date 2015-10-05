@@ -110,6 +110,9 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Fri Oct 03 2015 William Burton <wburton@redhat.com> 1.37.3-1
+- Fix typo for gear_whitelist when calling oo-admin-move upgrade-node
+
 * Wed Sep 23 2015 Stefanie Forrester <sedgar@redhat.com> 1.37.2-1
 - oo-admin-broker-cache: Delete --console flag (miciah.masters@gmail.com)
 
