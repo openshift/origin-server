@@ -2,6 +2,26 @@ require File.expand_path('../../test_helper', __FILE__)
 
 class ApplicationTypesControllerTest < ActionController::TestCase
 
+  QUICKSTARTS_WHITELIST = [
+    "WordPress 4",
+    "Drupal 7",
+    "CodeIgniter",
+    "Cartridge Development Kit",
+    "Go Language",
+    "AeroGear Push 0.X",
+    #"JBoss Fuse 6.1",
+    "MEAN",
+    "Ruby on Rails 3",
+    "CapeDwarf",
+    "Django",
+    "Ruby on Rails 4",
+    #"JBoss BPM Suite",
+    #"JBoss BRMS",
+    #"Laravel 5.0",
+    "Sinatra",
+    "Ghost 0.5.10",
+  ]
+
   with_clean_cache
 
   setup{ Quickstart.reset! }
@@ -105,6 +125,11 @@ class ApplicationTypesControllerTest < ActionController::TestCase
 
   def random_application_type_id
     ApplicationType.all.select{ |t| t.cartridge? }.sample(1).first.id
+  end
+
+  def random_quickstart_application_type
+    ApplicationType.all.select(&:quickstart?).
+      select {|t| QUICKSTARTS_WHITELIST.include? t.display_name}.sample(1).first
   end
 
   test "should default 'No preference' radio button for gear region where there is more than 1 and no default" do
@@ -269,7 +294,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
 
   test "should show type page for quickstart" do
     with_unique_user
-    type = ApplicationType.all.select(&:quickstart?).sample(1).first
+    type = random_quickstart_application_type
     omit("No quickstarts registered on this server") if type.nil?
 
     get :show, :id => type.id
