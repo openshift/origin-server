@@ -30,6 +30,7 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
 
     raise Exception.new("Application properties not specified") if app_props.nil?
     raise Exception.new("Application name mismatch") if app_props.name != @@appname
+    raise Exception.new("Domain namespace mismatch") if app_props.namespace != @@namespace
 
     raise Exception.new("Current gears list is empty") if current_gears.empty?
     raise Exception.new("Current gear count mismatch") if current_gears.length != 1
