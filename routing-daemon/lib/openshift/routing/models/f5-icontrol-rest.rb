@@ -361,8 +361,24 @@ module OpenShift
       # exist. The add_pool_alias and delete_pool_alias methods add and delete
       # the application-specific rules to and from the latter.
       begin
-        get(url: "https://#{@host}/mgmt/tm/ltm/policy/#{POLICY_NAME}",
-            wrap_exceptions: false)
+        policy_url = "https://#{@host}/mgmt/tm/ltm/policy/#{POLICY_NAME}"
+        policy_json = get(url: policy_url, wrap_exceptions: false)
+
+        # If the policy does not exist, control will have gone to the rescue
+        # block, which will create the policy.  If we get to this point, then
+        # the policy exists, but we still should make sure it is configured
+        # properly.
+
+        policy = JSON.parse(policy_json)
+
+        unless policy['controls'].include? 'forwarding'
+          patch(url: policy_url,
+                payload: { 'controls' => ['forwarding'] }.to_json)
+        end
+
+        unless policy['requires'].include? 'http'
+          patch(url: policy_url, payload: { 'requires' => ['http'] }.to_json)
+        end
       rescue RestClient::ResourceNotFound
         @logger.info "No #{POLICY_NAME} policy exists.  Creating..."
         post(url: "https://#{@host}/mgmt/tm/ltm/policy",
