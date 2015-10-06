@@ -13,6 +13,8 @@ module OpenShift
   #
   class F5IControlRestLoadBalancerModel < LoadBalancerModel
 
+    POLICY_NAME = 'openshift_application_aliases'
+
     def read_config cfgfile
       cfg = ParseConfig.new(cfgfile)
 
@@ -205,17 +207,17 @@ module OpenShift
 
     def get_pool_aliases pool_name
       alias_name_regex = Regexp.new("\\Aalias_#{pool_name}_(.*)\\Z")
-      (JSON.parse(get(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_application_aliases/rules")) || [])['items'].map {|item| item['name']}.grep(alias_name_regex) {$1}
+      (JSON.parse(get(url: "https://#{@host}/mgmt/tm/ltm/policy/#{POLICY_NAME}/rules")) || [])['items'].map {|item| item['name']}.grep(alias_name_regex) {$1}
     end
 
     def add_pool_alias pool_name, alias_str
       alias_name = "alias_#{URI.escape(pool_name)}_#{URI.escape(alias_str)}"
-      post(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_application_aliases/rules",
+      post(url: "https://#{@host}/mgmt/tm/ltm/policy/#{POLICY_NAME}/rules",
            payload: {
              "kind" => "tm:ltm:policy:rules:rulesstate",
              "name" => alias_name,
            }.to_json)
-      post(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_application_aliases/rules/#{alias_name}/conditions",
+      post(url: "https://#{@host}/mgmt/tm/ltm/policy/#{POLICY_NAME}/rules/#{alias_name}/conditions",
            payload: {
              "kind" => "tm:ltm:policy:rules:actions:conditionsstate",
              "name" => "0",
@@ -229,7 +231,7 @@ module OpenShift
              "request" => true,
              "values" => [alias_str]
            }.to_json)
-      post(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_application_aliases/rules/#{alias_name}/actions",
+      post(url: "https://#{@host}/mgmt/tm/ltm/policy/#{POLICY_NAME}/rules/#{alias_name}/actions",
            payload: {
              "kind" => "tm:ltm:policy:rules:actions:actionsstate",
              "name" => "0",
@@ -246,7 +248,7 @@ module OpenShift
 
     def delete_pool_alias pool_name, alias_str
       alias_name = "alias_#{URI.escape(pool_name)}_#{URI.escape(alias_str)}"
-      delete(url: "https://#{@host}/mgmt/tm/ltm/policy/openshift_application_aliases/rules/#{alias_name}")
+      delete(url: "https://#{@host}/mgmt/tm/ltm/policy/#{POLICY_NAME}/rules/#{alias_name}")
     end
 
     def add_ssl pool_name, alias_str, ssl_cert, private_key
@@ -358,23 +360,22 @@ module OpenShift
       # Create the openshift_application_aliases policy if it does not already
       # exist. The add_pool_alias and delete_pool_alias methods add and delete
       # the application-specific rules to and from the latter.
-      policy = 'openshift_application_aliases'
       begin
-        get(url: "https://#{@host}/mgmt/tm/ltm/policy/#{policy}",
+        get(url: "https://#{@host}/mgmt/tm/ltm/policy/#{POLICY_NAME}",
             wrap_exceptions: false)
       rescue RestClient::ResourceNotFound
-        @logger.info "No #{policy} policy exists.  Creating..."
+        @logger.info "No #{POLICY_NAME} policy exists.  Creating..."
         post(url: "https://#{@host}/mgmt/tm/ltm/policy",
              payload: {
                "kind" => "tm:ltm:policy:policystate",
-               "name" => policy,
+               "name" => POLICY_NAME,
                "controls" => ["forwarding"],
                "requires" => ["http"],
                "strategy" => "first-match",
              }.to_json)
 
         # Create a noop rule for the policy so we can add the policy to the vservers
-        post(url: "https://#{@host}/mgmt/tm/ltm/policy/#{policy}/rules",
+        post(url: "https://#{@host}/mgmt/tm/ltm/policy/#{POLICY_NAME}/rules",
          payload: {
            "kind" => "tm:ltm:policy:rules:rulesstate",
            "name" => "default_noop",
@@ -383,12 +384,12 @@ module OpenShift
         # Now add the policy to the virtual servers
         post(url: "https://#{@host}/mgmt/tm/ltm/virtual/#{@vserver}/policies",
              payload: {
-               "name" => policy
+               "name" => POLICY_NAME
              }.to_json)
 
         post(url: "https://#{@host}/mgmt/tm/ltm/virtual/#{@https_vserver}/policies",
              payload: {
-               "name" => policy
+               "name" => POLICY_NAME
              }.to_json)
       end
     end
