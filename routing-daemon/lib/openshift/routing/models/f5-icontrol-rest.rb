@@ -18,7 +18,7 @@ module OpenShift
     def read_config cfgfile
       cfg = ParseConfig.new(cfgfile)
 
-      @host = cfg['BIGIP_HOST'] || '127.0.0.1'
+      @hosts = (cfg['BIGIP_HOST'] || '127.0.0.1').split(/[;, ]/)
       @username = cfg['BIGIP_USERNAME'] || 'admin'
       @password = cfg['BIGIP_PASSWORD'] || 'passwd'
       @https_vserver = cfg['VIRTUAL_HTTPS_SERVER'] || 'https-ose-vserver'
@@ -39,7 +39,11 @@ module OpenShift
       end
     end
 
-    # Send a REST request to the given URL and return the response.
+    # Send a REST request to the specified resource and return the response.
+    # Note: rest_request tries to send the request to @hosts.first, and its
+    # retry logic rotates @hosts before each re-attempt.  As a consequence,
+    # if rest_request succeeds, it will leave @hosts such that @hosts.first
+    # identifies an active host.
     # rest_request :: Hash -> Net::HTTPResponse
     def rest_request options
       defaults = {
@@ -55,13 +59,17 @@ module OpenShift
 
       options.merge!(defaults) {|_,option,default| option}
 
+      first = @hosts.first
+
       begin
+        options['url'] = "https://#{@hosts.first}#{options['resource']}"
+
         RestClient::Request.execute(options).tap do |response|
           unless response.code == expected_code
             raise LBModelException.new "Expected HTTP #{expected_code} but got #{response.code} instead"
           end
         end
-      rescue => e
+      rescue RestClient::ExceptionWithResponse => e
         raise unless options[:wrap_exceptions]
 
         msg = "got #{e.class} exception: #{e.message}"
@@ -73,6 +81,21 @@ module OpenShift
         end
 
         raise LBModelException.new msg
+      rescue RestClient::Exception => e
+        @logger.warn "Got #{e.class} exception for host #{@hosts.first}:" +
+          " #{e.message}" if @hosts.length > 0
+
+        @hosts.rotate!
+
+        # Give up if we have tried every host.
+        if @hosts.first == first
+          raise LBModelException.new "got #{e.class} exception: #{e.message}"
+        end
+
+        @logger.warn "Retrying with #{@hosts.first}..."
+        retry
+      rescue => e
+        raise LBModelException.new "got #{e.class} exception: #{e.message}"
       end
     end
 
@@ -111,11 +134,11 @@ module OpenShift
 
     # Returns [String] of pool names.
     def get_pool_names
-      (JSON.parse(get(url: "https://#{@host}/mgmt/tm/ltm/pool"))['items'] || []).map {|item| item['name']}
+      (JSON.parse(get(resource: "/mgmt/tm/ltm/pool"))['items'] || []).map {|item| item['name']}
     end
 
     def create_pool pool_name, monitor_name
-      post(url: "https://#{@host}/mgmt/tm/ltm/pool",
+      post(resource: "/mgmt/tm/ltm/pool",
            payload: {
              "loadBalancingMode" => "round-robin",
              "monitor" => ("/Common/#{monitor_name}" if monitor_name),
@@ -124,17 +147,17 @@ module OpenShift
     end
 
     def delete_pool pool_name
-      delete(url: "https://#{@host}/mgmt/tm/ltm/pool/#{pool_name}")
+      delete(resource: "/mgmt/tm/ltm/pool/#{pool_name}")
     end
 
     def get_monitor_names
-      (JSON.parse(get(url: "https://#{@host}/mgmt/tm/ltm/monitor/http")) || [])['items'].map {|item| item['name']} + \
-        (JSON.parse(get(url: "https://#{@host}/mgmt/tm/ltm/monitor/https")) || [])['items'].map {|item| item['name']}
+      (JSON.parse(get(resource: "/mgmt/tm/ltm/monitor/http")) || [])['items'].map {|item| item['name']} + \
+        (JSON.parse(get(resource: "/mgmt/tm/ltm/monitor/https")) || [])['items'].map {|item| item['name']}
     end
 
     def create_monitor monitor_name, path, up_code, type, interval, timeout
       type = type == 'https-ecv' ? 'https' : 'http'
-      post(url: "https://#{@host}/mgmt/tm/ltm/monitor/#{type}",
+      post(resource: "/mgmt/tm/ltm/monitor/#{type}",
            payload: {
              "name" => monitor_name,
              "interval" => interval,
@@ -147,7 +170,7 @@ module OpenShift
 
     def delete_monitor monitor_name, type
       type = type == 'https-ecv' ? 'https' : 'http'
-      delete(url: "https://#{@host}/mgmt/tm/ltm/monitor/#{type}/#{monitor_name}")
+      delete(resource: "/mgmt/tm/ltm/monitor/#{type}/#{monitor_name}")
     end
 
     # add_pool_monitor :: String, String -> undefined
@@ -157,7 +180,7 @@ module OpenShift
         push(monitor_name).
         map {|m| m+' '}.
         join('and ')
-      patch(url: "https://#{@host}/mgmt/tm/ltm/pool/#{pool_name}",
+      patch(resource: "/mgmt/tm/ltm/pool/#{pool_name}",
             payload: {
               "monitor" => monitors,
             }.to_json)
@@ -170,14 +193,14 @@ module OpenShift
         tap {|ary| ary.delete(monitor_name)}.
         map {|m| m+' '}.
         join('and ')
-      patch(url: "https://#{@host}/mgmt/tm/ltm/pool/#{pool_name}",
+      patch(resource: "/mgmt/tm/ltm/pool/#{pool_name}",
             payload: {
               "monitor" => monitors,
             }.to_json)
     end
 
     def get_pool_monitors pool_name
-      pool_json = get(url: "https://#{@host}/mgmt/tm/ltm/pool/#{pool_name}")
+      pool_json = get(resource: "/mgmt/tm/ltm/pool/#{pool_name}")
       # The JSON representation of a pool uses a string rather than an array
       # to represent the list of monitors.  A single monitor is represented as
       # '/Common/foo ' (with the trailing whitespace), two monitors are
@@ -187,14 +210,14 @@ module OpenShift
     end
 
     def get_pool_members pool_name
-      JSON.parse(get(url: "https://#{@host}/mgmt/tm/ltm/pool/#{pool_name}/members"))['items'].map {|item| item['name']}
+      JSON.parse(get(resource: "/mgmt/tm/ltm/pool/#{pool_name}/members"))['items'].map {|item| item['name']}
     end
 
     alias_method :get_active_pool_members, :get_pool_members
 
     def add_pool_member pool_name, address, port
       member = address + ':' + port.to_s
-      post(url: "https://#{@host}/mgmt/tm/ltm/pool/#{pool_name}/members",
+      post(resource: "/mgmt/tm/ltm/pool/#{pool_name}/members",
             payload: {
                 "kind" => "ltm:pool:members",
                 "name" => member,
@@ -202,22 +225,22 @@ module OpenShift
     end
 
     def delete_pool_member pool_name, address, port
-      delete(url: "https://#{@host}/mgmt/tm/ltm/pool/#{pool_name}/members/#{address + ':' + port.to_s}")
+      delete(resource: "/mgmt/tm/ltm/pool/#{pool_name}/members/#{address + ':' + port.to_s}")
     end
 
     def get_pool_aliases pool_name
       alias_name_regex = Regexp.new("\\Aalias_#{pool_name}_(.*)\\Z")
-      (JSON.parse(get(url: "https://#{@host}/mgmt/tm/ltm/policy/#{POLICY_NAME}/rules")) || [])['items'].map {|item| item['name']}.grep(alias_name_regex) {$1}
+      (JSON.parse(get(resource: "/mgmt/tm/ltm/policy/#{POLICY_NAME}/rules")) || [])['items'].map {|item| item['name']}.grep(alias_name_regex) {$1}
     end
 
     def add_pool_alias pool_name, alias_str
       alias_name = "alias_#{URI.escape(pool_name)}_#{URI.escape(alias_str)}"
-      post(url: "https://#{@host}/mgmt/tm/ltm/policy/#{POLICY_NAME}/rules",
+      post(resource: "/mgmt/tm/ltm/policy/#{POLICY_NAME}/rules",
            payload: {
              "kind" => "tm:ltm:policy:rules:rulesstate",
              "name" => alias_name,
            }.to_json)
-      post(url: "https://#{@host}/mgmt/tm/ltm/policy/#{POLICY_NAME}/rules/#{alias_name}/conditions",
+      post(resource: "/mgmt/tm/ltm/policy/#{POLICY_NAME}/rules/#{alias_name}/conditions",
            payload: {
              "kind" => "tm:ltm:policy:rules:actions:conditionsstate",
              "name" => "0",
@@ -231,7 +254,7 @@ module OpenShift
              "request" => true,
              "values" => [alias_str]
            }.to_json)
-      post(url: "https://#{@host}/mgmt/tm/ltm/policy/#{POLICY_NAME}/rules/#{alias_name}/actions",
+      post(resource: "/mgmt/tm/ltm/policy/#{POLICY_NAME}/rules/#{alias_name}/actions",
            payload: {
              "kind" => "tm:ltm:policy:rules:actions:actionsstate",
              "name" => "0",
@@ -248,7 +271,7 @@ module OpenShift
 
     def delete_pool_alias pool_name, alias_str
       alias_name = "alias_#{URI.escape(pool_name)}_#{URI.escape(alias_str)}"
-      delete(url: "https://#{@host}/mgmt/tm/ltm/policy/#{POLICY_NAME}/rules/#{alias_name}")
+      delete(resource: "/mgmt/tm/ltm/policy/#{POLICY_NAME}/rules/#{alias_name}")
     end
 
     def add_ssl pool_name, alias_str, ssl_cert, private_key
@@ -272,13 +295,15 @@ module OpenShift
 
         # scp cert and key to F5 LTM (requires ssh key to be in authorized_keys on the F5 LTM).
         @logger.debug("Copying certificate for alias #{alias_str} for pool #{pool_name} to LTM host")
-        run("scp #{sshflags} #{certfile.path} #{@username}@#{@host}:/var/tmp/#{alias_str}.crt")
+        # Use @hosts.first because it is the host most recently used by
+        # rest_request, so it should be active.
+        run("scp #{sshflags} #{certfile.path} #{@username}@#{@hosts.first}:/var/tmp/#{alias_str}.crt")
 
         @logger.debug("Copying key for alias #{alias_str} for pool #{pool_name} to LTM host")
-        run("scp #{sshflags} #{keyfile.path} #{@username}@#{@host}:/var/tmp/#{alias_str}.key")
+        run("scp #{sshflags} #{keyfile.path} #{@username}@#{@hosts.first}:/var/tmp/#{alias_str}.key")
 
         @logger.debug("LTM cert to be installed /var/tmp/#{alias_str}.crt")
-        post(url: "https://#{@host}/mgmt/tm/sys/crypto/cert",
+        post(resource: "/mgmt/tm/sys/crypto/cert",
                payload: {
                  "command" => "install",
                  "name" => "#{alias_str}-https-cert",
@@ -286,7 +311,7 @@ module OpenShift
                }.to_json)
 
         @logger.debug("LTM cert to be installed /var/tmp/#{alias_str}.key")
-        post(url: "https://#{@host}/mgmt/tm/sys/crypto/key",
+        post(resource: "/mgmt/tm/sys/crypto/key",
                payload: {
                  "command" => "install",
                  "name" => "#{alias_str}-https-key",
@@ -294,7 +319,7 @@ module OpenShift
                }.to_json)
 
         @logger.debug("LTM creating client-ssl profile for  #{alias_str}")
-        post(url: "https://#{@host}/mgmt/tm/ltm/profile/client-ssl",
+        post(resource: "/mgmt/tm/ltm/profile/client-ssl",
                  payload: {
                    "name" => "#{alias_str}-ssl-profile",
                    "cert" => "#{alias_str}-https-cert.crt",
@@ -303,7 +328,7 @@ module OpenShift
                  }.to_json)
 
         @logger.debug("LTM adding #{alias_str}-ssl-profile client-ssl to #{@https_vserver}")
-        post(url: "https://#{@host}/mgmt/tm/ltm/virtual/#{@https_vserver}/profiles",
+        post(resource: "/mgmt/tm/ltm/virtual/#{@https_vserver}/profiles",
                  payload: {
                    "name" => "#{alias_str}-ssl-profile",
                    "context" => "clientside",
@@ -311,10 +336,10 @@ module OpenShift
 
         # Requires LTM System->Users->admin terminal setting to be set to advanced (bash)
         @logger.debug("LTM removing temporary alias certificate")
-        run("ssh #{sshflags} #{@username}@#{@host} 'rm -f /var/tmp/#{alias_str}.crt'")
+        run("ssh #{sshflags} #{@username}@#{@hosts.first} 'rm -f /var/tmp/#{alias_str}.crt'")
 
         @logger.debug("LTM removing temporary alias key")
-        run("ssh #{sshflags} #{@username}@#{@host} 'rm -f /var/tmp/#{alias_str}.key'")
+        run("ssh #{sshflags} #{@username}@#{@hosts.first} 'rm -f /var/tmp/#{alias_str}.key'")
       rescue Errno::ENOENT
         # Nothing to do;
       ensure
@@ -325,16 +350,16 @@ module OpenShift
 
     def remove_ssl pool_name, alias_str
       @logger.debug("LTM removing #{URI.escape(alias_str)}-ssl-profile client-ssl from #{@https_vserver}")
-      delete(url: "https://#{@host}/mgmt/tm/ltm/virtual/#{@https_vserver}/profiles/#{URI.escape(alias_str)}-ssl-profile")
+      delete(resource: "/mgmt/tm/ltm/virtual/#{@https_vserver}/profiles/#{URI.escape(alias_str)}-ssl-profile")
 
       @logger.debug("LTM deleting removing #{URI.escape(alias_str)}-ssl-profile")
-      delete(url: "https://#{@host}/mgmt/tm/ltm/profile/client-ssl/#{URI.escape(alias_str)}-ssl-profile")
+      delete(resource: "/mgmt/tm/ltm/profile/client-ssl/#{URI.escape(alias_str)}-ssl-profile")
 
       @logger.debug("LTM removing #{alias_str}-https-key")
-      delete(url: "https://#{@host}/mgmt/tm/sys/file/ssl-key/#{URI.escape(alias_str)}-https-key.key")
+      delete(resource: "/mgmt/tm/sys/file/ssl-key/#{URI.escape(alias_str)}-https-key.key")
 
       @logger.debug("LTM removing #{alias_str}-https-cert")
-      delete(url: "https://#{@host}/mgmt/tm/sys/file/ssl-cert/#{URI.escape(alias_str)}-https-cert.crt")
+      delete(resource: "/mgmt/tm/sys/file/ssl-cert/#{URI.escape(alias_str)}-https-cert.crt")
     end
 
     def get_pool_certificates pool_name
@@ -343,7 +368,7 @@ module OpenShift
     end
 
     def update
-      post(url: "https://#{@host}/mgmt/tm/cm",
+      post(resource: "/mgmt/tm/cm",
            payload: {
              "command" => "run",
              "utilCmdArgs" => "config-sync to-group #{@device_group}",
@@ -361,8 +386,8 @@ module OpenShift
       # exist. The add_pool_alias and delete_pool_alias methods add and delete
       # the application-specific rules to and from the latter.
       begin
-        policy_url = "https://#{@host}/mgmt/tm/ltm/policy/#{POLICY_NAME}"
-        policy_json = get(url: policy_url, wrap_exceptions: false)
+        policy_url = "/mgmt/tm/ltm/policy/#{POLICY_NAME}"
+        policy_json = get(resource: policy_url, wrap_exceptions: false)
 
         # If the policy does not exist, control will have gone to the rescue
         # block, which will create the policy.  If we get to this point, then
@@ -372,16 +397,16 @@ module OpenShift
         policy = JSON.parse(policy_json)
 
         unless policy['controls'].include? 'forwarding'
-          patch(url: policy_url,
+          patch(resource: policy_url,
                 payload: { 'controls' => ['forwarding'] }.to_json)
         end
 
         unless policy['requires'].include? 'http'
-          patch(url: policy_url, payload: { 'requires' => ['http'] }.to_json)
+          patch(resource: policy_url, payload: { 'requires' => ['http'] }.to_json)
         end
       rescue RestClient::ResourceNotFound
         @logger.info "No #{POLICY_NAME} policy exists.  Creating..."
-        post(url: "https://#{@host}/mgmt/tm/ltm/policy",
+        post(resource: "/mgmt/tm/ltm/policy",
              payload: {
                "kind" => "tm:ltm:policy:policystate",
                "name" => POLICY_NAME,
@@ -391,19 +416,19 @@ module OpenShift
              }.to_json)
 
         # Create a noop rule for the policy so we can add the policy to the vservers
-        post(url: "https://#{@host}/mgmt/tm/ltm/policy/#{POLICY_NAME}/rules",
+        post(resource: "/mgmt/tm/ltm/policy/#{POLICY_NAME}/rules",
          payload: {
            "kind" => "tm:ltm:policy:rules:rulesstate",
            "name" => "default_noop",
          }.to_json)
 
         # Now add the policy to the virtual servers
-        post(url: "https://#{@host}/mgmt/tm/ltm/virtual/#{@vserver}/policies",
+        post(resource: "/mgmt/tm/ltm/virtual/#{@vserver}/policies",
              payload: {
                "name" => POLICY_NAME
              }.to_json)
 
-        post(url: "https://#{@host}/mgmt/tm/ltm/virtual/#{@https_vserver}/policies",
+        post(resource: "/mgmt/tm/ltm/virtual/#{@https_vserver}/policies",
              payload: {
                "name" => POLICY_NAME
              }.to_json)
