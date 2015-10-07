@@ -1595,6 +1595,8 @@ class Application
             pub_out[tag][gear_id] = output
           else
             pub_out[tag] = [] if pub_out[tag].nil?
+            re = /^CLIENT_(MESSAGE|RESULT|DEBUG|ERROR|INTERNAL_ERROR)/
+            output = output.lines.reject {|line| line =~ re}.join
             pub_out[tag].push("'#{gear_id}'='#{output}'")
           end
         end
