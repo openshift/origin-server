@@ -1590,11 +1590,24 @@ class Application
       RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
         conn_type = self.connections.find { |c| c._id.to_s == tag}.connection_type
         if status==0
+          # Filter out CLIENT_* lines that the runtime may have added.
+          # For example, execute_parallel_action calls report_quota,
+          # which may add "CLIENT_MESSAGE Warning:" lines about quota
+          # exhaustion to the output.
+          re = /^CLIENT_(MESSAGE|RESULT|DEBUG|ERROR|INTERNAL_ERROR)/
+          output = output.lines.reject {|line| line =~ re}.join
+
           if conn_type.start_with?("ENV:")
             pub_out[tag] = {} if pub_out[tag].nil?
             pub_out[tag][gear_id] = output
           else
             pub_out[tag] = [] if pub_out[tag].nil?
+
+            # Output from a non-ENV: publish hook may be terminated by
+            # "\n", but we do not want to include the "\n" in the input to
+            # the subscribe hook.
+            output.rstrip!
+
             pub_out[tag].push("'#{gear_id}'='#{output}'")
           end
         end
