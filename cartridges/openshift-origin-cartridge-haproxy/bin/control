@@ -357,7 +357,7 @@ function tidy() {
 
 
 if ! [ -f ${OPENSHIFT_HAPROXY_DIR}/conf/haproxy.cfg ]; then
-  client_error "HAProxy required configuration file \"$(basename $f)\" not found."
+  client_error 'HAProxy required configuration file "haproxy.cfg" not found.'
   exit 129
 fi
 
