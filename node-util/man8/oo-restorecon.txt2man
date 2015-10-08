@@ -14,7 +14,7 @@ OPTIONS
  -h|--help
     Display a simple help menu.
 
- -d|--debug
+ -v|--verbose
     Provide verbose output.
   
 EXAMPLE
