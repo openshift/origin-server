@@ -1588,6 +1588,7 @@ class Application
       pub_out = {}
       RemoteJob.execute_parallel_jobs(handle)
       RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
+        output.chomp!
         conn_type = self.connections.find { |c| c._id.to_s == tag}.connection_type
         if status==0
           if conn_type.start_with?("ENV:")
