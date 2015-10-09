@@ -1566,80 +1566,94 @@ class Application
   end
 
   def execute_connections
-    if self.scalable
-      connections, _, _ = elaborate(self.cartridges, self.group_overrides)
-      set_connections(connections)
+    return if not self.scalable
 
-      Rails.logger.debug "Running publishers"
-      handle = RemoteJob.create_parallel_job
-      #publishers
-      self.connections.each do |conn|
-        pub_inst = self.component_instances.find(conn.from_comp_inst_id)
-        tag = conn._id.to_s
+    # Initialize self.connections.
+    connections, _, _ = elaborate(self.cartridges, self.group_overrides)
+    set_connections(connections)
 
-        pub_inst.gears.each do |gear|
-          input_args = [gear.name, self.domain_namespace, gear.uuid]
+    # Run the publish hooks on each gear and get their output.
+    Rails.logger.debug "Running publishers"
+    handle = RemoteJob.create_parallel_job
+    self.connections.each do |conn|
+      pub_inst = self.component_instances.find(conn.from_comp_inst_id)
+      tag = conn._id.to_s
+
+      pub_inst.gears.each do |gear|
+        input_args = [gear.name, self.domain_namespace, gear.uuid]
+        unless gear.removed
+          job = gear.get_execute_connector_job(pub_inst, conn.from_connector_name, conn.connection_type, input_args)
+          RemoteJob.add_parallel_job(handle, tag, gear, job)
+        end
+      end
+    end
+
+    pub_out = {}
+    RemoteJob.execute_parallel_jobs(handle)
+    RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
+      # Ignore the hook's output if it did not complete successfully.
+      next if status != 0
+
+      # Filter out CLIENT_* lines that the runtime may have added.
+      # For example, execute_parallel_action calls report_quota,
+      # which may add "CLIENT_MESSAGE Warning:" lines about quota
+      # exhaustion to the output.
+      re = /^CLIENT_(MESSAGE|RESULT|DEBUG|ERROR|INTERNAL_ERROR)/
+      output = output.lines.reject {|line| line =~ re}.join
+
+      conn_type = self.connections.find { |c| c._id.to_s == tag}.connection_type
+      if conn_type.start_with?("ENV:")
+        pub_out[tag] = {} if pub_out[tag].nil?
+
+        # Output from an ENV: publish hook includes one or more
+        # environment variable assignments of the form "var=value\n".
+        # Copy them verbatim for subscribe hooks.
+        pub_out[tag][gear_id] = output
+      else
+        pub_out[tag] = [] if pub_out[tag].nil?
+
+        # Output from a non-ENV: publish hook may be terminated by
+        # "\n", but we do not want to include the "\n" in the input to
+        # the subscribe hook.
+        output.rstrip!
+
+        # Output from a non-ENV: publish hook generally includes some
+        # gear-specific parameter.  Subscribe hooks should expect to
+        # receive a list of these parameters formatted as
+        # "'gearuuid'='parameter'" (with the single-quotes but without
+        # the double-quotes) joined by spaces.
+        pub_out[tag].push("'#{gear_id}'='#{output}'")
+      end
+    end
+
+    # Run the subscribe hooks, providing them the output of the publish
+    # hooks as their input.
+    Rails.logger.debug "Running subscribers"
+    handle = RemoteJob.create_parallel_job
+    self.connections.each do |conn|
+      pub_inst = self.component_instances.find(conn.from_comp_inst_id)
+      sub_inst = self.component_instances.find(conn.to_comp_inst_id)
+      tag = ""
+
+      unless pub_out[conn._id.to_s].nil?
+        if conn.connection_type.start_with?("ENV:")
+          input_to_subscriber = pub_out[conn._id.to_s]
+        else
+          input_to_subscriber = Shellwords::shellescape(pub_out[conn._id.to_s].join(' '))
+        end
+
+        Rails.logger.debug "Output of publisher - '#{pub_out}'"
+        sub_inst.gears.each do |gear|
+          input_args = [gear.name, self.domain_namespace, gear.uuid, input_to_subscriber]
           unless gear.removed
-            job = gear.get_execute_connector_job(pub_inst, conn.from_connector_name, conn.connection_type, input_args)
+            job = gear.get_execute_connector_job(sub_inst, conn.to_connector_name, conn.connection_type, input_args, pub_inst.cartridge_name)
             RemoteJob.add_parallel_job(handle, tag, gear, job)
           end
         end
       end
-      pub_out = {}
-      RemoteJob.execute_parallel_jobs(handle)
-      RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
-        conn_type = self.connections.find { |c| c._id.to_s == tag}.connection_type
-        if status==0
-          # Filter out CLIENT_* lines that the runtime may have added.
-          # For example, execute_parallel_action calls report_quota,
-          # which may add "CLIENT_MESSAGE Warning:" lines about quota
-          # exhaustion to the output.
-          re = /^CLIENT_(MESSAGE|RESULT|DEBUG|ERROR|INTERNAL_ERROR)/
-          output = output.lines.reject {|line| line =~ re}.join
-
-          if conn_type.start_with?("ENV:")
-            pub_out[tag] = {} if pub_out[tag].nil?
-            pub_out[tag][gear_id] = output
-          else
-            pub_out[tag] = [] if pub_out[tag].nil?
-
-            # Output from a non-ENV: publish hook may be terminated by
-            # "\n", but we do not want to include the "\n" in the input to
-            # the subscribe hook.
-            output.rstrip!
-
-            pub_out[tag].push("'#{gear_id}'='#{output}'")
-          end
-        end
-      end
-      Rails.logger.debug "Running subscribers"
-      #subscribers
-      handle = RemoteJob.create_parallel_job
-      self.connections.each do |conn|
-        pub_inst = self.component_instances.find(conn.from_comp_inst_id)
-        sub_inst = self.component_instances.find(conn.to_comp_inst_id)
-        tag = ""
-
-        unless pub_out[conn._id.to_s].nil?
-          if conn.connection_type.start_with?("ENV:")
-            input_to_subscriber = pub_out[conn._id.to_s]
-          else
-            input_to_subscriber = Shellwords::shellescape(pub_out[conn._id.to_s].join(' '))
-          end
-
-          Rails.logger.debug "Output of publisher - '#{pub_out}'"
-          sub_inst.gears.each do |gear|
-            input_args = [gear.name, self.domain_namespace, gear.uuid, input_to_subscriber]
-            unless gear.removed
-              job = gear.get_execute_connector_job(sub_inst, conn.to_connector_name, conn.connection_type, input_args, pub_inst.cartridge_name)
-              RemoteJob.add_parallel_job(handle, tag, gear, job)
-            end
-          end
-        end
-      end
-      RemoteJob.execute_parallel_jobs(handle)
-      Rails.logger.debug "Connections done"
     end
+    RemoteJob.execute_parallel_jobs(handle)
+    Rails.logger.debug "Connections done"
   end
 
   #private
