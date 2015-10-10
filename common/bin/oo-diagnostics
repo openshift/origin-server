@@ -692,13 +692,13 @@ class OODiag
     verbose "checking for presence of gem-installed rubygems"
 
     # list out all gem directories and find those without RPM ownership
-    gemdirs = `gem environment gempath`.chomp.split(':').
+    disown = `gem environment gempath`.chomp.split(':').
       map {|dir| dir + "/specifications"}.
       select {|dir| File.exists? dir}.
-      map {|dir| dir + "/*.gemspec"}
-    verbose "looking in #{gemdirs.join ' '}"
-    disown = `ls #{gemdirs.join ' '} | xargs -n 1 rpm -qf`.
-      split("\n").select {|line| line.end_with? "not owned by any package"}
+      map {|dir| dir + "/*.gemspec"}.
+      tap {|globs| puts "looking in #{globs.join ' '}"}.
+      map {|glob| Dir.glob(glob)}.flatten(1).
+      select {|file| `rpm -qf #{file}`.chomp.end_with? 'not owned by any package'}
     return if disown.empty?
 
     do_warn <<-"NOOO"
