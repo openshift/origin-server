@@ -26,11 +26,12 @@ Options:
 -p|--node_profile <gear_size>
     Only required for create
 -i|--server_identity
-    Node server identity (required) (may be a comma-separated list)
+    Node server identity (i.e., its hostname; also may be
+    a comma-separated list or a regex enclosed in slashes) (required)
 -a|--available
     On add-node, add all available nodes with the right profile
 -r|--region <region_name>
-    Region name of the server identitiy.
+    Region name of the server identity.
     Only valid for add-node (optional) and set-region
 -z|--zone <zone_name>
     Zone within the region. Only valid when region is specified
