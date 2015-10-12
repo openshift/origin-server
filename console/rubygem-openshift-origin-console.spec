@@ -10,7 +10,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.35.3
+Version: 1.35.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -168,6 +168,11 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Oct 12 2015 Stefanie Forrester <sedgar@redhat.com> 1.35.4-1
+- Merge pull request #6236 from Miciah/make-console-functional-tests-less-
+  random (dmcphers+openshiftbot@redhat.com)
+- Whitelist quickstarts in console functional test (miciah.masters@gmail.com)
+
 * Thu Sep 17 2015 Stefanie Forrester <sedgar@redhat.com> 1.35.3-1
 - Version bump for build errors (sedgar@redhat.com)
 - Fix render error (jliggitt@redhat.com)
