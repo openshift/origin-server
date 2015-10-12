@@ -8,7 +8,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.37.2
+Version: 1.37.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -110,6 +110,10 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Mon Oct 12 2015 Stefanie Forrester <sedgar@redhat.com> 1.37.3-1
+- oo-admin-ctl-district-elaborate-on-node-identity (miciah.masters@gmail.com)
+- Fix typo for gear_whitelist (oo-admin-upgrade) (william17.burton@gmail.com)
+
 * Fri Oct 03 2015 William Burton <wburton@redhat.com> 1.37.3-1
 - Fix typo for gear_whitelist when calling oo-admin-move upgrade-node
 
