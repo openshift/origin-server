@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.29.1
+Version: 1.29.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -125,6 +125,9 @@ rm -rf %{buildroot}%{gem_instdir}/.yardoc*
 %doc %{gem_docdir}
 
 %changelog
+* Mon Oct 12 2015 Stefanie Forrester <sedgar@redhat.com> 1.29.2-1
+- oo-diagnostics: Handle empty gemdirs (miciah.masters@gmail.com)
+
 * Tue Nov 11 2014 Adam Miller <admiller@redhat.com> 1.29.1-1
 - Bug 1160752 - Make apache-vhost more atomic (jhonce@redhat.com)
 - bump_minor_versions for sprint 53 (admiller@redhat.com)
