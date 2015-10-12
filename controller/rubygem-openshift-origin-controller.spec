@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.38.1
+Version: 1.38.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -86,6 +86,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Oct 12 2015 Stefanie Forrester <sedgar@redhat.com> 1.38.2-1
+- gear-placement plugin: provide namespace to plugin (miciah.masters@gmail.com)
+
 * Thu Sep 17 2015 Unknown name 1.38.1-1
 - bump_minor_versions for sprint 103 (sedgar@jhancock.ose.phx2.redhat.com)
 
