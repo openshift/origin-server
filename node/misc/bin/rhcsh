@@ -88,19 +88,19 @@ function welcome {
       local usage=$(quota -w 2>/dev/null| grep '^.*/dev/' | awk '{printf "%3.1f", ($2 / $4 * 100)}')
       if float_test "${usage:-0} > 90.0"
       then
-        echo "Warning: Gear ${OPENSHIFT_GEAR_UUID} is using ${usage}% of disk quota"
+        echo 1>&2 "Warning: Gear ${OPENSHIFT_GEAR_UUID} is using ${usage}% of disk quota"
       fi
 
       local usage=$(quota -w 2>/dev/null| grep '^.*/dev/' | awk '{printf "%3.1f",  ($5 / $7 * 100)}')
       if float_test "${usage:-0} > 90.0"
       then
-        echo "Warning: Gear ${OPENSHIFT_GEAR_UUID} is using ${usage}% of inodes allowed"
+        echo 1>&2 "Warning: Gear ${OPENSHIFT_GEAR_UUID} is using ${usage}% of inodes allowed"
       fi
     else
-      echo "Your application is out of disk space; please run \"rhc app-tidy $OPENSHIFT_APP_NAME\"" 1>&2
+      echo 1>&2 "Your application is out of disk space; please run \"rhc app-tidy $OPENSHIFT_APP_NAME\""
     fi
   else
-    echo "Command \"quota\" not found for app $OPENSHIFT_APP_NAME, please check the node hosting this app"
+    echo 1>&2 "Command \"quota\" not found for app $OPENSHIFT_APP_NAME, please check the node hosting this app"
   fi
 }
 
