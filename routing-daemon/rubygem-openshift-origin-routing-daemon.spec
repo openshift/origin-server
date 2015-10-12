@@ -11,7 +11,7 @@
 
 Summary:       OpenShift daemon for routing integration
 Name:          rubygem-%{gem_name}
-Version: 0.26.2
+Version: 0.26.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -89,6 +89,11 @@ cp -a init/* %{buildroot}/etc/rc.d/init.d/
 %attr(0755,-,-) %{_var}/log/openshift
 
 %changelog
+* Mon Oct 12 2015 Stefanie Forrester <sedgar@redhat.com> 0.26.3-1
+- routing-daemon: F5: Support multiple hosts (miciah.masters@gmail.com)
+- routing-daemon: F5: Fix policy if broken (miciah.masters@gmail.com)
+- routing-daemon: F5: Use const POLICY_NAME (miciah.masters@gmail.com)
+
 * Tue Sep 22 2015 Stefanie Forrester <sedgar@redhat.com> 0.26.2-1
 - Merge pull request #6242 from Miciah/routing-daemon-f5-fix-syntax-error
   (dmcphers+openshiftbot@redhat.com)
