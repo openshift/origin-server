@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.38.1
+Version: 1.38.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -207,6 +207,11 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Mon Oct 12 2015 Stefanie Forrester <sedgar@redhat.com> 1.38.2-1
+- Fix verbose option for oo-restorecon man page (nakayamakenjiro@gmail.com)
+- oo-accept-node Report errors if selinux contexts on $GEAR_BASE_DIR are
+  incorrect (tiwillia@redhat.com)
+
 * Thu Sep 17 2015 Unknown name 1.38.1-1
 - bump_minor_versions for sprint 103 (sedgar@jhancock.ose.phx2.redhat.com)
 
