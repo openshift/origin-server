@@ -40,8 +40,8 @@ end
 def restore_con(dir, label, verbose = False)
     puts "restorecon -R #{dir}" if verbose
     %x[restorecon -R #{dir} ]
-    puts "chcon -l #{label} -R #{dir}*" if verbose
-    %x[chcon -l #{label} -R #{dir}* ]
+    puts "chcon -l #{label} -R #{dir}" if verbose
+    %x[chcon -l #{label} -R #{dir} ]
 end
 
 SelinuxContext = OpenShift::Runtime::Utils::SelinuxContext
