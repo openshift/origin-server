@@ -720,8 +720,13 @@ module OpenShift
             name = "OPENSHIFT_#{name}"
           end
 
-          File.open(PathUtils.join(path, name), 'w', 0666) do |f|
-            f.write(v)
+          pathname = PathUtils.join(path, name)
+          begin
+            File.open(pathname, 'w', 0666) do |f|
+              f.write(v)
+            end
+          rescue Exception => e
+            logger.warn "Got #{e.class} exception writing #{pathname}: #{e.message}"
           end
         end
       end
@@ -1222,6 +1227,8 @@ module OpenShift
         pairs = args[3].values[0].split("\n")
 
         pairs.each do |pair|
+          next if not pair.include? '='
+
           k, v    = pair.strip.split("=")
           envs[k] = v
         end
