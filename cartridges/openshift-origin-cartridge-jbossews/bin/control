@@ -87,6 +87,15 @@ function ishttpup() {
     return 1
 }
 
+# This function is here to mimmic the EAP cartriges design: 
+# Due to the lack of a provided mgmt interface, the options to check for 
+#  deployment activation is limited. Thus this fucntion uses an ENV VAR to 
+#  allow you configure a sleep time (in seconds), giving your deployments 
+#  time to start before marking the gear as active. 
+function waitondeployments() {
+    sleep ${OPENSHIFT_JBOSSEWS_START_DELAY:-0}
+}
+
 function start_app() {
     # Check for running app
     if isrunning; then
@@ -116,6 +125,7 @@ function start_app() {
           echo "$cartridge_type process failed to start"
           exit 2
         fi
+        waitondeployments
     fi
 }
 
