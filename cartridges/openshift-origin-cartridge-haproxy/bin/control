@@ -41,9 +41,9 @@ function wait_to_start() {
 
 function _stop_haproxy_ctld() {
   if [ -f ${HAPROXY_CTLD_PID} ]; then
-    pid=$( /bin/cat "${HAPROXY_CTLD_PID}" )
-    if ps --no-headers --pid ${pid} > /dev/null 2>&1; then
-      kill -TERM $pid
+    local ctld_pid=$( /bin/cat "${HAPROXY_CTLD_PID}" )
+    if ps --no-headers --pid ${ctld_pid} > /dev/null 2>&1; then
+      kill -TERM $ctld_pid
     else
       rm -f ${HAPROXY_CTLD_PID}
     fi
@@ -147,15 +147,19 @@ function _stop_haproxy_service() {
     else
         if `pgrep -x haproxy > /dev/null 2>&1`
         then
-            echo "Warning: HAProxy process exists without a pid file.  Use force-stop to kill." 1>&2
+            client_message "Warning: HAProxy process exists without a pid file."
         else
-            echo "HAProxy already stopped" 1>&2
+            client_message "HAProxy already stopped"
         fi
     fi
 }
 
 function _restart_haproxy_service() {
-    _stop_haproxy_service || pkill haproxy || :
+    _stop_haproxy_service
+    if `pgrep -x haproxy > /dev/null 2>&1`; then
+      client_message "Could not stop HAProxy. Forcefully killing the process."
+      pkill haproxy
+    fi
     _start_haproxy_service
 }
 
@@ -175,17 +179,31 @@ function _reload_service() {
 
 function start() {
     _start_haproxy_service
-    isrunning  &&  echo "HAProxy instance is started"
+    if isrunning; then
+      client_result "HAProxy instance is started"
+    else
+      client_error "HAProxy instance could not be started"
+      exit 1
+    fi
 }
 
 function stop() {
     _stop_haproxy_service
-    isrunning  ||  echo "HAProxy instance is stopped"
+    if `pgrep -x haproxy > /dev/null 2>&1`; then
+      client_message "Could not stop HAProxy. Forcefully killing the process."
+      pkill haproxy
+      if `pgrep -x haproxy > /dev/null 2>&1`; then
+        client_error "Could not stop the HAProxy process."
+        exit 1
+      fi
+    fi
+
+    client_result "HAProxy instance is stopped"
 }
 
 function restart() {
     _restart_haproxy_service
-    isrunning  &&  echo "Restarted HAProxy instance"
+    isrunning  &&  client_result "Restarted HAProxy instance"
 }
 
 function reload() {
@@ -196,14 +214,14 @@ function reload() {
        _reload_service
     fi
 
-    isrunning  &&  echo "Reloaded HAProxy instance"
+    isrunning  &&  client_result "Reloaded HAProxy instance"
 }
 
 function force-reload() {
     if isrunning; then
-        echo "`date`: Conditionally reloading HAProxy service " 1>&2
+        client_message "`date`: Conditionally reloading HAProxy service "
         _reload_service
-        isrunning  &&  echo "Conditionally reloaded HAProxy"
+        isrunning  &&  client_result "Conditionally reloaded HAProxy"
     fi
 }
 
