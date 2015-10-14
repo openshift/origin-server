@@ -163,9 +163,7 @@ function post_restore {
     local rexp="s#\(DROP DATABASE\) \(.*\)#\\1 IF EXISTS \\2#g;"
 
     # Restore old postgres database
-    zcat $dump_file | sed "${rexp}" | postgresql_context "psql -U postgres -d postgres" &> /dev/null
-
-    if [ $? -ne 0 ]
+    if ! zcat $dump_file | sed "${rexp}" | postgresql_context "psql -U postgres -d postgres" &> /dev/null
     then
       warning "Error: Could not import Postgres Database!  Continuing..."
     fi

@@ -134,9 +134,7 @@ function _stop_haproxy_service() {
     _stop_haproxy_ctld
     [ -f $HAPROXY_PID ]  &&  pid=$( /bin/cat "${HAPROXY_PID}" )
     if `ps -p $pid > /dev/null 2>&1`; then
-        /bin/kill $pid
-        ret=$?
-        if [ $ret -eq 0 ]; then
+        if ! /bin/kill $pid; then
             TIMEOUT="$STOPTIMEOUT"
             while [ $TIMEOUT -gt 0 ] && [ -f "$HAPROXY_PID" ]; do
                 /bin/kill -0 "$pid" >/dev/null 2>&1 || break

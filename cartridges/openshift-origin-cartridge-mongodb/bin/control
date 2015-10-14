@@ -39,8 +39,9 @@ function _repair_mongod() {
         client_result "Attempting to repair MongoDB ..."
         tmp_config="/tmp/mongodb.repair.conf"
         grep -ve "fork\s*=\s*true" $OPENSHIFT_MONGODB_DIR/conf/mongodb.conf > $tmp_config
-        mongodb_context "mongod ${authopts} -f ${tmp_config} --repair"
-        client_result "MongoDB repair status = $?"
+        local rc=0
+        mongodb_context "mongod ${authopts} -f ${tmp_config} --repair" || rc=$?
+        client_result "MongoDB repair status = $rc"
         rm -f $tmp_config
     else
         echo "MongoDB already running - not running repair"
@@ -84,16 +85,10 @@ function stop() {
 
     if [ -n "$pid" ]; then
         echo "Stopping MongoDB cartridge"
-        set +e
-        /bin/kill $pid 2>/dev/null
-        set -e
-        ret=$?
-        if [ $ret -eq 0 ]; then
+        if ! /bin/kill $pid 2>/dev/null; then
             TIMEOUT="$STOPTIMEOUT"
             while [ $TIMEOUT -gt 0 ] && [ -f "$OPENSHIFT_MONGODB_DIR/pid/mongodb.pid" ]; do
-                set +e
                 /bin/kill -0 "$pid" >/dev/null 2>&1 || break
-                set -e
                 sleep 1
                 let TIMEOUT=${TIMEOUT}-1
             done
@@ -125,8 +120,10 @@ function pre_snapshot {
    _wait_for_mongod_to_startup
    #  Work in a temporary directory (create and cd to it).
    umask 077
-   dumpdir=$(mktemp -d /tmp/mongodumpXXXXXXXX)
-   [ $? -eq 0 ] || die 0 "ERROR" "Failed to create working directory."
+   if ! dumpdir=$(mktemp -d /tmp/mongodumpXXXXXXXX)
+   then
+     die 0 "ERROR" "Failed to create working directory."
+   fi
    pushd $dumpdir > /dev/null
 
    #  Take a "dump".
@@ -187,8 +184,10 @@ WARNING: You may have possibly encountered the mongorestore bugs related to
 function restore_from_mongodb_snapshot {
    #  Work in a temporary directory (create and cd to it).
    umask 077
-   dumpdir=$(mktemp -d /tmp/mongodumpXXXXXXXX)
-   [ $? -eq 0 ] || die 0 "ERROR" "Failed to create working directory."
+   if ! dumpdir=$(mktemp -d /tmp/mongodumpXXXXXXXX)
+   then
+     die 0 "ERROR" "Failed to create working directory."
+   fi
    pushd $dumpdir > /dev/null
 
    #  Extract dump from the snapshot.

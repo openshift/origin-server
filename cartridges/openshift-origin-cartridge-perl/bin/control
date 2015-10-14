@@ -28,10 +28,11 @@ function start() {
   ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
   # Force httpd into its own pgroup, as httpd is hard-coded to TERM everything in
   # its pgroup during shutdown (even while foregrounded)
+  local rc=0
   set -m
-  eval "nohup /usr/sbin/httpd $HTTPD_CMD_CONF -D FOREGROUND |& /usr/bin/logshifter -tag perl &"
+  eval "nohup /usr/sbin/httpd $HTTPD_CMD_CONF -D FOREGROUND |& /usr/bin/logshifter -tag perl &" || rc=$?
   set +m
-  [ "$?" == "0" ] && wait_for_pid_file $HTTPD_PID_FILE
+  [[ "$rc" = 0 ]] && wait_for_pid_file $HTTPD_PID_FILE
 }
 
 function stop() {

@@ -80,9 +80,7 @@ function stop {
     if [ -f $pidfile ]; then
       echo "Stopping MySQL ${OPENSHIFT_MYSQL_VERSION} cartridge"
       pid=$( /bin/cat $pidfile )
-      /bin/kill $pid
-      ret=$?
-      if [ $ret -eq 0 ]; then
+      if ! /bin/kill $pid; then
         TIMEOUT="${stop_timeout}"
         while [[ "${TIMEOUT}" > 0 && -f "${pidfile}" ]]
         do

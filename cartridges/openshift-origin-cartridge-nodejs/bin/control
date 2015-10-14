@@ -126,10 +126,7 @@ function stop() {
 
       echo "`date +"$FMT"`: Stopping application '$OPENSHIFT_APP_NAME' ..."
 
-      /bin/kill $cart_pid
-      ret=$?
-
-      if [ $ret -eq 0 ]; then
+      if ! /bin/kill $cart_pid; then
         TIMEOUT="$STOPTIMEOUT"
         while [ $TIMEOUT -gt 0 ]  && is_cartridge_running ; do
           /bin/kill -0 "$cart_pid" >/dev/null 2>&1 || break
