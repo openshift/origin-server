@@ -1,19 +1,23 @@
 #!/bin/bash -e
 # Update the list of non-local haproxy status URLs meant to be used by the
 # auto scaler.
-source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 # Parse the arguments to populate the status URLs list.
 list=
-kvargs=$(echo "${@:4}" | tr -d "\n" )
-for arg in $kvargs; do
-    surl=$(echo "$arg" | cut -f 2 -d '=' | tr -d "'")
+args=($(printf "%s\n" "${@:4}"))
+for arg in "${args[@]}" ; do
+    # skip if it's not a k/v arg
+    [[ "${arg}" =~ '=' ]] || continue
+    # drop single-quotes
+    arg="${arg//\'/}"
+    # grab the 'value' bit
+    arg="${arg#*=}"
     # Do not add an entry for the local gear.
-    if [[ ! $surl =~ $OPENSHIFT_GEAR_DNS ]]; then
-        if [ -z "$list" ]; then
-            list="$surl"
+    if [[ ! $arg =~ $OPENSHIFT_GEAR_DNS ]] ; then
+        if [[ -z "$list" ]] ; then
+            list="$arg"
         else
-            list="$list\n$surl"
+            list="$list\n$arg"
         fi
     fi
 done
