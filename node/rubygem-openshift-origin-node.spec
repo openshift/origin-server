@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.38.2
+Version: 1.38.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -291,6 +291,15 @@ fi
 %{_mandir}/man8/oo-admin-ctl-iptables-port-proxy.8.gz
 
 %changelog
+* Thu Oct 15 2015 Stefanie Forrester <sedgar@redhat.com> 1.38.3-1
+- Merge pull request #6247 from Miciah/bug-1111501-REPORT_BUILD_ANALYTICS-
+  should-be-set-to-false-by-default (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #6269 from dobbymoodge/rhcsh_cart-hook_cleanup
+  (dmcphers+openshiftbot@redhat.com)
+- Log errs and skip bad lines when writing env vars (miciah.masters@gmail.com)
+- fix rhcsh error output, clean up cart sub hooks (jolamb@redhat.com)
+- REPORT_BUILD_ANALYTICS=false by default (miciah.masters@gmail.com)
+
 * Mon Oct 12 2015 Stefanie Forrester <sedgar@redhat.com> 1.38.2-1
 - Merge pull request #6236 from Miciah/make-console-functional-tests-less-
   random (dmcphers+openshiftbot@redhat.com)
