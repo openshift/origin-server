@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.27.1
+Version: 2.27.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -100,6 +100,9 @@ ln -fs /usr/share/openshift/jboss/modules/com/openshift/metrics /etc/alternative
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Oct 15 2015 Stefanie Forrester <sedgar@redhat.com> 2.27.2-1
+- fix rhcsh error output, clean up cart sub hooks (jolamb@redhat.com)
+
 * Thu Sep 17 2015 Unknown name 2.27.1-1
 - bump_minor_versions for sprint 103 (sedgar@jhancock.ose.phx2.redhat.com)
 
