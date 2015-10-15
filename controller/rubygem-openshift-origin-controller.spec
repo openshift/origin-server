@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.38.2
+Version: 1.38.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -86,6 +86,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Oct 15 2015 Stefanie Forrester <sedgar@redhat.com> 1.38.3-1
+- controller: execute_connections: reformat, comment (miciah.masters@gmail.com)
+- Merge pull request #6271 from Miciah/bug-1261540-controller-
+  execute_connections-nix-client-output (dmcphers+openshiftbot@redhat.com)
+- controller: execute_connections: nix client output (miciah.masters@gmail.com)
+
 * Mon Oct 12 2015 Stefanie Forrester <sedgar@redhat.com> 1.38.2-1
 - gear-placement plugin: provide namespace to plugin (miciah.masters@gmail.com)
 
