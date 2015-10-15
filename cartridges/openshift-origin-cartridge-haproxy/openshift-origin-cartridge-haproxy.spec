@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version: 1.31.2
+Version: 1.31.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -48,6 +48,13 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Oct 15 2015 Stefanie Forrester <sedgar@redhat.com> 1.31.3-1
+- Merge pull request #6269 from dobbymoodge/rhcsh_cart-hook_cleanup
+  (dmcphers+openshiftbot@redhat.com)
+- Kill haproxy during restart even when pid does not exist
+  (tiwillia@redhat.com)
+- fix rhcsh error output, clean up cart sub hooks (jolamb@redhat.com)
+
 * Mon Oct 12 2015 Stefanie Forrester <sedgar@redhat.com> 1.31.2-1
 - haproxy/bin/control: Fix error for no haproxy.cfg (miciah.masters@gmail.com)
 
