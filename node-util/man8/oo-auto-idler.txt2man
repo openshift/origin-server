@@ -6,7 +6,7 @@ SYNOPSIS
 
 DESCRIPTION
   The OpenShift auto-idler automates the process of listing and idling gears that
-  have been inactive. This replaces the oo-last-access and oo-idler scripts, doing the
+  have been inactive. This replaces the oo-list-stale and oo-idler scripts, doing the
   same job more efficiently in a single script.
 
 OPTIONS
@@ -29,7 +29,7 @@ COMMANDS
   --list  
     Only list the stale gears that would be idled; do not idle them.
 
-  --skip-last-access
+  --skip-last-access  
     Skips the running of 'oo-last-access' script, which is run by default prior to the idling checks.
 
   --verbose  
