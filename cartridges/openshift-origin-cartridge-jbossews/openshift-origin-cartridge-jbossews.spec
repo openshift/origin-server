@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 1.35.1
+Version: 1.35.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,12 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Oct 15 2015 Stefanie Forrester <sedgar@redhat.com> 1.35.2-1
+- Merge pull request #6266 from sferich888/BZ1270660
+  (dmcphers+openshiftbot@redhat.com)
+- Implementing a sleep function to mimic the EAP waitfordeployments call
+  (sferich888@gmail.com)
+
 * Thu Sep 17 2015 Unknown name 1.35.1-1
 - bump_minor_versions for sprint 103 (sedgar@jhancock.ose.phx2.redhat.com)
 
