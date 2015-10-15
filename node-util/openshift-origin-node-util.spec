@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.38.2
+Version: 1.38.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -207,6 +207,9 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Thu Oct 15 2015 Stefanie Forrester <sedgar@redhat.com> 1.38.3-1
+- oo-restorecon: run it on the gear's top level dir (pep@redhat.com)
+
 * Mon Oct 12 2015 Stefanie Forrester <sedgar@redhat.com> 1.38.2-1
 - Fix verbose option for oo-restorecon man page (nakayamakenjiro@gmail.com)
 - oo-accept-node Report errors if selinux contexts on $GEAR_BASE_DIR are
