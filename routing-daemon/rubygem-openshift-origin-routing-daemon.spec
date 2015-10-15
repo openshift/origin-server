@@ -11,7 +11,7 @@
 
 Summary:       OpenShift daemon for routing integration
 Name:          rubygem-%{gem_name}
-Version: 0.26.3
+Version: 0.26.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -89,6 +89,10 @@ cp -a init/* %{buildroot}/etc/rc.d/init.d/
 %attr(0755,-,-) %{_var}/log/openshift
 
 %changelog
+* Thu Oct 15 2015 Stefanie Forrester <sedgar@redhat.com> 0.26.4-1
+- Set the Host header appropriately in Nginx alias configuration
+  (tiwillia@redhat.com)
+
 * Mon Oct 12 2015 Stefanie Forrester <sedgar@redhat.com> 0.26.3-1
 - routing-daemon: F5: Support multiple hosts (miciah.masters@gmail.com)
 - routing-daemon: F5: Fix policy if broken (miciah.masters@gmail.com)
