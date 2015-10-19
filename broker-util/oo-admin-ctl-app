@@ -30,7 +30,7 @@ Options:
     Gear uuid to operate on
 --cartridge
     Cartridge to operate on
---alias 
+--alias
     Alias to operate on
 --multiplier
     Multiplier factor to be set for the cartridge
@@ -42,14 +42,14 @@ end
 
 opts = GetoptLong.new(
     ["--login",            "-l", GetoptLong::REQUIRED_ARGUMENT],
-    ["--app",              "-a", GetoptLong::REQUIRED_ARGUMENT],    
+    ["--app",              "-a", GetoptLong::REQUIRED_ARGUMENT],
     ["--domain",           "-n", GetoptLong::REQUIRED_ARGUMENT],
     ["--command",          "-c", GetoptLong::REQUIRED_ARGUMENT],
     ["--gear_uuid",              GetoptLong::REQUIRED_ARGUMENT],
     ["--cartridge",              GetoptLong::REQUIRED_ARGUMENT],
     ["--alias",                  GetoptLong::REQUIRED_ARGUMENT],
     ["--multiplier",             GetoptLong::REQUIRED_ARGUMENT],
-    ["--bypass",           "-b", GetoptLong::NO_ARGUMENT],    
+    ["--bypass",           "-b", GetoptLong::NO_ARGUMENT],
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
 )
 
@@ -67,7 +67,7 @@ command  = args['--command']
 bypass   = args['--bypass']
 gear_uuid = args['--gear_uuid']
 cartridge = args['--cartridge']
-# dup is required here since the alias valiadation in add_alias calls a downcase! 
+# dup is required here since the alias valiadation in add_alias calls a downcase!
 # the string here seems to be frozen and cannot be modified, hence a dup is passed
 server_alias = args['--alias'].dup if args['--alias']
 multiplier = args['--multiplier']
@@ -169,7 +169,7 @@ begin
           gi.gears.each do |g|
             gear_count += 1
             g.deregister_dns rescue nil
-            g.destroy_gear rescue nil 
+            g.destroy_gear rescue nil
             begin
               UsageRecord.track_usage(user._id, app.name, g._id, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:gear_usage], gi.gear_size)
               addtl_fs_gb = gi.addtl_fs_gb
@@ -190,7 +190,7 @@ begin
         Lock.run_in_app_user_lock(owner, app) do
           owner.consumed_gears -= gear_count
           owner.save!
-        end      
+        end
         app.delete
       end
     end
@@ -217,6 +217,15 @@ begin
       else
         cis = g.component_instances
         cis.each do |ci|
+          app.group_overrides.each do |ago|
+            unless ago.nil?
+              if !ago.min_gears.nil? && ci.gears.length <= ago.min_gears
+                puts "Gear #{gear_uuid} cannot be removed as the application " +
+                "has already reached the minimum gear limit of #{ago.min_gears}."
+                exit 1
+              end
+            end
+          end
           if ci.gears.length == 1
             puts "Gear #{gear_uuid} cannot be removed. You need to remove cartridge #{ci.cartridge_name}."
             exit 1
