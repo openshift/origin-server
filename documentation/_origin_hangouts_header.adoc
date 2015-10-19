@@ -2,7 +2,7 @@ image::06_bonfire_large.jpg[Come hang out with OpenShift]
 
 == Welcome to OpenShift Origin Community Hangouts!
 
-Come hang with other OpenShifters (devs, users, cartridge builders, ops, devops, documenation, qa, whomever welcome too!). We do an on-air Google Hangout every Friday at Noon Eastern / 9AM Pacific!
+Come hang with other OpenShifters (devs, users, cartridge builders, ops, devops, documentation, qa, whomever welcome too!). We do an on-air Google Hangout every Friday at Noon Eastern / 9AM Pacific!
 
 *What's this all about, hmm?* +
 The idea behind these weekly hangouts is that a lot of OpenShift community members  (and others) are working remotely these days and so the community hour is meant to be a chance to grab a coffee, beer, etc and hang out (virtually) and talk about a range of topics that intersect with OpenShift Origin.

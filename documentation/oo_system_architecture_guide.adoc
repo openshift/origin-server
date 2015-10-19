@@ -60,7 +60,7 @@ Gears combine the partitioning capabilities of control groups with the security 
 │   │   ├── dependencies
 │   │   ├── metadata.json
 │   │   └── repo
-│   └── ...application deployements
+│   └── ...application deployments
 ├── git
 │   └── [APP_NAME].git
 │       ├── hooks <5>
@@ -84,7 +84,7 @@ Proxy ports allow Gears to expose internal services for the purposes of load bal
 
 Each gear can allocate up to 5 proxy ports. These are exposed on a routable address so that a related gear can connect to them even if that gear exists on a separate node.
 
-Proxy ports are enabled by HAProxy running as a system service and configured to proxy raw TCP connections; as opposed to the HAProxy cartridge which provides web load balancing sevice. In the future, they will be the underlying mechanism which is used to provide TCP connections described by Application Descriptors.
+Proxy ports are enabled by HAProxy running as a system service and configured to proxy raw TCP connections; as opposed to the HAProxy cartridge which provides web load-balancing service. In the future, they will be the underlying mechanism which is used to provide TCP connections described by Application Descriptors.
 
 NOTE: In OpenShift Online, proxy ports are not directly accessible from outside the collection of nodes. In OpenShift Origin and OpenShift Enterprise this restriction does not exist unless implemented by the system administrator.
 

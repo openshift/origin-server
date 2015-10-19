@@ -11,7 +11,7 @@ This guide documents all of the cartridges that are distributed with OpenShift O
 [WARNING]
 ====
 *Cartridges and Persistent Storage*: Every time you push, everything in your remote repo directory is recreated.
-Store long term items (like an sqlite database) in the OpenShift data directory, which will persist between pushes of your repo.
+Store long term items (like an SQLite database) in the OpenShift data directory, which will persist between pushes of your repo.
 The OpenShift data directory can be found via the environment variable `$OPENSHIFT_DATA_DIR`.
 ====
 
@@ -32,7 +32,7 @@ rhc set-env OPENSHIFT_MMS_API_KEY=your_mms_api_key -a app
 ....
 +
 . Embed the 10gen cartridge.
-. Go to https://mms.mongodb.com and add your host, by adding MongoDB host, port and credentials into the formular.
+. Go to https://mms.mongodb.com and add your host, by adding MongoDB host, port and credentials into the form.
 
 [[cron]]
 == Cron
@@ -517,7 +517,7 @@ During server startup, the configuration files in the source repository are proc
 
 [[tomcat-cartridge-integrations]]
 === Cartridge Integrations
-The `jbossews` cart has out-of-the-box integration support with the RedHat `postgresql` and `mysql` cartridges. The default
+The `jbossews` cart has out-of-the-box integration support with the Red Hat `postgresql` and `mysql` cartridges. The default
 `context.xml` contains two basic JDBC `Resource` definitions, `jdbc/MySQLDS` and `jdbc/PostgreSQLDS`, which will be automatically
 configured to work with their respective cartridges if installed into your application.
 
@@ -1058,7 +1058,7 @@ requirements.txt       Standard pip requirements file <3>
 ----
 <1> For backward compatibility, the `wsgi/application` path is selected as default
     WSGI entry-point with higher priority. You can customize the path using the
-    `OPENSHIFT_PYTHON_WSGI_APPLICATION` envirotnment variable. See the Environment
+    `OPENSHIFT_PYTHON_WSGI_APPLICATION` environment variable. See the Environment
     variables section below.
 <2> Adding dependencies to the `install_requires` section of `setup.py` file will
     cause the cartridge to install those dependencies at git push time.
@@ -1076,9 +1076,9 @@ logs/          Log data (like httpd access/error logs)
 lib/           Various libraries
 bin/setup      The script to setup the cartridge
 bin/build      Default build script
-bin/teardown   Called at cartridge descruction
+bin/teardown   Called at cartridge destruction
 bin/control    Init script to start/stop httpd
-versions/      Version data to support multiple python versions (copied into place by setup
+versions/      Version data to support multiple python versions (copied into place by setup)
 ----
 
 === Markers
@@ -1108,7 +1108,7 @@ Adding marker files to `.openshift/markers` will have the following effects:
 The `python` cartridge supports the following environment variables:
 
 OPENSHIFT_PYTHON_WSGI_APPLICATION:: Set custom path to the WSGI entry-point, eg.
-using the `rhc env set OPENSHIFT_PYTHON_WSGI_APPLICATION=app/altenative-wsgi.py`
+using the `rhc env set OPENSHIFT_PYTHON_WSGI_APPLICATION=app/alternative-wsgi.py`
 command.
 OPENSHIFT_PYTHON_REQUIREMENTS_PATH:: Set custom path to the pip requirements file,
 eg. using the `rhc env set OPENSHIFT_PYTHON_REQUIREMENTS_PATH=requirements/production.txt`
@@ -1192,7 +1192,7 @@ After `sprockets` gem is installed you need to precompile all your assets locall
 
 ==== Load database schema
 
-If your Rails application contains a large amount of migrations it's good to use `db:schema:load` on initial deploy and `db:migrate` on re-deploymnets. You can do this by looking into the database and checking whether one of the DB tables exists.
+If your Rails application contains a large amount of migrations it's good to use `db:schema:load` on initial deploy and `db:migrate` on re-deployments. You can do this by looking into the database and checking whether one of the DB tables exists.
 
 This example checks, in the deploy hook, if the `spree_activators` table is present in the database.
 ....

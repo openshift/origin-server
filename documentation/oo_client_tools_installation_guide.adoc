@@ -154,7 +154,7 @@ $ rhc -v
 ----
 
 == Ubuntu
-These insructions are broken out by Ubuntu version.footnote:[Hat tip to http://www.w3bootstrap.com/install-openshift-client-tools-ubuntu-14-04/[this article] for the updated instructions for Ubuntu 14.04.]
+These instructions are broken out by Ubuntu version.footnote:[Hat tip to http://www.w3bootstrap.com/install-openshift-client-tools-ubuntu-14-04/[this article] for the updated instructions for Ubuntu 14.04.]
 
 === For Ubuntu 14.04
 First, ensure that the "Universe" repository is enabled by https://help.ubuntu.com/community/Repositories/Ubuntu[following these instructions].

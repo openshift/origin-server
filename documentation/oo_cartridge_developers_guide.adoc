@@ -602,7 +602,7 @@ git config --global core.autocrlf input # use `true` on Windows
 git config --global core.safecrlf true
 ----
 
-To ensure that the excutable bit is on, on UNIX-like systems, run:
+To ensure that the executable bit is on, on UNIX-like systems, run:
 
 ----
 chmod +x bin/*
@@ -671,7 +671,7 @@ The initial install process for a cartridge is as follows:
 . If the cartridge provides an `install` script, that script is executed.
 . The gear git repository is populated.
 . The cartridge directory is locked.
-. The public Endpoints are creted.
+. The public Endpoints are created.
 . The `start` script is run.
 . The frontend is connected.
 . If the cartridge provides a `post_install` script, that script is executed.

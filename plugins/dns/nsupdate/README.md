@@ -4,7 +4,7 @@ This software distribution includes cryptographic software that is subject to th
 
 # Configuration
 
-This plugin can authenticate updates using either TSIG or GSS-TSIG request signatires. The DNS server must be configured to accept update requests from the broker host.
+This plugin can authenticate updates using either TSIG or GSS-TSIG request signatures. The DNS server must be configured to accept update requests from the broker host.
 
 The configuration file for the plugin is ```/etc/openshift/plugins.d/openshift-origin-dns-nsupdate.conf```
 

@@ -30,7 +30,7 @@ If you need to use different or more current RPM-based Linux distributions, have
 ====
 
 == System Prerequisites
-Before you can succesfully run a puppet deployment, you will need to install the `puppet` RPM, and possibly also the `bind` RPM, on your target system. The PuppetLabs site has more information on http://docs.puppetlabs.com/guides/puppetlabs_package_repositories.html#for-red-hat-enterprise-linux-and-derivatives[installing puppet from the PuppetLabs repo], and `bind` can be installed using the following command:
+Before you can successfully run a puppet deployment, you will need to install the `puppet` RPM, and possibly also the `bind` RPM, on your target system. The PuppetLabs site has more information on http://docs.puppetlabs.com/guides/puppetlabs_package_repositories.html#for-red-hat-enterprise-linux-and-derivatives[installing puppet from the PuppetLabs repo], and `bind` can be installed using the following command:
 
 ----
 $ yum install bind -y
@@ -41,7 +41,7 @@ TIP: The bind installation is only necessary if you want the OpenShift host to a
 === "Optional" Repository for RHEL
 If you are deploying to a Red Hat Enterprise Linux host, you will also need to enable the Optional repository for some necessary RPMs:
 
-* Via yum config manasger: `yum-config-manager --enable rhel-6-server-optional-rpms`
+* Via yum-config-manager: `yum-config-manager --enable rhel-6-server-optional-rpms`
 * Via RHN classic: enable the `rhel-x86_64-server-optional-6` channel
 
 === Installing the OpenShift Origin Puppet Module
@@ -365,7 +365,7 @@ class { 'openshift_origin' :
   broker_virtual_ip_address   => '10.10.20.250',
 
   # Indicate if this Broker is also the load balancer; if this host includes
-  # the load_baancer role, then set this to 'true'
+  # the load_balancer role, then set this to 'true'
   load_balancer_master => true|false,
 
   ...
@@ -502,7 +502,7 @@ If you skip this, each gear move will require typing root passwords for each of 
 All node hosts should identify with the same host keys, so that when gears are moved between hosts, ssh and git don't give developers spurious warnings about the host keys changing. So, copy /etc/ssh/ssh_* from one node host to all the rest (or, if using the same image for all hosts, just keep the keys from the image).
 
 4. *Perform the Post-Install tasks.* +
-The Comprehensive Deployment guide includes information on the link:oo_deployment_guide_comprehensive.html#post-install-tasks[steps needed to complete a new OpenShift Origin deployment]. These steps incude creating districts and registering gear types, and they are necessary for the proper operation of the system.
+The Comprehensive Deployment guide includes information on the link:oo_deployment_guide_comprehensive.html#post-install-tasks[steps needed to complete a new OpenShift Origin deployment]. These steps include creating districts and registering gear types, and they are necessary for the proper operation of the system.
 
 == Puppet Parameters
 
@@ -545,8 +545,8 @@ Default: yum
 This flag is used to control some module behaviors when an outside utility
 (like oo-install) is managing the deployment of OpenShift across multiple
 hosts simultaneously. Some configuration tasks can"t be performed during
-a multi-host parallel installation and this boolean enables the user to
-indicate whether or not thos tasks should be attempted.
+a multi-host parallel installation and this Boolean enables the user to
+indicate whether or not those tasks should be attempted.
 
 Default: false
 
@@ -691,7 +691,7 @@ The virtual IP address that will front-end the Broker cluster.
 Default: undef
 
 === broker_virtual_hostname
-The hostame that represents the Broker API cluster.  This name is associated
+The hostname that represents the Broker API cluster.  This name is associated
 to broker_virtual_ip_address and added to Named for DNS resolution.
 
 Default: "broker.${domain}"
@@ -980,7 +980,7 @@ Default: if ose_version == undef '/assets/logo-origin.svg'
 OpenShift Instance Name
 
 Default: if ose_version == undef 'OpenShift Origin'
-         if ose_version != undef 'Openshift Enterprise'
+         if ose_version != undef 'OpenShift Enterprise'
 
 === conf_broker_multi_haproxy_per_node
 This setting is applied on a per-scalable-application basis. When set to true,
@@ -1204,7 +1204,7 @@ Default: ""
 
 === dns_infrastructure_key
 A dnssec symmetric key which will grant update access to the
-infrastucture zone resource records.
+infrastructure zone resource records.
 
 This is ignored unless _dns_infrastructure_zone_ is set.
 
@@ -1322,8 +1322,8 @@ network for you.
 Default: true
 
 === ose_version
-Set this to the X.Y (ie: 2.2) version of Openshift Enterprise to
-ensure an Openshift Enterprise supported configuration is used.
+Set this to the X.Y (ie: 2.2) version of OpenShift Enterprise to
+ensure an OpenShift Enterprise supported configuration is used.
 
 See README_OSE.asciidoc distributed with the openshift_origin puppet
 module for more details.
@@ -1331,7 +1331,7 @@ module for more details.
 Default: undef
 
 === ose_unsupported
-Set this to true in order to allow Openshift Enterprise unsupported
+Set this to true in order to allow OpenShift Enterprise unsupported
 configurations. Only appropriate for proof of concept environments.
 
 This parameter is only used when _ose_version_ is set.

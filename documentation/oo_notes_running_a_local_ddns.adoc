@@ -175,7 +175,7 @@ key example.com {
 } ;
 ----
 
-Substitute the key string from the private key file generated eariler
+Substitute the key string from the private key file generated earlier
 and place the key file in `/var/named/example.com.key`.
 
 ==== Test Zones
@@ -285,7 +285,7 @@ $ dig @127.0.0.1 testhost.example.com a
 
 === Enable `named` Service
 
-When you're satsfied that the service is running and responding
+When you're satisfied that the service is running and responding
 correctly you can enable the system service so that it restarts on
 reboot:
 
@@ -326,8 +326,8 @@ designed mostly for mobile device users and does not seem to provide
 access to the kinds of control hooks that dhclient does.
 
 To provide the control needed we're doing to disable NetworkManager
-and let interface control fall back to the more primative network
-service and the dhclient daemon. 
+and let interface control fall back to the more primitive network
+service and the dhclient daemon.
 
 Note that the forwarders update below will fail if you have SELinux
 enabled.  If you're running with SELinux disabled skip down past the SELinux
@@ -448,7 +448,7 @@ prepend domain-name-servers 127.0.0.1 ;
 === `dhclient` Hooks (Update Forwarders)
 
 `dhclient` also has the capability to run a script when an interface
-comes up.  If you place a bourne shell script at
+comes up.  If you place a Bourne shell script at
 `/etc/dhcp/dhclient-up-hooks` and make sure it's readable and
 *executable* then it will be sourced when any interface renews its
 lease.

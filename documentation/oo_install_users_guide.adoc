@@ -15,7 +15,7 @@ WARNING: `oo-install` is a deployment tool that has been optimized to simplify t
 
 [float]
 ==== Do I Have To Read a Manual?
-In short, no. One of the design goals of the `oo-install` utility is to make this document completely unnecessary. If you are feeling bold, you are heartily encouraged to attempt to use the installer right now without any additionaly guidance. Check out https://install.openshift.com/ for the quick rundown on how to get started. If you run into problems, head back here or send your questions and feedback to the mailing lists or IRC channels mentioned on the oo-install web page.
+In short, no. One of the design goals of the `oo-install` utility is to make this document completely unnecessary. If you are feeling bold, you are heartily encouraged to attempt to use the installer right now without any additional guidance. Check out https://install.openshift.com/ for the quick rundown on how to get started. If you run into problems, head back here or send your questions and feedback to the mailing lists or IRC channels mentioned on the oo-install web page.
 
 [float]
 ==== Source Code
@@ -27,7 +27,7 @@ The locations for the source code of this document and the `oo-install` utility 
 == Before You Begin
 This section covers some topics that will help you to have a successful OpenShift deployment. If you have jumped straight in with https://install.openshift.com/ and are having problems, look over this section to make sure you've got the basics covered.
 
-Note that it is not necessary to run oo-install on your target system(s) for the OpenShift installation. For instance, it is completely possible to run oo-install from your dekstop system against servers that you have provisioned in the cloud. Consequently the pre-requisities are split between the "installer host" requirements and the "target host" requirements.
+Note that it is not necessary to run oo-install on your target system(s) for the OpenShift installation. For instance, it is completely possible to run oo-install from your dekstop system against servers that you have provisioned in the cloud. Consequently the pre-requisites are split between the "installer host" requirements and the "target host" requirements.
 
 === Installer System Prerequisites
 The list of utilities required by the installer is as follows:
@@ -39,7 +39,7 @@ The list of utilities required by the installer is as follows:
 
 Most operating systems that provide a bash shell will include these utilities (with the possible exception of Ruby).
 
-=== Target System Prerequisties
+=== Target System Prerequisites
 The follow sections describe the system requirements for a host that will be part of an OpenShift deployment.
 
 ==== Supported OSes
@@ -307,7 +307,7 @@ In either case, the user in question must satisfy one of these two requirements:
 
 [TIP]
 ====
-Under RHEL, passwordless sudo configuration may not succeeed unless you set the following in your `/etc/sudoers` file for your target user:
+Under RHEL, passwordless sudo configuration may not succeed unless you set the following in your `/etc/sudoers` file for your target user:
 
 ----
 Defaults:<username>    !requiretty
@@ -407,7 +407,7 @@ Up until the point where you actually deploy the OpenShift configuration that yo
 ====
 
 === High Availability Deployments
-For low-volume and Proof-of-Concept Origin deployments, you can deploy OpenShift with a single Broker, DBServer and MsgServer role. However, `oo-install` also supports thedeployment and configuration of High Availibility options for each of these roles. During your deployment configuration, if you specify more than one host as a Broker, DBServer or MsgServer, `oo-install` will automatically configure the additional services and settings necessary for high availability.
+For low-volume and Proof-of-Concept Origin deployments, you can deploy OpenShift with a single Broker, DBServer and MsgServer role. However, `oo-install` also supports the deployment and configuration of High Availability options for each of these roles. During your deployment configuration, if you specify more than one host as a Broker, DBServer or MsgServer, `oo-install` will automatically configure the additional services and settings necessary for high availability.
 
 [TIP]
 ====
@@ -456,7 +456,7 @@ At this point, all that remains to configure your OpenShift deployment is to tel
 The installer supports three different ways to set subscription preferences. This is great from a deployment flexibility perspective, but may be really confusing if this is your first time through an OpenShift deployment.
 
 ==== Pathway #1 - Command Line Options
-The first way to set subscription preferences is via the command line. This option works well if you are building an unattended installation system and you want to dyanamically set this information. The settings provided at the command line will trump any conflicting settings from the installer config file. But if you are _not_ running an unattended installation, you'll still have the opportunity to override these values. Bottom line: don't set subscription information on the command line unless you are using it in conjunction with an unattended installation (see the link:#w-workflow-workflow_id[-w] command line argument for more information).
+The first way to set subscription preferences is via the command line. This option works well if you are building an unattended installation system and you want to dynamically set this information. The settings provided at the command line will trump any conflicting settings from the installer config file. But if you are _not_ running an unattended installation, you'll still have the opportunity to override these values. Bottom line: don't set subscription information on the command line unless you are using it in conjunction with an unattended installation (see the link:#w-workflow-workflow_id[-w] command line argument for more information).
 
 ==== Pathway #2 - Configuration File Options
 Most commonly, you will just want to store subscription information in the installer config file. The main advantage to this is that you can reuse the subscription settings every time you configure a deployment. The main disadvantage to this is that you could potentially end up storing a piece of sensitive information (your RHSM or RHN password) to a cleartext file. In these situations, you will want to use a combination of this pathway and pathway #3; read on for more info.
@@ -502,8 +502,8 @@ $ tail -f /tmp/openshift-deploy.log
 After the OpenShift installation is complete, the installer will attempt to perform several necessary post-install tasks for you:
 
 1. Restarting services in the necessary order for inter-host communication
-2. If appropriate, preforming the MongoDB replica set configuration on your speficied master DBServer
-3. Configuring the Node District(s) that you sepcified
+2. If appropriate, preforming the MongoDB replica set configuration on your specified master DBServer
+3. Configuring the Node District(s) that you specified
 4. Registering the supported cartridges with your Broker(s)
 
 If the installer encounters any failures at this point, they are most likely due to http://en.wikipedia.org/wiki/Race_condition[race conditions] between services on separate hosts. In these cases the installer will instruct you about what post-install steps remain.
