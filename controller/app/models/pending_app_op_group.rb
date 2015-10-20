@@ -147,7 +147,16 @@ class PendingAppOpGroup
       end
       unless self.parent_op_id.nil?
         reloaded_domain = Domain.find_by(_id: self.application.domain_id)
-        reloaded_domain.pending_ops.find(self.parent_op_id).child_completed(self.application)
+
+        # The domain pending op can sometimes be forcibly removed in case the op gets stuck
+        # If the parent op is not found, ignore the DocumentNotFound error
+        domain_op = nil
+        begin
+          domain_op = reloaded_domain.pending_ops.find(self.parent_op_id)
+        rescue Mongoid::Errors::DocumentNotFound
+          Rails.logger.debug "Pending domain op #{self.parent_op_id} deleted for domain #{self.application.domain_namespace} / #{self.application.domain_id}"
+        end
+        domain_op.child_completed(self.application) if domain_op
       end
     rescue Exception => e_orig
       Rails.logger.error e_orig.message
