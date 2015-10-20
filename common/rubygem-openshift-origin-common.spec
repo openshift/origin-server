@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.29.2
+Version: 1.29.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -125,6 +125,11 @@ rm -rf %{buildroot}%{gem_instdir}/.yardoc*
 %doc %{gem_docdir}
 
 %changelog
+* Tue Oct 20 2015 Stefanie Forrester <sedgar@redhat.com> 1.29.3-1
+- Merge pull request #6275 from dinhxuanvu/master
+  (dmcphers+openshiftbot@redhat.com)
+- oo-diagnostics: SSL cert matching for broker & BROKER_HOST (vdinh@redhat.com)
+
 * Mon Oct 12 2015 Stefanie Forrester <sedgar@redhat.com> 1.29.2-1
 - oo-diagnostics: Handle empty gemdirs (miciah.masters@gmail.com)
 
