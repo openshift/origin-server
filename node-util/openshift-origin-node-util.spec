@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.38.3
+Version: 1.38.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -207,6 +207,12 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Tue Oct 20 2015 Stefanie Forrester <sedgar@redhat.com> 1.38.4-1
+- Merge pull request #6276 from thrasher-redhat/master
+  (dmcphers+openshiftbot@redhat.com)
+- oo-auto-idler man page: updates man page to be consistent with functionality
+  (rthrashe@redhat.com)
+
 * Thu Oct 15 2015 Stefanie Forrester <sedgar@redhat.com> 1.38.3-1
 - oo-restorecon: run it on the gear's top level dir (pep@redhat.com)
 
