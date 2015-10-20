@@ -355,7 +355,7 @@ def check_selinux()
         do_fail("selinux boolean #{name} should be #{value}") unless result =~ /#{name} --> #{value}/
     }
 
-    do_fail('invalid selinux labels in OPENSHIFT_DIR $GEAR_BASE_DIR') unless %x[/sbin/restorecon -n -v #{$GEAR_BASE_DIR}] =~ //
+    do_fail("invalid selinux labels in $GEAR_BASE_DIR #{$GEAR_BASE_DIR}") if %x[/sbin/restorecon -n -v #{$GEAR_BASE_DIR} 2>&1].include?("restorecon reset")
 
     # This will likely only detect the effects of a full relabel but it's
     # better than nothing.  My unscientific tests shows that checking 100 gears
