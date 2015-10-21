@@ -7,7 +7,7 @@
 # Number of seconds to wait before resetting retries
 #RETRY_PERIOD=28800
 
-# Number of seconds a gear must remain inconsistent with it's state before
+# Number of seconds a gear must remain inconsistent with its state before
 #   Watchman attempts to reset state
 #STATE_CHANGE_DELAY=900
 
