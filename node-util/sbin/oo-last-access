@@ -158,16 +158,20 @@ class LastAccessUpdater
     @last_access_data.each do |k, v|
       file_path = "#{ENV["LAST_ACCESS_DIR"]}/#{k}"
       begin
-        timeval = 0
-        begin
-          File.open(file_path, 'r') do |f|
-            timeval = DateTime.strptime(f.read.strip, "%d/%b/%Y:%H:%M:%S %Z")
-          end
-        rescue Exception => e
-          puts "EXCEPTION: #{e}"
-        end
-        if timeval < DateTime.strptime(v, "%d/%b/%Y:%H:%M:%S %Z")
+        if !File.exists?(file_path)
           File.open(file_path, 'w') { |f| f.write(v) }
+        else
+          timeval = 0
+          begin
+            File.open(file_path, 'r') do |f|
+              timeval = DateTime.strptime(f.read.strip, "%d/%b/%Y:%H:%M:%S %Z")
+            end
+          rescue Exception => e
+            puts "EXCEPTION: #{e}"
+          end
+          if timeval < DateTime.strptime(v, "%d/%b/%Y:%H:%M:%S %Z")
+            File.open(file_path, 'w') { |f| f.write(v) }
+          end
         end
       rescue Exception => e
         puts "EXCEPTION: #{e}"
