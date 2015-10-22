@@ -178,7 +178,7 @@ module OpenShift
         @container_name = container.name
         @namespace = container.namespace
 
-        @standalone_web_proxy = container.cartridge_model.standalone_web_proxy?
+        @standalone_web_proxy = (container.cartridge_model.standalone_web_proxy? rescue false)
 
         # this is ONLY used when invoking "connect" so the app uuid can be stored
         # in the nodes db, so it can be added to the node openshift_log (access log)
