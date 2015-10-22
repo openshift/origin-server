@@ -10,10 +10,11 @@ Version: '1.4'
 License: GPLv2+
 License-Url: http://www.gnu.org/licenses/gpl-2.0.html
 Vendor: http://haproxy.1wt.eu/
-Cartridge-Version: 0.0.23
+Cartridge-Version: 0.0.24
 Compatible-Versions:
 - 0.0.21
 - 0.0.22
+- 0.0.23
 Cartridge-Vendor: redhat
 Categories:
 - web_proxy
@@ -63,7 +64,7 @@ Endpoints:
       target_update: true
       connections: -1
       websocket: true
-  - Frontend: /health
+  - Frontend: "/health"
     Backend: configuration/health
     Options:
       file: true
@@ -73,9 +74,9 @@ Endpoints:
   Protocols:
   - http
   Mappings:
-  - Frontend: /haproxy-status
-    Backend: /
-  - Frontend: /health
+  - Frontend: "/haproxy-status"
+    Backend: "/"
+  - Frontend: "/health"
     Backend: ''
     Options:
       health: true
