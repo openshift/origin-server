@@ -1204,6 +1204,38 @@ class OODiag
 
   end
 
+  def test_auth_keys_salt_failure
+    skip_test unless @is_broker
+
+    log_dir = "/var/log/openshift/broker/"
+
+    if Rails.env.development?
+      mode = "development"
+    elsif Rails.env.production?
+      mode = "production"
+    else
+      mode = "test"
+    end
+    
+    msg_log = `grep 'Broker key authentication failed' #{log_dir + mode}.log`
+
+    unless msg_log.empty?
+      do_warn <<-AUTH_ERROR
+      Detected an '401 Unauthorized' error on the #{mode} log. This error
+      may indicate inconsistent authentication keys or salts among brokers.
+      Please follow below steps to fix the issue:
+      1. Manually synchronize the authentication keys and salt in broker's
+      configuration
+      2. Then use 'oo-admin-broker-auth' to resync all credentials on
+      existing gears
+
+      Note: This error message may continue to be displayed even if the issue
+      is already resolved as the error message is still in the #{mode} log.
+      The error will be cleared after the next log rotation.
+      AUTH_ERROR
+    end
+  end
+
   def test_broker_certificate
     skip_test unless @is_broker
 
