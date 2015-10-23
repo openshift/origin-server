@@ -8,7 +8,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.37.3
+Version: 1.37.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -110,6 +110,10 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Fri Oct 23 2015 Wesley Hearn <whearn@redhat.com> 1.37.4-1
+- oo-admin-ctl-app: Fix remove-gear ignores min scale setting
+  (vdinh@redhat.com)
+
 * Mon Oct 12 2015 Stefanie Forrester <sedgar@redhat.com> 1.37.3-1
 - oo-admin-ctl-district-elaborate-on-node-identity (miciah.masters@gmail.com)
 - Fix typo for gear_whitelist (oo-admin-upgrade) (william17.burton@gmail.com)
