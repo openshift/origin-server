@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.38.4
+Version: 1.38.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -207,6 +207,12 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Fri Oct 23 2015 Wesley Hearn <whearn@redhat.com> 1.38.5-1
+- Merge pull request #6284 from Miciah/bug-1260204-2
+  (dmcphers+openshiftbot@redhat.com)
+- oo-last-access: Fix failure if no last access file (miciah.masters@gmail.com)
+- oo-watchman.8: "with it's" -> "with its" (miciah.masters@gmail.com)
+
 * Tue Oct 20 2015 Stefanie Forrester <sedgar@redhat.com> 1.38.4-1
 - Merge pull request #6276 from thrasher-redhat/master
   (dmcphers+openshiftbot@redhat.com)
