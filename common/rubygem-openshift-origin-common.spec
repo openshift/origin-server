@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.29.3
+Version: 1.29.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -125,6 +125,12 @@ rm -rf %{buildroot}%{gem_instdir}/.yardoc*
 %doc %{gem_docdir}
 
 %changelog
+* Fri Oct 23 2015 Wesley Hearn <whearn@redhat.com> 1.29.4-1
+- Merge pull request #6283 from dinhxuanvu/oo-diagnostics-sync
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1064039: Add oo-diagnostic report 401 Unauthorized error
+  (vdinh@redhat.com)
+
 * Tue Oct 20 2015 Stefanie Forrester <sedgar@redhat.com> 1.29.3-1
 - Merge pull request #6275 from dinhxuanvu/master
   (dmcphers+openshiftbot@redhat.com)
