@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.38.3
+Version: 1.38.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -291,6 +291,9 @@ fi
 %{_mandir}/man8/oo-admin-ctl-iptables-port-proxy.8.gz
 
 %changelog
+* Fri Oct 23 2015 Wesley Hearn <whearn@redhat.com> 1.38.4-1
+- FrontendHttpServer: Recover from missing manifest (miciah.masters@gmail.com)
+
 * Thu Oct 15 2015 Stefanie Forrester <sedgar@redhat.com> 1.38.3-1
 - Merge pull request #6247 from Miciah/bug-1111501-REPORT_BUILD_ANALYTICS-
   should-be-set-to-false-by-default (dmcphers+openshiftbot@redhat.com)
