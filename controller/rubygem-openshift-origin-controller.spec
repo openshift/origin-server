@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.38.3
+Version: 1.38.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -86,6 +86,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Oct 23 2015 Wesley Hearn <whearn@redhat.com> 1.38.4-1
+- Bug 1268080: Handling missing parent domain ops during app op execution
+  (abhgupta@redhat.com)
+
 * Thu Oct 15 2015 Stefanie Forrester <sedgar@redhat.com> 1.38.3-1
 - controller: execute_connections: reformat, comment (miciah.masters@gmail.com)
 - Merge pull request #6271 from Miciah/bug-1261540-controller-
