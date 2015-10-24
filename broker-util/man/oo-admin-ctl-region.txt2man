@@ -7,7 +7,7 @@ SYNOPSIS
   [-b|--bypass] [-d|--description region_description]
 
 DESCRIPTION
-  This is an utility for all region/zone operations on OpenShift Origin.
+  This is a utility for all region/zone operations on OpenShift Origin.
 
 OPTIONS
   -h|--help  

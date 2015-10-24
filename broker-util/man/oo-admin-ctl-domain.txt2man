@@ -7,7 +7,7 @@ SYNOPSIS
   [-t|--key_type sshkey_type] [-k|--key_name sshkey_name]
 
 DESCRIPTION
-  This is an utility for all district operations on OpenShift Origin.
+  This is a utility for all district operations on OpenShift Origin.
 
 OPTIONS
   -h|--help  
@@ -29,7 +29,7 @@ OPTIONS
     for --command update.
 
   -c|--command cmd  
-    Command to enact upon the domain. Available commands are: create,
+    Command to enact upon the domain. Available commands are create,
     update, delete, info.
 
   -s|--ssh_key sshkey

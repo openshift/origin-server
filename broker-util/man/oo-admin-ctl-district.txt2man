@@ -9,7 +9,7 @@ SYNOPSIS
   [-b|--bypass]
 
 DESCRIPTION
-  This is an utility for all district operations on OpenShift Origin.
+  This is a utility for all district operations on OpenShift Origin.
 
 OPTIONS
   -h|--help  
