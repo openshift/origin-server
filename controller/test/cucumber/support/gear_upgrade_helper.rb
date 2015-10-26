@@ -7,5 +7,6 @@ After('@manipulates_gear_upgrade') do
 end
 
 def clean_gear_upgrade_extension_from_node_conf
-  `sed -i /etc/openshift/node.conf -e s,GEAR_UPGRADE_EXTENSION.*,,g`
+  `sed -i /etc/openshift/node.conf -e /GEAR_UPGRADE_EXTENSION/d`
+  `sed -i /etc/openshift/node.conf -e '${/^$/d}'`
 end
