@@ -387,7 +387,7 @@ end
 EOF
 
   IO.write('/tmp/gear_upgrade.rb', gear_upgrade_content)
-  `echo 'GEAR_UPGRADE_EXTENSION=/tmp/gear_upgrade' >> /etc/openshift/node.conf`
+  `echo '\nGEAR_UPGRADE_EXTENSION=/tmp/gear_upgrade' >> /etc/openshift/node.conf`
 end
 
 Given /^a gear level upgrade extension to map the updated software version exists$/ do
@@ -446,7 +446,7 @@ module OpenShift
 end
 EOF
   IO.write('/tmp/gear_upgrade.rb', gear_upgrade_content)
-  `echo 'GEAR_UPGRADE_EXTENSION=/tmp/gear_upgrade' >> /etc/openshift/node.conf`
+  `echo '\nGEAR_UPGRADE_EXTENSION=/tmp/gear_upgrade' >> /etc/openshift/node.conf`
 end
 
 Then /^the invocation markers from the gear upgrade should exist$/ do
