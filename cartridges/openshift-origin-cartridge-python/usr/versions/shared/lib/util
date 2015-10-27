@@ -1,6 +1,14 @@
 #!/bin/bash
 # Utility functions for use in the cartridge scripts.
 
+function export_pip_install() {
+  if marker_present "pip_install"; then
+    export OPENSHIFT_PYTHON_USE_PIP="enable"
+  else
+    export OPENSHIFT_PYTHON_USE_PIP="disable"
+  fi
+}
+
 function appserver_pid() {
 	pgrep -f "python -u app.py"
 }
