@@ -142,6 +142,7 @@ $datastore_hash.each do |gear_uuid, gear_info|
       if gear_si_present and datastore_si_present
           puts "#{gear_uuid}...FAIL" if $verbose
           print_message "Gear #{gear_uuid} does not exist on any node"
+          print_message "Please see https://access.redhat.com/site/solutions/712593 for more information."
       elsif datastore_si_present
         puts "#{gear_uuid}...FAIL" if $verbose
         non_responding_nodes[server_identity] = 0 unless non_responding_nodes.has_key? server_identity
@@ -159,6 +160,7 @@ puts "Checked application gears on nodes in #{(Time.now - current_time).to_i} se
 # print error messages for any non-responding nodes
 non_responding_nodes.each do |server_identity, gear_count|
   print_message "The node #{server_identity} expected to contain #{gear_count} gears wasn't returned from mcollective for the gear list"
+  print_message "Make sure the node #{server_identity} exists and that the ruby193-mcollective service is running."
 end
 
 puts "Checking node gears in application database" if $verbose
@@ -169,6 +171,7 @@ node_hash.each do |gear_uuid, gear_info|
     if !datastore_has_gear?(gear_uuid)
       puts "#{gear_uuid}...FAIL" if $verbose
       print_message "Gear #{gear_uuid} exists on node #{gear_info[0]} (uid: #{gear_info[1]}) but does not exist in mongo database"
+      print_message "Please see https://access.redhat.com/solutions/1171163 for more information."
     end
   elsif !datastore_gear_info['gear_uid'].nil?
     begin
@@ -226,7 +229,7 @@ if level >= 1
   puts "Checked usage record inconsistencies in #{(Time.now - current_time).to_i} seconds\n\n"
 
   current_time = Time.now
-  run :find_user_plan_inconsistencies 
+  run :find_user_plan_inconsistencies
   puts "Checked user plan inconsistencies in #{(Time.now - current_time).to_i} seconds\n\n"
 end
 
@@ -239,7 +242,7 @@ if $total_errors == 0
   errcode = 0
 else
   print_message "FAILED", true
-  puts "Please refer to the oo-admin-repair tool to resolve some of these inconsistencies."
+  puts "Please refer to the oo-admin-repair tool man page to resolve some of these inconsistencies if no suggestion was provided with any error message(s)."
   errcode = 1
 end
 exit errcode
