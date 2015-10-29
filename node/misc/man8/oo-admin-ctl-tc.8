@@ -75,8 +75,10 @@ Otherwise, display the traffic control (tc) status for \fIEXTERNAL_ETH_DEV\fR.
 Alias for \fIstatus\fR
 .SH ENVIRONMENT
 .TP
+.B  TRAFFIC_CONTROL_DEVS
+Interface(s) to use when limiting bandwidth. default: eth0
 .B  EXTERNAL_ETH_DEV
-Interface to use when limiting bandwidth. default: eth0
+Interface to use when limiting bandwidth. Ignored if TRAFFIC_CONTROL_DEVS is specified. default: eth0
 .SH FILES
 .TP
 .FN /etc/openshift/resource_limits.conf
