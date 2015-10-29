@@ -9,7 +9,7 @@ Vendor: Red4sis
 Cartridge-Version: 0.0.13
 Compatible-Versions: []
 Cartridge-Vendor: red4sis
-Source-Url: https://github.com/luispimenta/origin-server/tree/master/cartridges/openshift-origin-cartridge-phpmyadmin
+Source-Url: https://github.com/luispimenta/origin-server.git
 Website: http://www.phpmyadmin.net/
 Categories:
 - embedded
