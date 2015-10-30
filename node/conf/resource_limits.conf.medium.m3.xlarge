@@ -76,7 +76,7 @@ limits_nproc=2142        # max number of processes
 
 # Traffic control.  used by /etc/init.d/openshift-tc
 #
-# For these settings to be active TRAFFIC_CONTROL_ENABLED=true must be set in
+# For these settings to be active TRAFFIC_CONTROL_ENABLED=false must not be set in
 # /etc/openshift/node.conf
 #
 tc_max_bandwidth=800   # mbit/sec - Total bandwidth allowed for all gears
