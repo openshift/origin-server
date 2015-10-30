@@ -85,6 +85,7 @@ limits_nproc=2142        # max number of processes
 # /etc/openshift/node.conf
 #
 # tc_max_bandwidth=800   # mbit/sec - Total bandwidth allowed for Libra
+#                        # per interface (ignored for loopback)
 # tc_user_share=2    # mbit/sec - one user is allotted...
 
 #

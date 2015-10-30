@@ -169,7 +169,9 @@ module OpenShift
           # Overall class for the gear
           @tc_ifs.each do |tc_if|
             this_user_quantum=throttled ? @tc_throttle_user_quantum[tc_if] : @tc_user_quantum
-            f.puts %Q[class add dev #{tc_if} parent 1:1 classid 1:#{netclass} htb rate #{this_user_share} ceil #{this_user_limit} quantum #{this_user_quantum}]
+            # for the loopback interface, we want to ignore any configured limits and set a very high limit of 100gbit/s, but only for non-throttled users
+            this_if_user_limit=(tc_if.eql?('lo') and not throttled) ? '100000mbit' : this_user_limit
+            f.puts %Q[class add dev #{tc_if} parent 1:1 classid 1:#{netclass} htb rate #{this_user_share} ceil #{this_if_user_limit} quantum #{this_user_quantum}]
           end
 
           # Specific constraints within the gear's limit
@@ -257,8 +259,10 @@ module OpenShift
           end
           if all_stopped
             @tc_ifs.each do |tc_if|
+              # for the loopback interface, we want to ignore any configured limits and set a very high limit of 100gbit/s
+              this_tc_max_bandwidth = tc_if.eql?('lo') ? 100000 : @tc_max_bandwidth
               f.puts %Q[qdisc add dev #{tc_if} root handle 1: htb]
-              f.puts %Q[class add dev #{tc_if} parent 1: classid 1:1 htb rate #{@tc_max_bandwidth}mbit]
+              f.puts %Q[class add dev #{tc_if} parent 1: classid 1:1 htb rate #{this_tc_max_bandwidth}mbit]
               f.puts %Q[filter add dev #{tc_if} parent 1: protocol ip prio 10 handle 1: cgroup]
             end
           end
