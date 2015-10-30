@@ -149,10 +149,12 @@ class AppEventsControllerTest < ActionController::TestCase
     post :create, "event" => "disable-ha", "application_id" => @app.id
     assert_response :success
     overrides = @app.reload.group_instances_with_overrides
+    explicit_overrides = @app.group_overrides
     assert !@app.ha
     assert_equal 1, overrides.length
     assert_equal 1, overrides[0].min_gears
     assert_equal(-1, overrides[0].max_gears)
+    assert_equal 0, explicit_overrides.select {|xo| xo.class == ComponentOverrrideSpec && xo.name == "web_proxy" && defined? xo.min_gears}.length
     assert comp = overrides[0].components.detect{ |i| i.cartridge.is_web_proxy? }
   end
 
