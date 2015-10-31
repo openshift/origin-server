@@ -40,13 +40,13 @@ This cartridge adds periodic job execution functionality to your OpenShift appli
 
 === Installation
 To add this cartridge to your application, you can either add it when you create your application:
-    
+
 ----
 rhc app create <APP> ruby-1.9 cron
 ----
 
 Or add it to your existing application:
-    
+
 ----
 rhc cartridge add cron -a <APP>
 ----
@@ -154,11 +154,11 @@ but should not be added to the git repo.
 ====
 
 *Method 1 (Preferred)* +
-You can upload your content in a Maven src structure as is this sample project and on 
-git push have the application built and deployed.  For this to work you'll need your pom.xml at the 
+You can upload your content in a Maven src structure as is this sample project and on
+git push have the application built and deployed.  For this to work you'll need your pom.xml at the
 root of your repository and a maven-war-plugin like in this sample to move the output from the build
-to the deployments directory.  By default the warName is ROOT within pom.xml.  This will cause the 
-webapp contents to be rendered at http://app_name-namespace.rhcloud.com/.  If you change the warName in 
+to the deployments directory.  By default the warName is ROOT within pom.xml.  This will cause the
+webapp contents to be rendered at http://app_name-namespace.rhcloud.com/.  If you change the warName in
 pom.xml to app_name, your base url would then become http://app_name-namespace.rhcloud.com/app_name.
 
 NOTE: If you are building locally you'll also want to add any output wars/ears under deployments  from the build to your .gitignore file.
@@ -193,7 +193,7 @@ with
 NOTE: You can get the information in the uri above from running 'rhc domain show'
 
 If you have already committed large files to your git repo, you rewrite or reset the history of those files in git
-to an earlier point in time and then 'git push --force' to apply those changes on the remote OpenShift server.  A 
+to an earlier point in time and then 'git push --force' to apply those changes on the remote OpenShift server.  A
 git gc on the remote OpenShift repo can be forced with (Note: tidy also does other cleanup including clearing log
 files and tmp dirs):
 
@@ -201,10 +201,10 @@ files and tmp dirs):
 rhc app tidy -a appname
 ----
 
-Whether you choose option 1) or 2) the end result will be the application 
-deployed into the deployments directory. The deployments directory in the 
-JBoss Application Server distribution is the location end users can place 
-their deployment content (e.g. war, ear, jar, sar files) to have it 
+Whether you choose option 1) or 2) the end result will be the application
+deployed into the deployments directory. The deployments directory in the
+JBoss Application Server distribution is the location end users can place
+their deployment content (e.g. war, ear, jar, sar files) to have it
 automatically deployed into the server runtime.
 
 === Environment Variables
@@ -248,7 +248,7 @@ Adding marker files to `.openshift/markers` will have the following effects:
 
 |enable_jpda
 |Will enable the JPDA socket based transport on the java virtual machine running the JBoss AS 7 application server. This enables you to remotely debug code running inside the JBoss AS 7 application server.
-    
+
 |skip_maven_build
 |Maven build step will be skipped
 
@@ -257,7 +257,7 @@ Adding marker files to `.openshift/markers` will have the following effects:
 
 |hot_deploy
 |Will prevent a JBoss container restart during build/deployment. Newly build archives will be re-deployed automatically by the JBoss HDScanner component.
-    
+
 |java7
 |Will run JBossAS with Java7 if present. If no marker is present then the baseline Java version will be used (currently Java6)
 
@@ -303,11 +303,11 @@ but should not be added to the git repo.
 ====
 
 *Method 1 (Preferred)* +
-You can upload your content in a Maven src structure as is this sample project and on 
-git push have the application built and deployed.  For this to work you'll need your pom.xml at the 
+You can upload your content in a Maven src structure as is this sample project and on
+git push have the application built and deployed.  For this to work you'll need your pom.xml at the
 root of your repository and a maven-war-plugin like in this sample to move the output from the build
-to the deployments directory.  By default the warName is ROOT within pom.xml.  This will cause the 
-webapp contents to be rendered at http://app_name-namespace.rhcloud.com/.  If you change the warName in 
+to the deployments directory.  By default the warName is ROOT within pom.xml.  This will cause the
+webapp contents to be rendered at http://app_name-namespace.rhcloud.com/.  If you change the warName in
 pom.xml to app_name, your base url would then become http://app_name-namespace.rhcloud.com/app_name.
 
 NOTE: If you are building locally you'll also want to add any output wars/ears under deployments from the build to your .gitignore file.
@@ -342,7 +342,7 @@ with
 NOTE: You can get the information in the uri above from running 'rhc domain show'
 
 If you have already committed large files to your git repo, you rewrite or reset the history of those files in git
-to an earlier point in time and then 'git push --force' to apply those changes on the remote OpenShift server.  A 
+to an earlier point in time and then 'git push --force' to apply those changes on the remote OpenShift server.  A
 git gc on the remote OpenShift repo can be forced with (Note: tidy also does other cleanup including clearing log
 files and tmp dirs):
 
@@ -350,10 +350,10 @@ files and tmp dirs):
 rhc app tidy -a appname
 ----
 
-Whether you choose option 1) or 2) the end result will be the application 
-deployed into the deployments directory. The deployments directory in the 
-JBoss Application Server distribution is the location end users can place 
-their deployment content (e.g. war, ear, jar, sar files) to have it 
+Whether you choose option 1) or 2) the end result will be the application
+deployed into the deployments directory. The deployments directory in the
+JBoss Application Server distribution is the location end users can place
+their deployment content (e.g. war, ear, jar, sar files) to have it
 automatically deployed into the server runtime.
 
 === Environment Variables
@@ -398,7 +398,7 @@ Adding marker files to `.openshift/markers` will have the following effects:
 
 |enable_jpda
 |Will enable the JPDA socket based transport on the java virtual machine running the JBoss AS 7 application server. This enables you to remotely debug code running inside the JBoss AS 7 application server.
-    
+
 |skip_maven_build
 |Maven build step will be skipped
 
@@ -407,7 +407,7 @@ Adding marker files to `.openshift/markers` will have the following effects:
 
 |hot_deploy
 |Will prevent a JBoss container restart during build/deployment. Newly build archives will be re-deployed automatically by the JBoss HDScanner component.
-    
+
 |java7
 |Will run JBossEAP with Java7 if present. If no marker is present then the baseline Java version will be used (currently Java6)
 
@@ -446,11 +446,11 @@ There are two options for deploying content to the Tomcat Server within OpenShif
 can be used together (i.e. build one archive from source and others pre-built)
 
 *Method 1 (Preferred)* +
-You can upload your content in a Maven src structure as is this sample project and on 
-Git push have the application built and deployed.  For this to work you'll need your pom.xml at the 
+You can upload your content in a Maven src structure as is this sample project and on
+Git push have the application built and deployed.  For this to work you'll need your pom.xml at the
 root of your repository and a maven-war-plugin like in this sample to move the output from the build
-to the webapps directory.  By default the warName is ROOT within pom.xml.  This will cause the 
-webapp contents to be rendered at `http://app_name-namespace.rhcloud.com/`.  If you change the warName in 
+to the webapps directory.  By default the warName is ROOT within pom.xml.  This will cause the
+webapp contents to be rendered at `http://app_name-namespace.rhcloud.com/`.  If you change the warName in
 `pom.xml` to app_name, your base url would then become `http://app_name-namespace.rhcloud.com/app_name`.
 
 NOTE: If you are building locally you'll also want to add any output wars under webapps from the build to your `.gitignore` file.
@@ -469,7 +469,7 @@ Basic workflows for deploying pre-built content (each operation will require ass
 NOTE: You can get the information in the uri above from running `rhc domain show`
 
 If you have already committed large files to your Git repo, you rewrite or reset the history of those files in Git
-to an earlier point in time and then `git push --force` to apply those changes on the remote OpenShift server.  A 
+to an earlier point in time and then `git push --force` to apply those changes on the remote OpenShift server.  A
 `git gc` on the remote OpenShift repo can be forced with (Note: tidy also does other cleanup including clearing log
 files and tmp dirs):
 
@@ -477,10 +477,10 @@ files and tmp dirs):
 rhc app tidy -a appname
 ----
 
-Whether you choose option 1) or 2) the end result will be the application 
-deployed into the `webapps` directory. The `webapps` directory in the 
-Tomcat distribution is the location end users can place 
-their deployment content (e.g. war, ear, jar, sar files) to have it 
+Whether you choose option 1) or 2) the end result will be the application
+deployed into the `webapps` directory. The `webapps` directory in the
+Tomcat distribution is the location end users can place
+their deployment content (e.g. war, ear, jar, sar files) to have it
 automatically deployed into the server runtime.
 
 === Environment Variables
@@ -530,7 +530,7 @@ Adding marker files to `.openshift/markers` will have the following effects:
 
 |enable_jpda
 |Will enable the JPDA socket based transport on the java virtual machine running the Tomcat server. This enables you to remotely debug code running inside Tomcat.
-    
+
 |skip_maven_build
 |Maven build step will be skipped
 
@@ -539,7 +539,7 @@ Adding marker files to `.openshift/markers` will have the following effects:
 
 |hot_deploy
 |Will prevent a JBoss container restart during build/deployment. Newly build archives will be re-deployed automatically by the JBoss HDScanner component.
-    
+
 |java7
 |Will run Tomcat with Java7 if present. If no marker is present then the baseline Java version will be used (currently Java6)
 
@@ -573,7 +573,7 @@ Benefits:
 
 * Archived build information
 * No application downtime during the build process
-* Failed builds do not get deployed (leaving the previous working version in place). 
+* Failed builds do not get deployed (leaving the previous working version in place).
 * Jenkins builders have additional resources like memory and storage
 * A large community of Jenkins plugins
 
@@ -769,7 +769,7 @@ Adding marker files to `.openshift/markers` will have the following effects:
 When you push your code changes to OpenShift, if you want dynamic reloading
 of your javascript files in "development" mode, you can either use the
 `hot_deploy` marker or add the following to `package.json`:
-   
+
 [source,json]
 ----
 "scripts": { "start": "supervisor <relative-path-from-repo-to>/server.js" },
@@ -1099,6 +1099,9 @@ Adding marker files to `.openshift/markers` will have the following effects:
 
 |disable_auto_scaling
 |Will prevent scalable applications from scaling up or down according to application load.
+
+|pip_install
+|Will use pip to install packages and dependencies in setup.py instead of python install.
 |===
 
 === Environment variables
