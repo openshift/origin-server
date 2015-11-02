@@ -19,7 +19,7 @@ Exactly one routing module must be enabled.  A module for F5 BIG-IP LTM, a
 module for an routing implementing the LBaaS REST API, and a module that
 configures nginx as a reverse proxy are included in this repository.  Edit
 `/etc/openshift/routing-daemon.conf` to set the `LOAD_BALANCER` setting to "f5",
-"lbaas", or "nginx" and then following the appropriate module-specific
+"lbaas", or "nginx", and then follow the appropriate module-specific
 configuration described below.
 
 Internally, the routing daemon logic is divided into controllers, which
@@ -44,27 +44,46 @@ Using F5 BIG-IP LTM
 -------------------
 
 Edit `/etc/openshift/routing-daemon.conf` to set the appropriate values for
-`BIGIP_HOST`, `BIGIP_USERNAME`, `BIGIP_PASSWORD`, `BIGIP_MONITOR`,
-`BIGIP_SSHKEY`, `VIRTUAL_SERVER`, and `VIRTUAL_HTTPS_SERVER` to match your F5
-BIG-IP LTM configuration.
+`BIGIP_HOST`, `BIGIP_USERNAME`, `BIGIP_PASSWORD`, `BIGIP_SSHKEY`,
+`BIGIP_DEVICE_GROUP`, `VIRTUAL_SERVER`, and `VIRTUAL_HTTPS_SERVER` to match your
+F5 BIG-IP LTM configuration.
 
 F5 BIG-IP LTM must be configured with two virtual servers, one for HTTP traffic
-and one for HTTPS traffic. Each virtual server needs to be assigned at least
-one VIP. A default client-ssl profile must also be configured as the default
-SNI client-ssl profile. Although the naming of the default client-ssl profile
-is unimportant, it does need to be added to the HTTPS virtual server. The LTM
-admin user's 'Terminal Access' must be set to 'Advanced shell' so that remote
-bash commands may be executed. Additionally, for the remote key management
-commands to execute, the `BIGIP_SSHKEY` public key must be added to the LTM
-admin's `.ssh/authorized_keys` file. The daemon will automatically create pools
-and associated local-traffic policy rules, add these profiles to the virtual
-servers, add members to the pools, delete members from the pools, and delete
-empty pools and unused policy rules when appropriate. Once the LTM virtual
-servers have been created, update `VIRTUAL_SERVER` and `VIRTUAL_HTTPS_SERVER`
-in `/etc/openshift/routing-daemon.conf` to match the names you've used. The
-daemon will name the pools after applications following the template
-"/Common/ose-#{app_name}-#{namespace}" and create policy rules to forward
-requests to pools comprising the gears of the named application.
+and one for HTTPS traffic. Each virtual server needs to be assigned at least one
+VIP.  It is not necessary that each virtual server have a unique VIP; the HTTP
+virtual server and the HTTPS virtual servers may share a VIP.  Once the LTM
+virtual servers have been created, update `VIRTUAL_SERVER` and
+`VIRTUAL_HTTPS_SERVER` in `/etc/openshift/routing-daemon.conf` to match the
+names you have used.
+
+A default client-ssl profile must also be configured as the default SNI
+client-ssl profile. Although the naming of the default client-ssl profile is
+unimportant, it does need to be added to the HTTPS virtual server.
+
+The LTM "admin" user's 'Terminal Access' must be set to 'Advanced shell' so that
+remote shell commands may be executed. Additionally, for the remote key
+management commands to execute, the `BIGIP_SSHKEY` public key must be added to
+the "admin" user's `.ssh/authorized_keys` file.
+
+If you configure F5 BIG-IP LTM with a device group, use the `BIGIP_DEVICE_GROUP`
+to specify the name of this device group.  If this setting is specified, the
+daemon will synchronize the device group at the interval specified by the
+`UPDATE_INTERVAL` interval, or the default value of 5 if `UPDATE_INTERVAL` is
+left unset.
+
+On initialization, the daemon will create a local-traffic policy named
+"openshift_application_aliases" and add it to the HTTP and HTTP virtual servers
+if such a policy does not already exist.
+
+As it runs, the daemon will automatically create pools and associated policy
+rules for applications, add and manage policy rules and SSL certificates and
+keys for aliases, add members to the pools, delete members from the pools, and
+delete empty pools and unused policy rules when appropriate.  The daemon will
+create the pools in the "/Common" partition; see "Pool and Route Names" below
+regarding pool names.  The daemon will also create rules in the
+"openshift_application_aliases" policy to forward requests to pools comprising
+the proxy gears of the respective applications based on the "Host:" header of
+incoming HTTP requests.
 
 Using LBaaS
 -----------
@@ -79,11 +98,18 @@ Using nginx
 -----------
 
 Edit `/etc/openshift/routing-daemon.conf` to set the appropriate values for
-`NGINX_CONFDIR` and `NGINX_SERVICE`.
+`NGINX_CONFDIR`, `NGINX_SERVICE`, `NGINX_SSL_CERTIFICATE`, `NGINX_SSL_KEY`,
+`HTTP_PORT`, and `SSL_PORT`.
 
-The daemon will automatically create and manage `server.conf` and `pool_*.conf`
-files under the directory specified by `NGINX_CONFDIR`.  After each update, the
-daemon will reload the service specified by `NGINX_SERVICE`.
+The daemon will automatically create and manage configuration files under the
+directory specified by `NGINX_CONFDIR`: a `server.conf` file with the frontend
+server configuration for all applications, `pool_*.conf` files with the backend
+configuration, `alias_*_.conf` files for application aliases, and `*.key` and
+`*.crt` files for application aliases and custom SSL certificates.  The
+`NGINX_SSL_CERTIFICATE` and `NGINX_SSL_KEY` settings specify default SSL
+configuration for applications.  `HTTP_PORT` and `SSL_PORT` specify the nginx
+listen ports.  After each update, the daemon will reload the service specified
+by `NGINX_SERVICE`.
 
 
 Pool and Route Names
@@ -111,9 +137,9 @@ unspecified to disable the monitor functionality.
 Set `MONITOR_UP_CODE` to the code that indicates that a pool member is up, or
 leave `MONITOR_UP_CODE` unset to use the default value of "1".
 
-Set `MONITOR_TYPE` to either "http-ecv" or "https-ecv" depending on whether you
-want to use HTTP or HTTPS for the monitor, leave `MONITOR_TYPE` unset to use the
-default value of "http-ecv".
+Set `MONITOR_TYPE` to either "http-ecv" or "https-ecv", depending on whether you
+want to use HTTP or HTTPS for the monitor, or leave `MONITOR_TYPE` unset to use
+the default value of "http-ecv".
 
 Set `MONITOR_INTERVAL` to the interval at which the monitor will send requests,
 or leave `MONITOR_INTERVAL` unset to use the default value of "10".
@@ -131,8 +157,27 @@ existing monitor.
 It is expected that for each pool member, the load balancer will send a `GET`
 request to the resource identified on that host by the value of `MONITOR_PATH`
 for the associated monitor, and that the host will respond with the value of
-`MONITOR_UP_CODE` if the host is up or some other response if the host is not
+`MONITOR_UP_CODE` if the host is up, or some other response if the host is not
 up.
+
+Endpoint Types
+--------------
+
+By default, the routing daemon adds only proxy gears to pools.  Specifically,
+the routing daemon ignores any gear endpoints that do not have the
+"load_balancer" type.  These "load_balancer" endpoints are the endpoints for
+HAProxy gears. Thus, requests coming into the external load-balancer (nginx or
+F5 BIG-IP) will be routed through applications' HAProxy gears to reach the
+application gears.
+
+Routing requests through HAProxy gears enables the auto-scaling logic to react
+to changes in load.  However, because only scalable applications have HAProxy
+gears, this approach also means that only scalable applications can be reached
+through the external load-balancer.
+
+The `ENDPOINT_TYPES` setting specifies which gear or endpoint types the routing
+daemon will add to pools.  This setting is provided for flexibility, but it is
+not recommended to change it from the default value of "load_balancer".
 
 ##Notice of Export Control Law
 
