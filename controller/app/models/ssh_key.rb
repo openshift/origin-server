@@ -11,18 +11,18 @@ class SshKey
   include Mongoid::Document
   include AccessControlled
 
-  # This is the current regex for validations for new ssh keys 
+  # This is the current regex for validations for new ssh keys
   KEY_NAME_REGEX = /\A[\w\.\-@+]+\z/
   def self.check_name!(name)
     if name.blank? or name !~ KEY_NAME_REGEX
-      raise Mongoid::Errors::DocumentNotFound.new(self, nil, [name]) 
+      raise Mongoid::Errors::DocumentNotFound.new(self, nil, [name])
     end
     name
   end
 
   # Maximum length of valid SSH key name
   KEY_NAME_MAX_LENGTH = 256 unless defined? KEY_NAME_MAX_LENGTH
-  # Minimum length of valid SSH key name  
+  # Minimum length of valid SSH key name
   KEY_NAME_MIN_LENGTH = 1 unless defined? KEY_NAME_MIN_LENGTH
   # Default valid SSH key types if Rails.configuration.openshift[:valid_ssh_key_types] is nil
   DEFAULT_VALID_SSH_KEY_TYPES = ['ssh-rsa', 'ssh-dss', 'ssh-rsa-cert-v01@openssh.com', 'ssh-dss-cert-v01@openssh.com',
@@ -84,7 +84,7 @@ class SshKey
   ##
   # Returns minimum SSH key size (number of bits used to create the key)
   def self.get_minimum_ssh_key_size(ssh_key_type)
-    Rails.application.config.openshift[:minimum_ssh_key_size][ssh_key_type] || DEFAULT_MINIMUM_SSH_KEY_SIZE
+    Rails.application.config.openshift[:minimum_ssh_key_size][ssh_key_type] rescue DEFAULT_MINIMUM_SSH_KEY_SIZE
   end
 
   # This method should be overridden in the subclasses, if required
