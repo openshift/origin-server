@@ -194,7 +194,7 @@ if level >= 1
   puts "Checked ssh keys inconsistencies in #{(Time.now - current_time).to_i} seconds\n\n"
 
   current_time = Time.now
-  run :find_stale_sshkeys_and_envvars
+  run :find_stale_sshkeys
   puts "Checked stale ssh keys in #{(Time.now - current_time).to_i} seconds\n\n"
 
   current_time = Time.now
@@ -226,7 +226,7 @@ if level >= 1
   puts "Checked usage record inconsistencies in #{(Time.now - current_time).to_i} seconds\n\n"
 
   current_time = Time.now
-  run :find_user_plan_inconsistencies 
+  run :find_user_plan_inconsistencies
   puts "Checked user plan inconsistencies in #{(Time.now - current_time).to_i} seconds\n\n"
 end
 

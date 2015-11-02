@@ -159,7 +159,7 @@ def reset_consumed_gears(user_id)
   rescue Mongoid::Errors::DocumentNotFound
     puts "User #{user_id} not found."
   rescue Exception => e
-    puts "Unable to set consumed gears for user #{user_id}, error: #{e.message}." 
+    puts "Unable to set consumed gears for user #{user_id}, error: #{e.message}."
   end
   return success
 end
@@ -384,7 +384,7 @@ def populate_available_servers
     district_info["server_names"].each do |si|
       available_servers[si] = (district_info['name'] || 'NONE')
     end
-  end 
+  end
 
   $datastore_hash.each do |gear_uuid, gear_info|
     si = gear_info['server_identity']
@@ -408,7 +408,7 @@ def find_unresponsive_servers(available_servers, auto_confirm)
     puts "Checking for unresponsive servers...FAIL" if $verbose
     puts "Servers that are unresponsive:"
     uservers = unresponsive_servers.dup
-    uservers.each do |server| 
+    uservers.each do |server|
       print "\tServer: #{server} (district: #{available_servers[server]}), Confirm [yes/no]: "
       unresponsive_servers.delete(server) unless auto_confirm or (auto_confirm.nil? and gets.chomp.to_b)
       puts ""
@@ -457,7 +457,6 @@ def find_orphaned_envs(namespace=nil)
     # Difference the lists to get all component_id's specified by an env var for components that no longer exist
     missing_cids = cid_list - existing_cid_list
     orphaned_envs = all_envvar_cids.select {|document| missing_cids.include?(document["cid"]) }
-
     orphaned_envs = orphaned_envs.map {|oe| {:domain_id => oe["_id"], :component_id => oe["cid"]} }
   end
 
@@ -501,11 +500,11 @@ def repair_ssh_keys(app_ids)
   puts "Failed to fix ssh key mismatches for #{failed_count} applications." if failed_count > 0
 end
 
-def repair_stale_keys_vars(domain_ids)
+def repair_stale_keys(domain_ids)
   return if domain_ids.blank?
   stale_ssh_key_app_ids = []
   failed_count = 0
-  puts "Fixing stale ssh keys and environment variables for all affected domains" if $verbose
+  puts "Fixing stale ssh keys for all affected domains" if $verbose
   domain_ids.each do |domain_id|
     begin
       domain_ref_ids = []
@@ -533,12 +532,6 @@ def repair_stale_keys_vars(domain_ids)
         domain_ref_ids |= app_ref_ids
       end
 
-      # fix stale environment variables
-      domain.env_vars.each do |ev|
-        env_vars_to_rm << ev.dup unless domain_ref_ids.include? ev["component_id"].to_s
-      end
-      Domain.where(_id: domain.id).update_all({ "$pullAll" => { env_vars: env_vars_to_rm }}) if env_vars_to_rm.present?
-
       # fix stale domain ssh keys
       domain.system_ssh_keys.each do |key|
         system_ssh_keys_to_rm << key.as_document unless domain_ref_ids.include? key.component_id.to_s
@@ -556,12 +549,12 @@ def repair_stale_keys_vars(domain_ids)
 
     rescue Mongoid::Errors::DocumentNotFound
     rescue Exception => ex
-      print_message "Failed to fix stale variables/sshkeys for domain '#{domain_id}': #{ex.message}"
+      print_message "Failed to fix stale sshkeys for domain '#{domain_id}': #{ex.message}"
       print_message ex.backtrace
       failed_count += 1
     end
   end
-  puts "Failed to fix stale variables/sshkeys for #{failed_count} applications." if failed_count > 0
+  puts "Failed to fix stale sshkeys for #{failed_count} applications." if failed_count > 0
 end
 
 def repair_district_uids(unreserved_dist_map, unused_dist_map)
@@ -609,7 +602,7 @@ def repair_district_uids(unreserved_dist_map, unused_dist_map)
   puts "Fixed #{unused_dist_map.length} unused UIDs across all districts." if $verbose and (unused_dist_map.length > 0)
 end
 
-def repair_usage(gear_app_gear_ids, gear_urec_gear_ids, storage_app_gear_ids, 
+def repair_usage(gear_app_gear_ids, gear_urec_gear_ids, storage_app_gear_ids,
                  storage_urec_gear_ids, storage_mismatch_gear_ids, cart_app_gear_ids,
                  cart_urec_gear_ids, gear_ids, urec_gear_ids)
   return if (gear_app_gear_ids + gear_urec_gear_ids + storage_app_gear_ids + storage_urec_gear_ids +
@@ -661,7 +654,7 @@ def repair_usage(gear_app_gear_ids, gear_urec_gear_ids, storage_app_gear_ids,
         usage.save!
         puts "Fixed usage for gear_id: #{gear_id}, usage_type: #{usage.usage_type}, rectified storage mismatch in usage" if $verbose
       end
-    end 
+    end
   end if storage_mismatch_gear_ids.present?
 
   urec_gear_ids.each do |gear_id|
@@ -694,7 +687,7 @@ def repair_usage(gear_app_gear_ids, gear_urec_gear_ids, storage_app_gear_ids,
         usage.delete
         puts "Fixed usage for gear_id: #{gear_id}, usage_type: #{usage.usage_type}, deleted duplicate record in usage" if $verbose
       end
-    end  
+    end
   end if gear_ids.present?
 end
 
@@ -770,7 +763,7 @@ def repair_removed_nodes(available_servers, unresponsive_servers, auto_confirm)
       puts "Skipped deleting unresponsive unscalable apps." if $verbose
     end
     puts ""
-  end 
+  end
 
   unless unresponsive_scalable_apps.blank?
     # Analyze scalable apps
@@ -794,7 +787,7 @@ def repair_removed_nodes(available_servers, unresponsive_servers, auto_confirm)
         ha_apps_without_head << app_id
       elsif !recoverable and !framework[:backup_available] and !db[:backup_available]
         apps_not_recoverable << app_id
-      end 
+      end
     end
 
     unless ha_apps_without_head.blank?
@@ -851,7 +844,7 @@ def repair_removed_nodes(available_servers, unresponsive_servers, auto_confirm)
       app, recoverable, framework, db = app_info[0], app_info[1], app_info[2], app_info[3]
       if recoverable and !db[:remove_features].blank?
         apps_to_remove_features << app_id
-      end 
+      end
     end
     unless apps_to_remove_features.blank?
       puts "Found #{apps_to_remove_features.size} unresponsive scalable apps that are recoverable but some features/carts need to be removed."
@@ -930,15 +923,29 @@ end
 def repair_orphaned_envs(orphaned_envs)
   return if orphaned_envs.blank?
   failed_count = 0
-  orphaned_envs.each do |orphan|
-    domain = Domain.find(orphan[:domain_id])
+  puts "Removing orphaned environment variables from domain(s)..." if $verbose
+  domain_component = orphaned_envs.group_by{ |d| d[:domain_id] }.each{ |_, v| v.map!{ |d| d[:component_id] }}
+  domain_component.each do |domain_key, component_array|
     begin
-      domain.remove_env_variables(orphan[:component_id])
-      puts "Removed envs with component id #{orphan[:component_id]} from domain \"#{domain.namespace}\""
-    rescue => e
-      print_message "Unable to remove envs with component id #{orphan[:component_id]} from domain \"#{domain.namespace}\": #{e.message}"
+      env_vars_to_remove = []
+      domain = Domain.find(domain_key)
+      component_array.each do |component|
+        env_vars_to_remove << domain.env_vars.select { |env| env["component_id"]==component }
+      end
+      env_vars_to_remove = env_vars_to_remove.flatten
+      Domain.where(_id: domain.id).update_all({ "$pullAll" => { env_vars: env_vars_to_remove }})
+      if $verbose
+        env_vars_to_remove.uniq! { |va| va["component_id"] }.each do |ci|
+          puts "Removed envs with component id #{ci["component_id"]} from domain \"#{domain.namespace}\""
+        end
+      else
+        puts "Removed all orphaned environment variables from domain \"#{domain.namespace}\""
+      end
+    rescue Mongoid::Errors::DocumentNotFound
+    rescue Exception => ex
+      print_message "Failed to fix orphaned environment variables for domain '#{domain.namespace}': #{ex.message}"
+      print_message ex.backtrace
       failed_count += 1
-      continue
     end
   end
   print_message "Failed to repair all orphaned domain environment variables" if failed_count > 0
@@ -952,18 +959,29 @@ $chk_gear_mongo_node = true if fix_ssh_keys or fix_district_uids or fix_removed_
 $chk_district = true if fix_district_uids or fix_removed_nodes
 $chk_usage = true if fix_usage
 
-populate_user_hash
-populate_domain_hash
-populate_district_hash
-populate_app_hash
+# Checking chk_* and fix_* flags to determine which hash(es) to be populated
+if $chk_gear_mongo_node or $chk_usage
+  populate_user_hash
+  populate_domain_hash
+  populate_app_hash
+elsif !fix_gear_sizes.nil?
+  populate_user_hash
+  populate_domain_hash
+elsif !fix_consumed_gears.nil?
+  populate_user_hash
+end
+
+if $chk_district
+  populate_district_hash
+end
 
 consumed_gears_user_ids = []
 consumed_gears_user_ids = run :find_consumed_gears_inconsistencies if fix_consumed_gears
 
 ssh_keys_app_ids = []
-stale_keys_vars_domain_ids = []
+stale_keys_domain_ids = []
 ssh_keys_app_ids = run :find_ssh_key_inconsistencies if fix_ssh_keys
-stale_keys_vars_domain_ids = run :find_stale_sshkeys_and_envvars if fix_ssh_keys
+stale_keys_domain_ids = run :find_stale_sshkeys if fix_ssh_keys
 
 unreserved_district_uid_map = {}
 unused_district_uid_map = {}
@@ -1007,7 +1025,7 @@ $total_errors = 0
 unless report_only
   run :repair_consumed_gears, consumed_gears_user_ids
   run :repair_ssh_keys, ssh_keys_app_ids
-  run :repair_stale_keys_vars, stale_keys_vars_domain_ids
+  run :repair_stale_keys, stale_keys_domain_ids
   run :repair_district_uids, unreserved_district_uid_map, unused_district_uid_map
   run :repair_usage, usage_gear_app_gear_ids, usage_gear_urec_gear_ids,
                     usage_storage_app_gear_ids, usage_storage_urec_gear_ids,
