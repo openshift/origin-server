@@ -752,7 +752,12 @@ max number of processes
 Default: 250
 
 ==== node_tc_max_bandwidth
-mbit/sec - Total bandwidth allowed for Libra
+mbit/sec - Total bandwidth allowed for OpenShift
+
+If `TRAFFIC_CONTROL_DEVS` includes the loopback interface (`lo`), this setting will
+be ignored only for that interface. For example, with a setting of
+`TRAFFIC_CONTROL_DEVS="eth0 lo"`, the `node_tc_max_bandwidth` setting would apply to
+`eth0` but not to `lo`.
 
 Default: 800
 
