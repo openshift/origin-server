@@ -5,11 +5,11 @@ Installation and use of the Management Console is documented in the [Administrat
 We expect code contributions to follow these standards:
 
 1. Ensure code matches the [GitHub Ruby styleguide](https://github.com/styleguide/ruby), except where the file establishes a different standard.
-2. Ensure CSS and HTML match the [Bootstrap styleguid](http://mdo.github.com/code-guide/), except where explicitly identified differently.
+2. Ensure CSS and HTML match the [Bootstrap styleguide](http://mdo.github.com/code-guide/), except where explicitly identified differently.
 3. We use Test::Unit with Rails extensions for all our test cases.
 4. We try to maintain 100% line coverage of all newly added model and
    controller code via testing.  Coverage reports are generated if
-   you have the simplecov gem installed after tests execute via 
+   you have the simplecov gem installed after tests execute via
    bundle exec rake test.
 
 Once you've made your changes:
