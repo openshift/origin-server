@@ -46,7 +46,7 @@ include::_pep_list.adoc[]
 
 == Source Code Repositories
 
-OpenShift Origin sources are arranged into 5 repositories:
+OpenShift Origin sources are arranged into 4 repositories:
 
 [cols="1,3",options="header"]
 |===
