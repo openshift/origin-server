@@ -7,12 +7,12 @@ TODO:
 
 # How To Write An OpenShift Origin Node Platform 2.0
 
-OpenShift node platforms provide the interface for the broker to command a gear or gear's cartridge. 
+OpenShift node platforms provide the interface for the broker to command a gear or gear's cartridge.
 
 ## Gear Directory Structure
 
 This is the structure to which gears are expected to conform when written
-to disk. 
+to disk.
 
     .../`uuid`/cartridges/
     +- `cartridge vendor`-`cartridge name`
@@ -213,7 +213,7 @@ TODO: deal with node httpd bouncing somewhere
 * Delete .env/OPENSHIFT_${CART_NS}_PROXY_PORT
 * remove_proxy_port $uuid "$OPENSHIFT_INTERNAL_IP:$OPENSHIFT_INTERNAL_PORT"
 
-### Running cartridge scripts
+### Running Cartridge Scripts
 
 #### Environment Variables
 
