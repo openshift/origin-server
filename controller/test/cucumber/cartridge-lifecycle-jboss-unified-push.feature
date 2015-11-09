@@ -1,3 +1,4 @@
+@not-enterprise
 @cartridge_extended4
 
 Feature: Cartridge Lifecycle JBoss Unified Push Server Verification Tests
