@@ -53,7 +53,7 @@ The OpenShift Origin community central coordination point is our
 
 ### IRC ###
 
-OpenShift developers discuss the project in realtime on [#openshift-dev on freenode](http://webchat.freenode.net/?randomnick=1&channels=openshift-dev&uio=d4).
+OpenShift developers discuss the project in real time on [#openshift-dev on Freenode](http://webchat.freenode.net/?randomnick=1&channels=openshift-dev&uio=d4).
 
 ### Mailing list ###
 

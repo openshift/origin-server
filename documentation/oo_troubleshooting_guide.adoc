@@ -25,7 +25,7 @@ First, the normal system administration checks should be used and monitored. Thi
 * Ensure file systems are healthy.
 * ...
 
-Second, monitor the individual services that make up Openshift:
+Second, monitor the individual services that make up OpenShift:
 
 * Ensure mcollective is running
 * Ensure mongo is running

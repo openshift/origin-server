@@ -155,7 +155,7 @@ When the VM has finished booting. It will go through some initialization and the
 image:virt_manager_vm_running.png[image]
 
 === VirtualBox
-If Virtualbox is installed on your system, you should be able to click on the `Openshift Origin v4.vbox` file from a window manager to automatically register the VM and launch it.
+If Virtualbox is installed on your system, you should be able to click on the `OpenShift Origin v4.vbox` file from a window manager to automatically register the VM and launch it.
 
 If this doesn't work, or if you would like to modify the VM configuration, read on.
 
@@ -296,7 +296,7 @@ Provided with the VM is a file called `OpenShift Origin 4.vmx`. If VMWare is ins
 
 == Accessing the Virtual Machine
 
-When the VM is running it is accessable from the host machine either
+When the VM is running it is accessible from the host machine either
 using the OpenShift console via a web browser or on a command line
 interface using SSH.  The web interface is useful for easily managing
 applications while the CLI allows the user to write and test
@@ -363,7 +363,7 @@ See the link:oo_user_guide.txt[OpenShift User's Guide]
 
 The steps above allow a user to download and run a self-contained
 OpenShift service for development or demonstration purposes.  The
-service runs in a VirtualBox virtual machine and is accessable to the
+service runs in a VirtualBox virtual machine and is accessible to the
 user on the host machine using the VirtualBox graphical console, by
 SSH or with a local web browser to the OpenShift console and to any
 applications that are created within the OpenShift service.

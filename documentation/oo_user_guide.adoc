@@ -820,7 +820,7 @@ RESULT:
 Application 'someAppToDelete' successfully deleted
 ----
 
-There is another variant of this command which does not require the user to confirm the delete opeartion. To use this variant, pass the _--confirm_ flag.
+There is another variant of this command which does not require the user to confirm the delete operation. To use this variant, pass the _--confirm_ flag.
 
 ----
 $ rhc app delete --confirm -a someAppToDelete
@@ -2239,7 +2239,7 @@ After adding the correct arguments to the _eclipse.ini_ file, restart the Eclips
 
 === Create an OpenShift Origin Application
 
-Now that we have Eclipse Juno and JBoss Tools 4.0 installed, we can create an OpenShift Origin application without having the leave the comfort of our favorite IDE. Click on the _OpenShift Applicaiton_ link that is provided on the JBoss Central screen.
+Now that we have Eclipse Juno and JBoss Tools 4.0 installed, we can create an OpenShift Origin application without having the leave the comfort of our favorite IDE. Click on the _OpenShift Application_ link that is provided on the JBoss Central screen.
 
 image:jbosstools1.png[image]
 
@@ -2304,7 +2304,7 @@ Now that you have added the driver, the dialog box will display the available dr
 * Password: The password supplied by OpenShift. If you forgot this, use the _Environment Variables_ utility provided by JBoss Tools.
 
 In order to verify that your port-forwarding and database connection is setup correctly, press the _test connection_ button. If your connection is failing, make sure that you have the correct authorization
-credentials and that port-fowarding is started via JBoss Tools.
+credentials and that port-forwarding is started via JBoss Tools.
 
 Once you have correctly added the database connection, you should now see the remote database from the OpenShift Origin node host available for use in your Eclipse IDE.
 
@@ -2407,7 +2407,7 @@ $ rhc app create-a piwik -t php
 $ rhc cartridge add -a piwik -c mysql-5.5
 ----
 
-OpenShift Origin, as you know, creates a default _index_ file for your application. Because we are going to be using the source code from our Piwik applicaiton, we need to remove the existing template.
+OpenShift Origin, as you know, creates a default _index_ file for your application. Because we are going to be using the source code from our Piwik application, we need to remove the existing template.
 
 ----
 $ rm -rf ~/code/piwik/php/*
@@ -2419,7 +2419,7 @@ At this point, we need to copy over the source code that we extracted from the z
 $ cp -av ~/code/piwikstage/piwik/* ~/code/piwik/php
 ----
 
-Now we need to add and commit our changes to our _piwik_ applicaiton:
+Now we need to add and commit our changes to our _piwik_ application:
 
 ----
 $ cd ~/code/piwik/php

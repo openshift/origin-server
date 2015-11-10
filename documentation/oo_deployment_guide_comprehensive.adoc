@@ -35,7 +35,7 @@ This is a good reference configuration for proof-of-concept. However, _many othe
 * Broker, MongoDB, ActiveMQ replicated across three hosts
 * Node system for hosted applications
 
-If you are interested in an HA deployment, refer to the link:#appendix-high-availability-deployments[High Availabilty Deployments] section for some guidance.
+If you are interested in an HA deployment, refer to the link:#appendix-high-availability-deployments[High Availability Deployments] section for some guidance.
 
 For any other help with your specific setup, you can ask the OpenShift team at IRC channel http://webchat.freenode.net/?randomnick=1&channels=openshift-dev&uio=d4[#openshift-dev] on FreeNode, or check out the OpenShift http://lists.openshift.redhat.com/openshiftmm/listinfo/dev[developers mailing list].
 
@@ -259,7 +259,7 @@ chown -v root:named /etc/rndc.key
 chmod -v 640 /etc/rndc.key
 ----
 
-==== Create a fowarders.conf file for host name resolution
+==== Create a forwarders.conf file for host name resolution
 The DNS forwarding facility of BIND can be used to create a large site-wide cache on a few servers, reducing traffic over links to external name servers. It can also be used to allow queries by servers that do not have direct access to the Internet, but wish to look up exterior names anyway. Forwarding occurs only on those queries for which the server is not authoritative and does not have the answer in its cache.
 
 Create the forwarders.conf file with the following commands:
@@ -467,7 +467,7 @@ dig @127.0.0.1 broker.example.com
 ==== Create _dhclient-eth0.conf_
 In order to configure your broker host to use a specific DNS server, you will need to edit the _/etc/dhcp/dhclient-\{$network device}.conf file_ or create the file if it does not exist. Without this step, the DNS server information in _/etc/resolv.conf_ would default back the server returned from your DHCP server on the next boot of the server.
 
-For example, if you are using eth0 as your default ethernet device, you would need to edit the following file:
+For example, if you are using eth0 as your default Ethernet device, you would need to edit the following file:
 
 ----
 /etc/dhcp/dhclient-eth0.conf
@@ -948,7 +948,7 @@ SELinux has several variables that we want to ensure are set correctly. These va
 | allow_ypbind              | Allow the broker application to use ypbind to communicate directly with the name server
 | httpd_verify_dns          | Allow Apache to query NS records
 | httpd_enable_homedirs     | Allows Apache to use its access home directories
-| httpd_execmem             | allows httpd to execute programs that require memory addresses that are both executable and writeable
+| httpd_execmem             | allows httpd to execute programs that require memory addresses that are both executable and writable
 | httpd_read_user_content   | Allows httpd to read user generated content
 |===
 
@@ -998,14 +998,14 @@ The OpenShift Origin broker uses a configuration file to define several of the a
 VALID_GEAR_SIZES="small,medium,large"
 ----
 
-The related _DEAFULT_GEAR_CAPABILITIES_ variable dictates which of these is available to a user when the user is created:
+The related _DEFAULT_GEAR_CAPABILITIES_ variable dictates which of these is available to a user when the user is created:
 
 ----
 # Default gear sizes (comma-separated) allowed to a new user
 DEFAULT_GEAR_CAPABILITIES="small,medium"
 ----
 
-And finally the _DEFAULT_GEAR_SIZE_ variable determins which size gear a new application will get by default:
+And finally the _DEFAULT_GEAR_SIZE_ variable determines which size gear a new application will get by default:
 
 ----
 # Default gear size for a new gear
@@ -1026,7 +1026,7 @@ CLOUD_DOMAIN="example.com"
 Edit the mongo variables to connect to the Mongo DB server
 
 ----
-# Comma seperated list of replica set servers. Eg: "<host-1>:<port-1>,<host-2>:<port-2>,..."
+# Comma separated list of replica set servers. Eg: "<host-1>:<port-1>,<host-2>:<port-2>,..."
 MONGO_HOST_PORT="<mongodb server FQDN>:27017"
 
 #Mongo DB user configured earlier
@@ -1550,7 +1550,7 @@ SELinux has several variables that we want to ensure are set correctly. These va
 | allow_ypbind              | Allow the broker application to use ypbind to communicate directly with the name server
 | httpd_verify_dns          | Allow Apache to query NS records
 | httpd_enable_homedirs     | Allows Apache to use its access home directories
-| httpd_execmem             | allows httpd to execute programs that require memory addresses that are both executable and writeable
+| httpd_execmem             | allows httpd to execute programs that require memory addresses that are both executable and writable
 | httpd_read_user_content   | Allows httpd to read user generated content
 |===
 
@@ -1658,7 +1658,7 @@ Once you connect to the broker host, copy the key with the following command:
 
 *Execute the following on the broker host*:
 
-.Seperate Broker and Node Setup
+.Separate Broker and Node Setup
 ----
 scp /etc/openshift/rsync_id_rsa.pub root@node.example.com:/root/.ssh
 ----
@@ -1683,7 +1683,7 @@ be authenticated to the node host without having to specify the root user passwo
 
 *Verify the key by executing the following on the broker host*:
 
-.Seperate Broker and Node Setup
+.Separate Broker and Node Setup
 ----
 ssh -i /root/.ssh/rsync_id_rsa root@node.example.com
 ----
@@ -1714,7 +1714,7 @@ boot. This will allow the node host to resolve references to broker.example.com 
 
 NOTE: This step assumes that your node host is using the *eth0* device for network connectivity. If that is not the case, replace eth0 with the correct Ethernet device for your host.
 
-Edit the _/etc/dhcp/dhclient-eth0.conf_ file, or add it if it doesn't exist, and add the following information ensuring that you replace theIP address with the correct IP of your broker application host:
+Edit the _/etc/dhcp/dhclient-eth0.conf_ file, or add it if it doesn't exist, and add the following information ensuring that you replace the IP address with the correct IP of your broker application host:
 
 ----
 prepend domain-name-servers 10.4.59.x;
@@ -2161,9 +2161,9 @@ service cgred restart
 In order for cgroups to work correctly, you need to ensure that services are started in the correct order.
 
 === Configure Disk Quotas
-When a consumer of OpenShift Origin creates an application gear, you will need to be able to control and set the amount of disk space that the gear can consume. This configuration is located in the _/etc/openshift/resource_limits.conf_ file. The two settings of interest are the qouta_files and the quota_blocks. The usrquota setting specifies the total number of files that a gear / user is allowed to own. The quota_blocks is the actual amount of disk storage that the gear is allowed to consume — where 1 block is equal to 1024 bytes.
+When a consumer of OpenShift Origin creates an application gear, you will need to be able to control and set the amount of disk space that the gear can consume. This configuration is located in the _/etc/openshift/resource_limits.conf_ file. The two settings of interest are quota_files and quota_blocks. The quota_files setting specifies the total number of files that a gear / user is allowed to own. The quota_blocks is the actual amount of disk storage that the gear is allowed to consume — where 1 block is equal to 1024 bytes.
 
-In order to enable _usrqouta_ on the filesystem, you will need to add the _usrquota_ option in the _/etc/fstab_ for the mount of /var/lib/openshift. In this chapter, the /var/lib/openshift directory is mounted as part of the root filesystem. The corresponding line in the /etc/fstab file looks like
+In order to enable _usrquota_ on the filesystem, you will need to add the _usrquota_ option in the _/etc/fstab_ for the mount of /var/lib/openshift. In this chapter, the /var/lib/openshift directory is mounted as part of the root filesystem. The corresponding line in the /etc/fstab file looks like
 
 ----
 /dev/mapper/VolGroup-lv_root /                       ext4    defaults        1 1
@@ -2202,14 +2202,14 @@ quotacheck -cmug /
 * sysctl
 
 ==== Configuring SELinux
-The OpenShift Origin node requires several SELinux boolean values to be set in order to operate correctly.
+The OpenShift Origin node requires several SELinux Boolean values to be set in order to operate correctly.
 
 .SELinux Boolean Values
 [options="header"]
 |===
 | Variable Name             | Description
 | httpd_run_stickshift      | Enable passenger-related permissions
-| httpd_execmem             | Allow httpd to execute programs that require memory addresses that are both executable and writeable
+| httpd_execmem             | Allow httpd to execute programs that require memory addresses that are both executable and writable
 | httpd_unified             | Allow the broker to write files in the "http" file context
 | httpd_can_network_connect | Allow the broker application to access the network
 | httpd_can_network_relay   | Allow the SSL termination Apache instance to access the backend Broker application
@@ -2307,7 +2307,7 @@ chkconfig openshift-gears on
 ==== Configuring Node Settings for Domain Name
 Edit the _/etc/openshift/node.conf_ file and *specify the correct settings for your _CLOUD_DOMAIN, PUBLIC_HOSTNAME, and BROKER_HOST_ IP address*. For example:
 
-.Seperate Broker and Node Setup
+.Separate Broker and Node Setup
 ----
 PUBLIC_HOSTNAME="node.example.com"            # The node host's public hostname
 PUBLIC_IP="10.4.59.y"                         # The node host's public IP address
@@ -2448,7 +2448,7 @@ Open up the _System Preferences_ tool and select the _Network_ utility:
 
 image:network.png[image]
 
-On the bottom left hand corner of the _Network_ utility, ensure that the lock button is unlocked to enable user modifications to the DNS configuration. Once you have unlocked the system for changes, locate the ethernet device that is providing connectivity for your machine and click the advanced button:
+On the bottom left hand corner of the _Network_ utility, ensure that the lock button is unlocked to enable user modifications to the DNS configuration. Once you have unlocked the system for changes, locate the Ethernet device that is providing connectivity for your machine and click the advanced button:
 
 image:network2.png[image]
 
@@ -2472,7 +2472,7 @@ $ ping node.example.com
 ----
 
 == Appendix: High Availability Deployments
-There are a number of ways to deploy OpenShift components in High Availabilty configurations. The https://forge.puppetlabs.com/openshift/openshift_origin[OpenShift Origin Puppet module], in concert with the link:oo_install_users_guide.html[oo-install utility], uses the approach described here. For more hands-on information, look to the documentation of these components for specific deployment and configuration steps.
+There are a number of ways to deploy OpenShift components in High Availability configurations. The https://forge.puppetlabs.com/openshift/openshift_origin[OpenShift Origin Puppet module], in concert with the link:oo_install_users_guide.html[oo-install utility], uses the approach described here. For more hands-on information, look to the documentation of these components for specific deployment and configuration steps.
 
 === Broker Load-Balancing
 Broker clustering is accomplished in the Puppet module by using HAProxy and a virtual host / IP address as a front for an arbitrary number of Broker instances. One Broker host also serves as the HAProxy host, and calls to the "virtual Broker" are resolved here and directed via HAProxy to one of the real Brokers. Be aware, however, that the HAProxy instance in this scenario represents a single point of failure. As a failsafe, individual Broker instances can still be addressed using their own hostnames and IP addresses.

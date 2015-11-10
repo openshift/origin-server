@@ -68,7 +68,7 @@ Now, *on any one Broker host*, run the following `oo-admin` command:
 oo-admin-ctl-cartridge -c import-node --activate
 ----
 
-If the command is successfu, you should see output like this:
+If the command is successful, you should see output like this:
 
 ----
 # oo-admin-ctl-cartridge -c import-node --activate

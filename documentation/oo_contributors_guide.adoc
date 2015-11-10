@@ -9,7 +9,7 @@ LATEST DOC UPDATES
 This document describes the recommended workflow to maintain a fork of a GitHub repository and how to submit pull requests for new features or bug fixes. Additionally you will find information on specific code areas within OpenShift and how to contribute to them.
 
 == Creating a Development Environment
-This section describes general requirements for doing development on the OpenShift Origin code base. This is all basic info on asetting up an environment. **Once you've done all of this, have a look at the link:oo_deployment_guide_vagrant.html[Vagrant Deployment Guide].** Unlike the other OpenShift deployment guides, Vagrant is strongly optimized in favor of developers.
+This section describes general requirements for doing development on the OpenShift Origin code base. This is all basic info on setting up an environment. **Once you've done all of this, have a look at the link:oo_deployment_guide_vagrant.html[Vagrant Deployment Guide].** Unlike the other OpenShift deployment guides, Vagrant is strongly optimized in favor of developers.
 
 === Shell/Terminal Installation
 

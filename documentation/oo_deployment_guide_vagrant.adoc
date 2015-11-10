@@ -308,7 +308,7 @@ $ vagrant sync
 
 == Running Tests
 
-When you contribute code to the OpenShift Origin repo on GitHub, it is automatically put through the full OpenShift test suite on our CI system. The code will not merge unless it passes this guantlet of tests. If you want to ensure that your code changes are right the first time, put them through the gauntlet in your Vagrant environment.
+When you contribute code to the OpenShift Origin repo on GitHub, it is automatically put through the full OpenShift test suite on our CI system. The code will not merge unless it passes this gauntlet of tests. If you want to ensure that your code changes are right the first time, put them through the gauntlet in your Vagrant environment.
 
 To run the full suite of tests on a running Vagrant box, use:
 
@@ -330,7 +330,7 @@ The full suite can take a long time to run, so if your changes are limited to on
 Note that basic unit tests can often be run directly from your local code repos and do not need to be synced to the Vagrant box first.
 
 == Making and Committing Code Changes
-This topic is covered in a general way in the link:oo_contributors_guide.html#submitting-code[Contributors Guide]. In the context of a Vagrant-based development environment, here is a basic bescription of the workflow that you will follow as you develop code changes and prepare pull requests:
+This topic is covered in a general way in the link:oo_contributors_guide.html#submitting-code[Contributors Guide]. In the context of a Vagrant-based development environment, here is a basic description of the workflow that you will follow as you develop code changes and prepare pull requests:
 
 1. After link:#setting-up-your-sandbox[setting up your local working directory], you will have code repos that start on their respective master branches.
 2. Before you perform your first link:#full-synchronization[full] or link:#partial-synchronization[partial] sync, create a new branch in the repo(s) where you will be working:
