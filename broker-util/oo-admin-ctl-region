@@ -45,8 +45,8 @@ opts = GetoptLong.new(
     ["--command",   "-c", GetoptLong::REQUIRED_ARGUMENT],
     ["--region",    "-r", GetoptLong::REQUIRED_ARGUMENT],
     ["--zone",      "-z", GetoptLong::REQUIRED_ARGUMENT],
-    ["--description", "-d", GetoptLong::REQUIRED_ARGUMENT],    
-    ["--bypass",    "-b", GetoptLong::NO_ARGUMENT],    
+    ["--description", "-d", GetoptLong::REQUIRED_ARGUMENT],
+    ["--bypass",    "-b", GetoptLong::NO_ARGUMENT],
     ["--help",      "-h", GetoptLong::NO_ARGUMENT]
 )
 args = {}
@@ -118,7 +118,7 @@ WARNING
 
       print "Do you want to delete this region (y/n): "
       begin
-        unless gets.to_s.strip =~ /^(yes|y)$/i
+        unless STDIN.gets.chomp.to_s.strip =~ /^(yes|y)$/i
           puts "\n"
           exit 217
         end
@@ -131,7 +131,7 @@ WARNING
     reply.resultIO << "Successfully deleted region: #{region_name}" if reply.resultIO.string.empty?
   when "add-zone"
     region = get_region(region_name)
-    region.add_zone(zone_name) 
+    region.add_zone(zone_name)
     reply.resultIO << "Success!"
   when "remove-zone"
     region = get_region(region_name)
@@ -144,7 +144,7 @@ WARNING
       puts Region.list(region_name)
     end
   end
-  reply.resultIO << "\n\n#{region.attributes.pretty_inspect}" if region and (command != 'destroy') 
+  reply.resultIO << "\n\n#{region.attributes.pretty_inspect}" if region and (command != 'destroy')
 rescue OpenShift::OOException => e
   reply.errorIO << e.message
   if e.respond_to?('code') and e.code
