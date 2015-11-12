@@ -87,13 +87,26 @@ function ishttpup() {
     return 1
 }
 
-# This function is here to mimmic the EAP cartriges design: 
-# Due to the lack of a provided mgmt interface, the options to check for 
-#  deployment activation is limited. Thus this fucntion uses an ENV VAR to 
-#  allow you configure a sleep time (in seconds), giving your deployments 
-#  time to start before marking the gear as active. 
+# This function is here to mimmic the EAP cartriges design:
+# Due to the lack of a provided mgmt interface, the options to check for
+#  deployment activation is limited. Thus this fucntion uses an ENV VAR to
+#  allow you configure a sleep time (in seconds), giving your deployments
+#  time to start before marking the gear as active.
 function waitondeployments() {
-    sleep ${OPENSHIFT_JBOSSEWS_START_DELAY:-0}
+    attempts=${OPENSHIFT_JBOSSEWS_START_TRIES:-5}
+    sleep_time=${OPENSHIFT_JBOSSEWS_HEALTH_WAIT_TIME:-2}
+    context=${OPENSHIFT_HAPROXY_HTTPCHK_URI:-/}          # context must start with '/'
+    context=${OPENSHIFT_JBOSSEWS_HEALTH_CONTEXT:-$context}
+
+    count=0
+    while [ $count -lt $attempts ]; do
+        if [[ $(curl -ILsm 2 "http://$OPENSHIFT_JBOSSEWS_IP:$OPENSHIFT_JBOSSEWS_HTTP_PORT$context" > /dev/null 2>&1) ]]; then
+            break
+        else
+            sleep $sleep_time
+            count=$((count + 1))
+        fi
+    done
 }
 
 function start_app() {
