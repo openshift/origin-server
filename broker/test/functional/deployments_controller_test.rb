@@ -132,4 +132,18 @@ class DeploymentsControllerTest < ActionController::TestCase
     end
   end
 
+  test "check for both binary and git deployment input" do
+    # Check for cases where we have both a ref and an artifact_url
+    test_url = "http://localhost/test.tgz"
+    test_ref = "branchname"
+    post :create, { "application_id" => @app._id, "artifact_url" => test_url, "ref" => test_ref }
+    assert_response :unprocessable_entity, "Cannot specify a git deployment and a binary artifact deployment"
+  end
+
+  test "check for no binary or git deployment input" do
+    # Check for cases where we have have neither a ref nor an artifact_url
+    post :create, { "application_id" => @app._id, "artifact_url" => nil, "ref" => nil }
+    assert_response :unprocessable_entity, "Must specify a git deployment or a binary artifact deployment"
+  end
+
 end
