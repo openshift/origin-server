@@ -326,14 +326,20 @@ end
 
 Then /^a traffic control entry should( not)? exist$/ do |negate|
   acctname = @account['accountname']
-  netdev = `source /etc/openshift/node.conf; echo $EXTERNAL_ETH_DEV 2>/dev/null`.chomp
+  # use $TRAFFIC_CONTROL_DEVS if present, otherwise, use $EXTERNAL_ETH_DEV
+  netdev = `{ source /etc/openshift/node.conf; echo ${TRAFFIC_CONTROL_DEVS:-$EXTERNAL_ETH_DEV}; } 2>/dev/null`.chomp
+
   netdev = "eth0" if netdev.empty?
   tc_format = 'tc -s class show dev %s classid 1:%s'
-  tc_command = tc_format % [netdev, (netclass @account['uid'])]
-  result = `#{tc_command}`
-  if negate
-    result.should be == ""
-  else
-    result.should_not be == ""
+  netdevs = netdev.gsub(/\s+/m, ' ').strip.split(" ")
+  netdevs.size.should_not be == 0
+  netdevs.each do |dev|
+    tc_command = tc_format % [dev, (netclass @account['uid'])]
+    result = `#{tc_command}`
+    if negate
+      result.should be == ""
+    else
+      result.should_not be == ""
+    end
   end
 end

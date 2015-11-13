@@ -204,6 +204,7 @@ def load_node_conf
     do_fail("GEAR_BASE_DIR does not exist or is not a directory: #{$GEAR_BASE_DIR}") unless File.exists? $GEAR_BASE_DIR
 
     $EXTERNAL_ETH_DEV = ($CONF.get('EXTERNAL_ETH_DEV') or 'eth0')
+    $TRAFFIC_CONTROL_DEVS = ($CONF.get('TRAFFIC_CONTROL_DEVS') or $EXTERNAL_ETH_DEV).gsub(/\s+/m, ' ').strip.split(' ')
 
     verbose("loading resource limit file #{$RESOURCE_LIMITS_FILE}")
     do_fail("No resource limits file: #{$RESOURCE_LIMITS_FILE}") unless File.exists? $RESOURCE_LIMITS_FILE
@@ -241,7 +242,7 @@ def load_users
   # Narrow the window where USERS, TC_DATA and ALL_QUOTAS can reflect
 # the system in different states.
   $START_TIME=Time.now
-  $TC_DATA = %x[/sbin/tc clas show dev #{$EXTERNAL_ETH_DEV}].split("\n").grep(/parent/)
+  $TC_DATA = %x[/sbin/tc clas show dev #{$TRAFFIC_CONTROL_DEVS.first}].split("\n").grep(/parent/)
   $ALL_QUOTAS = %x[/usr/sbin/repquota -a].split("\n")
 
   # Aggregate per-user hash of lscgroup data. In some cases, multiple subsystems
@@ -517,21 +518,22 @@ def check_tc_config
 
     verbose("checking presence of tc qdisc")
     qdiscresponse="qdisc htb 1: root"
-
-    result = %x[/sbin/tc qdisc show dev #{$EXTERNAL_ETH_DEV} | /bin/grep -q "#{qdiscresponse}"]
-    if $?.exitstatus != 0
-        do_fail("tc htb qdisc not configured")
-        $TC_PASS=false
-    else
-        verbose("checking for cgroup filter")
-        if %x[/sbin/tc filter show dev #{$EXTERNAL_ETH_DEV} | /bin/grep 'cgroup handle' | /usr/bin/uniq | /usr/bin/wc -l].strip.to_i < 1
-            do_fail("no cgroup filter configured")
+    $TRAFFIC_CONTROL_DEVS.each do |tc_dev|
+        result = %x[/sbin/tc qdisc show dev #{tc_dev} | /bin/grep -q "#{qdiscresponse}"]
+        if $?.exitstatus != 0
+            do_fail("tc htb qdisc not configured")
             $TC_PASS=false
         else
-            verbose("checking presence of tc classes")
-            if %x[/sbin/tc class show dev #{$EXTERNAL_ETH_DEV} | /bin/grep 'class htb' | /usr/bin/wc -l].strip.to_i < 1
-                do_fail("no htb classes configured")
+            verbose("checking for cgroup filter")
+            if %x[/sbin/tc filter show dev #{tc_dev} | /bin/grep 'cgroup handle' | /usr/bin/uniq | /usr/bin/wc -l].strip.to_i < 1
+                do_fail("no cgroup filter configured")
                 $TC_PASS=false
+            else
+                verbose("checking presence of tc classes")
+                if %x[/sbin/tc class show dev #{tc_dev} | /bin/grep 'class htb' | /usr/bin/wc -l].strip.to_i < 1
+                    do_fail("no htb classes configured")
+                    $TC_PASS=false
+                end
             end
         end
     end

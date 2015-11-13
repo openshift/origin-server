@@ -75,10 +75,10 @@ module OpenShift
           # the total bandwidth
           #
 
-          # The network interface we're planning on limiting bandwidth.
-          @tc_if=(@config.get('EXTERNAL_ETH_DEV') or "eth0")
-          @tc_if_mtu=get_interface_mtu(@tc_if)
-          @tc_min_quantum=(@resources.get('tc_min_quantum') or @tc_if_mtu).to_i
+          # The network interface(s) we're planning on limiting bandwidth.
+          @tc_ifs=(@config.get('TRAFFIC_CONTROL_DEVS') or @config.get('EXTERNAL_ETH_DEV') or 'eth0').gsub(/\s+/m, ' ').strip.split(" ")
+          # a map of interface name to min quantum (e.g. { 'eth0' => 1500, 'lo' => 65536 })
+          @tc_min_quantum=Hash[@tc_ifs.collect { |tc_if| [tc_if, (@resources.get('tc_min_quantum') or get_interface_mtu(tc_if)).to_i] }]
           @tc_max_quantum=(@resources.get('tc_max_quantum') or 100000).to_i
 
           # Normal bandwidths are in Mbit/s
@@ -90,7 +90,8 @@ module OpenShift
           # Throttles are in kbit/s
           @tc_throttle_user_share=(@resources.get('tc_throttle_user_share') or 128).to_i    # 128 kbits/s with no borrow
           @tc_throttle_user_limit=(@resources.get('tc_throttle_user_limit') or @tc_throttle_user_share).to_i
-          @tc_throttle_user_quantum=(@resources.get('tc_throttle_user_quantum') or @tc_min_quantum).to_i
+          # a map of interface name to throttle user quantum (e.g. { 'eth0' => 1500, 'lo' => 65536 })
+          @tc_throttle_user_quantum=Hash[@tc_ifs.collect { |tc_if| [tc_if, (@resources.get('tc_throttle_user_quantum') or @tc_min_quantum[tc_if]).to_i] }]
 
           # Where we keep track of throttled/high users
           @tc_user_dir=(@resources.get('tc_user_dir') or File.join(@config.get('GEAR_BASE_DIR'), '.tc_user_dir'))
@@ -104,7 +105,7 @@ module OpenShift
         def get_interface_mtu(iface)
           out, _, rc = ::OpenShift::Runtime::Utils.oo_spawn(%Q[ip link show dev #{iface}], :chdir=>"/")
           if rc != 0
-            raise RuntimeError, "Unable to determine external network interface IP address."
+            raise RuntimeError, "Unable to determine interface MTU for #{iface}."
           end
           if out=~/mtu\s+(\d+)/
             $~[1].to_i
@@ -154,23 +155,29 @@ module OpenShift
         def startuser_impl(uuid, pwent, netclass, f)
           # Select what type of user.  Note that a user can high bandwidth
           # normally but throttled for a specific and temporary reason.
-          if File.exists?("#{@tc_user_dir}/#{uuid}_throttle")
+          throttled = File.exists?("#{@tc_user_dir}/#{uuid}_throttle")
+          if throttled
             @output.last << "throttled"
             this_user_share="#{@tc_throttle_user_share}kbit"
             this_user_limit="#{@tc_throttle_user_limit}kbit"
-            this_user_quantum=@tc_throttle_user_quantum
           else
             @output.last << "normal"
             this_user_share="#{@tc_user_share}mbit"
             this_user_limit="#{@tc_user_limit}mbit"
-            this_user_quantum=@tc_user_quantum
           end
 
           # Overall class for the gear
-          f.puts %Q[class add dev #{@tc_if} parent 1:1 classid 1:#{netclass} htb rate #{this_user_share} ceil #{this_user_limit} quantum #{this_user_quantum}]
+          @tc_ifs.each do |tc_if|
+            this_user_quantum=throttled ? @tc_throttle_user_quantum[tc_if] : @tc_user_quantum
+            # for the loopback interface, we want to ignore any configured limits and set a very high limit of 100gbit/s, but only for non-throttled users
+            this_if_user_limit=(tc_if.eql?('lo') and not throttled) ? '100000mbit' : this_user_limit
+            f.puts %Q[class add dev #{tc_if} parent 1:1 classid 1:#{netclass} htb rate #{this_user_share} ceil #{this_if_user_limit} quantum #{this_user_quantum}]
+          end
 
           # Specific constraints within the gear's limit
-          f.puts %Q[qdisc add dev #{@tc_if} parent 1:#{netclass} handle #{netclass}: htb default 0]
+          @tc_ifs.each do |tc_if|
+            f.puts %Q[qdisc add dev #{tc_if} parent 1:#{netclass} handle #{netclass}: htb default 0]
+          end
 
           @tc_outbound_htb.each.with_index do |htb_array, i|
             bandwidth, ports = htb_array
@@ -179,28 +186,40 @@ module OpenShift
             # configuring outbound htb minor numbers started at 2.
             minor_number = i+2
 
-            f.puts %Q[class add dev #{@tc_if} parent #{netclass}: classid #{netclass}:#{minor_number} htb rate #{rate} ceil #{ceil} quantum #{@tc_min_quantum}]
+            @tc_ifs.each do |tc_if|
+              f.puts %Q[class add dev #{tc_if} parent #{netclass}: classid #{netclass}:#{minor_number} htb rate #{rate} ceil #{ceil} quantum #{@tc_min_quantum[tc_if]}]
+            end
             ports.each do |p|
-              f.puts %Q[filter add dev #{@tc_if} parent #{netclass}: protocol ip prio 10 u32 match ip dport #{p} 0xffff flowid #{netclass}:#{minor_number}]
+              @tc_ifs.each do |tc_if|
+                f.puts %Q[filter add dev #{tc_if} parent #{netclass}: protocol ip prio 10 u32 match ip dport #{p} 0xffff flowid #{netclass}:#{minor_number}]
+              end
             end
           end
         end
 
         def stopuser_impl(uuid, pwent, netclass, f)
-          f.puts("class del dev #{@tc_if} parent 1:1 classid 1:#{netclass}")
+          @tc_ifs.each do |tc_if|
+            f.puts("class del dev #{tc_if} parent 1:1 classid 1:#{netclass}")
+          end
         end
 
         def tc_exists?(netclass)
-          out, _, _ = ::OpenShift::Runtime::Utils.oo_spawn("tc -s class show dev #{@tc_if} classid 1:#{netclass}", :chdir=>"/")
-          out.empty? ? false : out
+          exists_all = true
+          @tc_ifs.each do |tc_if|
+            out, _, _ = ::OpenShift::Runtime::Utils.oo_spawn("tc -s class show dev #{tc_if} classid 1:#{netclass}", :chdir=>"/")
+            exists_all = false if out.empty?
+          end
+          exists_all and not @tc_ifs.empty?
         end
 
         def with_tc_loaded
-          out, _, _ = ::OpenShift::Runtime::Utils.oo_spawn("tc qdisc show dev #{@tc_if}", :chdir=>"/")
-          if out.include?("qdisc htb 1:")
-            yield if block_given?
-          else
-            raise RuntimeError, "no htb qdisc on #{@tc_if}"
+          @tc_ifs.each do |tc_if|
+            out, _, _ = ::OpenShift::Runtime::Utils.oo_spawn("tc qdisc show dev #{tc_if}", :chdir=>"/")
+            if out.include?("qdisc htb 1:")
+              yield if block_given?
+            else
+              raise RuntimeError, "no htb qdisc on #{tc_if}"
+            end
           end
         end
 
@@ -239,9 +258,13 @@ module OpenShift
             all_stopped = false if tc_exists?(netclass)
           end
           if all_stopped
-            f.puts %Q[qdisc add dev #{@tc_if} root handle 1: htb]
-            f.puts %Q[class add dev #{@tc_if} parent 1: classid 1:1 htb rate #{@tc_max_bandwidth}mbit]
-            f.puts %Q[filter add dev #{@tc_if} parent 1: protocol ip prio 10 handle 1: cgroup]
+            @tc_ifs.each do |tc_if|
+              # for the loopback interface, we want to ignore any configured limits and set a very high limit of 100gbit/s
+              this_tc_max_bandwidth = tc_if.eql?('lo') ? 100000 : @tc_max_bandwidth
+              f.puts %Q[qdisc add dev #{tc_if} root handle 1: htb]
+              f.puts %Q[class add dev #{tc_if} parent 1: classid 1:1 htb rate #{this_tc_max_bandwidth}mbit]
+              f.puts %Q[filter add dev #{tc_if} parent 1: protocol ip prio 10 handle 1: cgroup]
+            end
           end
 
           
@@ -265,7 +288,9 @@ module OpenShift
         end
 
         def stop_impl(f)
-          f.puts %Q[qdisc del dev #{@tc_if} root]
+          @tc_ifs.each do |tc_if|
+            f.puts %Q[qdisc del dev #{tc_if} root]
+          end
         end
 
         def stop
@@ -378,10 +403,12 @@ module OpenShift
                 statususer(uuid, pwent, netclass, verbose)
               end
             else
-              out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("tc -s qdisc show dev #{@tc_if}", :chdir=>"/")
-              @output << out
-              out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("tc -s class show dev #{@tc_if}", :chdir=>"/")
-              @output << out
+              @tc_ifs.each do |tc_if|
+                out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("tc -s qdisc show dev #{tc_if}", :chdir=>"/")
+                @output << out
+                out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("tc -s class show dev #{tc_if}", :chdir=>"/")
+                @output << out
+              end
             end
           end
         end
