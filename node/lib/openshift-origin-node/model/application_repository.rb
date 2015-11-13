@@ -263,8 +263,9 @@ module OpenShift
         }
 
         render_file.call(PathUtils.join(@path, 'description'), 0644, GIT_DESCRIPTION)
-        render_file.call(PathUtils.join(@container.container_dir, '.gitconfig'), 0644, GIT_CONFIG)
-
+        if !File.exist?(PathUtils.join(@container.container_dir, '.gitconfig'))
+            render_file.call(PathUtils.join(@container.container_dir, '.gitconfig'), 0644, GIT_CONFIG)
+        end
         render_file.call(PathUtils.join(hooks, 'pre-receive'), 0755, PRE_RECEIVE)
         render_file.call(PathUtils.join(hooks, 'post-receive'), 0755, POST_RECEIVE)
       end
