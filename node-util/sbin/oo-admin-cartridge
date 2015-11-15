@@ -36,6 +36,11 @@ module OpenShift
                      [options.source]
                    end
 
+            if dirs.empty?
+              $stderr.puts "Installation failed: Invalid or empty path to cartridge source: '#{options.source}'"
+              raise OpenShift::Runtime::Utils::ShellExecutionException.new("Installation failed", 1, "no cartridges were found.")
+            end
+
             success = true
 
             dirs.each do |dir|
@@ -43,28 +48,28 @@ module OpenShift
                 repository.install(dir)
               rescue OpenShift::Runtime::Utils::ShellExecutionException => e
                 success = false
-                $stderr.puts "install failed for #{dir}: #{e.message}\nstdout: #{e.stdout}\nstderr: #{e.stderr}"
+                $stderr.puts "Installation failed for #{dir}: #{e.message}\nstdout: #{e.stdout}\nstderr: #{e.stderr}"
                 $stderr.puts e.backtrace.join("\n") if options.verbose
               rescue => e
                 success = false
-                $stderr.puts "install failed for #{dir}: #{e.message}"
+                $stderr.puts "Installation failed for #{dir}: #{e.message}"
                 $stderr.puts e.backtrace.join("\n") if options.verbose
               end
             end
 
-            return 'succeeded' if success
-            raise OpenShift::Runtime::Utils::ShellExecutionException.new("Installation failed", 1, "some cartridge cannot be installed")
+            return 'Succeeded' if success
+            raise OpenShift::Runtime::Utils::ShellExecutionException.new("Installation failed", 1, "some cartridges cannot be installed")
           when :list
             return options.verbose ? repository.inspect : repository.to_s
           when :erase
             begin
               repository.erase(options.cartridge_vendor, options.name, options.version, options.cartridge_version, options.force)
             rescue KeyError => e
-              abort "requested cartridge does not exist: (#{e.message})"
+              abort "Requested cartridge does not exist: (#{e.message})"
             rescue => e
               abort "Couldn't erase cartridge: (#{e.message})"
             else
-              return 'succeeded'
+              return 'Succeeded'
             end
         end
       end
