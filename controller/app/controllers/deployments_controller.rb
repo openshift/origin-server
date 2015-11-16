@@ -26,7 +26,7 @@ class DeploymentsController < BaseController
     authorize! :create_deployment, @application
 
     hot_deploy = get_bool(params[:hot_deploy].presence)
-    force_clean_build = get_bool(params[:force_clean_build].presence) 
+    force_clean_build = get_bool(params[:force_clean_build].presence)
     ref = params[:ref].presence
     artifact_url = params[:artifact_url].presence
     artifact_url = URI::encode(artifact_url) if artifact_url
@@ -39,6 +39,9 @@ class DeploymentsController < BaseController
 
     return render_error(:unprocessable_entity, "Cannot specify a git deployment and a binary artifact deployment",
                           -1, "artifact_url") if artifact_url && ref
+
+    return render_error(:unprocessable_entity, "Must specify a git deployment or a binary artifact deployment",
+                          -1) unless artifact_url || ref
 
     result = @application.deploy(hot_deploy, force_clean_build, ref, artifact_url)
 
