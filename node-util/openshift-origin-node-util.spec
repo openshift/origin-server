@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.38.5
+Version: 1.38.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -207,6 +207,10 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Tue Nov 17 2015 Stefanie Forrester <sedgar@redhat.com> 1.38.6-1
+- Add tc support for multiple IFs via TRAFFIC_CONTORL_DEVS
+  (joesmith@redhat.com)
+
 * Fri Oct 23 2015 Wesley Hearn <whearn@redhat.com> 1.38.5-1
 - Merge pull request #6284 from Miciah/bug-1260204-2
   (dmcphers+openshiftbot@redhat.com)
