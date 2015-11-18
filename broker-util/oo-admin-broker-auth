@@ -48,7 +48,6 @@ Options:
 -h|--help
     Show Usage info
 USAGE
-  exit 255
 end
 
 opts = GetoptLong.new(
@@ -67,11 +66,13 @@ begin
   opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
   usage
+  exit 255
 end
 
 # Check this _before_ loading the rails env
 if args["--help"] || (STDIN.tty? && args.empty?)
   usage
+  exit 0
 end
 
 if args['--timeout']

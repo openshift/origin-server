@@ -64,7 +64,6 @@ Options:
 -h|--help
     Show Usage info
 USAGE
-  exit 255
 end
 
 args = {}
@@ -86,9 +85,13 @@ begin
   opts.each{ |k, v| args[k] = v }
 rescue GetoptLong::Error => e
   usage
+  exit 255
 end
 
-usage if args["--help"]
+if args["--help"]
+  usage
+  exit 0
+end
 
 report_only = args["--report-only"]
 fix_ssh_keys = args["--ssh-keys"]
@@ -104,6 +107,7 @@ if fix_ssh_keys.nil? and fix_district_uids.nil? and fix_consumed_gears.nil? and
    fix_orphaned_envs.nil?
   puts "You must specify at least one item to fix."
   usage
+  exit 0
 end
 
 require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"

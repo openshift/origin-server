@@ -27,7 +27,6 @@ Options:
 -h|--help
     Show Usage info
 USAGE
-  exit 255
 end
 
 opts = GetoptLong.new(
@@ -43,6 +42,7 @@ begin
   opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
   usage
+  exit 255
 end
 
 $list = args["--list"]
@@ -52,11 +52,13 @@ $enable_logger = args["--enable-logger"]
 
 if args["--help"]
   usage
+  exit 0
 end
 
 unless $list || $sync || $remove_sync_lock
   puts "You must specify --list and/or --sync and/or --remove-sync-lock"
   usage
+  exit 255
 end
 
 require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
@@ -149,7 +151,7 @@ def list_usage
       $prev_login = srec['login']
     end
     puts "\tGear: #{srec['gear_id']}, UsageType: #{srec['usage_type']}, Usage: #{pretty_duration(srec['usage'])} #{"(x#{srec['multiplier']})" if srec['multiplier'] != 1}"
-  end 
+  end
 end
 
 def sync_usage
@@ -244,7 +246,7 @@ def sanitize_usage_records(urecs)
         urecs = [urecs.first]
       else
         # Ignore processing these records, needs investigation.
-        urecs = [] 
+        urecs = []
       end
       return sanitize_usage_records(urecs)
     end
@@ -320,9 +322,9 @@ def process_usage_records(billing_accounts)
   cur_urec_count = 0
   prev_gear_id = nil
   if billing_accounts
-    threshold = $bulk_billing_recs_threshold 
+    threshold = $bulk_billing_recs_threshold
   else
-    threshold = $bulk_non_billing_recs_threshold 
+    threshold = $bulk_non_billing_recs_threshold
   end
 
   # usage_records collection is indexed by 'gear_id', 'usage_type' and 'created_at' fields

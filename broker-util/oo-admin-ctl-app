@@ -37,7 +37,6 @@ Options:
 -h|--help
     Show Usage info
 USAGE
-  exit 255
 end
 
 opts = GetoptLong.new(
@@ -58,6 +57,7 @@ begin
   opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
   usage
+  exit 255
 end
 
 login    = args["--login"]
@@ -74,6 +74,7 @@ multiplier = args['--multiplier']
 
 if login.nil? or app_name.nil? or command.nil? or args["--help"]
   usage
+  exit 0
 end
 
 require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"

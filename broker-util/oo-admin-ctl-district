@@ -44,7 +44,6 @@ Options:
 -h|--help
     Show usage info
 USAGE
-  exit 255
 end
 
 def append_district(district, io)
@@ -90,10 +89,12 @@ begin
   opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
   usage
+  exit 255
 end
 
 if args["--help"]
   usage
+  exit 0
 end
 
 uuid     = args["--uuid"]

@@ -19,7 +19,6 @@ Remove gear from application:
   -n|--namespace   namespace    Namespace for your application(s) (alphanumeric - max <rest call?> chars) (required)
 
 USAGE
-  exit 255
 end
 
 config = OpenShift::Config.new
@@ -40,6 +39,7 @@ begin
 
   if 0 != ARGV.length
     usage
+    exit 0
   end
 
   if opts['server'].nil? || opts['server'].empty? \
@@ -47,9 +47,11 @@ begin
         || opts['uuid'].nil? || opts['uuid'].empty? \
         || opts['namespace'].nil? || opts['namespace'].empty?
     usage
+    exit 255
   end
 rescue Exception => e
   usage
+  exit 255
 end
 
 action = File.basename($0)
@@ -60,6 +62,7 @@ end
 
 if not ['add-gear', 'remove-gear'].include? action
   usage
+  exit 255
 end
 
 gsc = GearScaleCtl.new(opts)

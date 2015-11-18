@@ -56,7 +56,6 @@ not rebuild aliases or idler state):
   -h|--help                             Print this message
 
 USAGE
-  exit(255)
 end
 
 require 'rubygems'
@@ -80,6 +79,7 @@ begin
     case k
     when '--help'
       usage
+      exit 0
     when '--save'
       mode = 'save'
     when '--delete'
@@ -94,10 +94,12 @@ begin
       $oo_debug = true
     else
       usage
+      exit 255
     end
   end
 rescue GetoptLong::Error => e
   usage
+  exit 255
 end
 
 begin
@@ -152,6 +154,7 @@ begin
 
   else
     usage
+    exit 255
   end
 rescue Exception => e
   $stderr.puts(e.message)
@@ -159,4 +162,3 @@ rescue Exception => e
   exit(-1)
 end
 exit(0)
-

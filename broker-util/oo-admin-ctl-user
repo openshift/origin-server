@@ -45,7 +45,7 @@ Options:
     Set the plan for the user
   --setplanexpirationdate <date>
     Set the plan expiration date for the user. Format yyyy-mm-dd
-  --clearplanexpirationdate 
+  --clearplanexpirationdate
     Clears the plan expiration date for the user.
   --setplanquantity <number>
     Set the quantity of plan
@@ -92,7 +92,6 @@ Examples:
   Set the maximum number of gears a user is allowed to use with:
     #{File.basename $0} -l bob@redhat.com --setmaxgears 10
 USAGE
-  exit 255
 end
 
 class String
@@ -360,12 +359,12 @@ def remove_sub_account(user, subaccount_login)
     $stderr.puts "Error: Sub Account User '#{subaccount_login}' not found"
     exit 5
   end
-    
+
   if child_user.parent_user_id.nil? || (child_user.parent_user_id != user._id)
     $stderr.puts "Error: User '#{subaccount_login}' is not a sub account of #{user.login}"
     exit 5
   end
-    
+
   print "Removing subaccount for #{child_user.login} under #{user.login}... "
   begin
     child_user.force_delete
@@ -535,11 +534,13 @@ begin
   opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
   usage
+  exit 255
 end
 
 if ARGV.length>0
   $stderr.puts "Stray input arguments - #{ARGV.inspect}"
   usage
+  exit 255
 end
 
 logins = []
@@ -651,6 +652,7 @@ end
 
 if logins.empty? or args["--help"]
   usage
+  exit 0
 end
 
 account_to_add = args["--addsubaccount"]
@@ -663,17 +665,20 @@ plan_to_set = args["--setplan"]
 if usage_account_id and remove_usage_account_id
   $stderr.puts "ERROR: Cannot use --removeusageaccountid with --setusageaccountid"
   usage
+  exit 255
 end
 
 if logins.length > 1 and (account_to_add or account_to_remove)
   $stderr.puts "ERROR: Cannot use --addsubaccount or --removesubaccount with multiple logins"
   usage
+  exit 255
 end
 
 if args["--quiet"]
   if args["--listsubaccounts"]
     $stderr.puts "ERROR: Can not use --quiet and --listsubaccounts together"
     usage
+    exit 255
   else
     $stdout.reopen File.new('/dev/null', 'w')
   end
@@ -785,7 +790,7 @@ logins.map {|l| CloudUser.normalize_login(l) }.each do |login|
       allow_ha(user, allowha)
       changed_user = true
     end
-    
+
     if plan_to_set or plan_quantity or plan_expiration_date or clear_plan_expiration_date
       set_plan(user, plan_to_set, plan_quantity, plan_expiration_date, clear_plan_expiration_date)
       changed_user = true
@@ -797,7 +802,7 @@ logins.map {|l| CloudUser.normalize_login(l) }.each do |login|
     end
 
     if args["--listsubaccounts"]
-      subaccount_list = CloudUser.where(parent_user_id: user._id) 
+      subaccount_list = CloudUser.where(parent_user_id: user._id)
     end
 
     if changed_user
@@ -827,7 +832,7 @@ logins.map {|l| CloudUser.normalize_login(l) }.each do |login|
     puts "              inherit gear sizes: #{user.inherit_on_subaccounts.include?('gear_sizes')}"
     puts "                      HA allowed: #{user.ha}"
 
-    puts 
+    puts
     if args["--listsubaccounts"] and (not subaccount_list.nil?) and (not subaccount_list.empty?)
       puts "Sub Accounts: #{subaccount_list.length}"
       subaccount_list.each do |subaccount|
