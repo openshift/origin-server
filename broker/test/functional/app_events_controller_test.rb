@@ -22,7 +22,8 @@ class AppEventsControllerTest < ActionController::TestCase
     @domain = Domain.new(namespace: @namespace, owner:@user)
     @domain.save
     @app_name = "app#{@random}"
-    @app = Application.create_app(@app_name, cartridge_instances_for(:php), @domain, :scalable => true)
+    @cart = cartridge_instances_for(:php).first
+    @app = Application.create_app(@app_name, [@cart], @domain, :scalable => true)
     @app.save
 
     d1 = Deployment.new(deployment_id: "1", ref: "mybranch", created_at: Time.now, activations: [Time.now.to_f])
@@ -149,13 +150,33 @@ class AppEventsControllerTest < ActionController::TestCase
     post :create, "event" => "disable-ha", "application_id" => @app.id
     assert_response :success
     overrides = @app.reload.group_instances_with_overrides
-    explicit_overrides = @app.group_overrides
     assert !@app.ha
     assert_equal 1, overrides.length
     assert_equal 1, overrides[0].min_gears
     assert_equal(-1, overrides[0].max_gears)
-    assert_equal 0, explicit_overrides.select {|xo| xo.class == ComponentOverrrideSpec && xo.name == "web_proxy" && defined? xo.min_gears}.length
     assert comp = overrides[0].components.detect{ |i| i.cartridge.is_web_proxy? }
+  end
+
+  test "enable, scale up, and disable HA in application" do
+    @user.ha=true
+    @user.save
+    assert !@app.ha
+    post :create, "event" => "make-ha", "application_id" => @app.id
+    assert_response :success
+    application_controller, @controller = @controller, EmbCartController.new
+    put :update, "scales_from" => "3", "scales_to" => "3", "application_id" => @app.id, "id" => @cart.name
+    assert_response :success
+    assert @app.reload.gears.count == 3
+    @controller = application_controller
+    post :create, "event" => "disable-ha", "application_id" => @app.id
+    assert_response :success
+    assert !@app.ha
+    @app.group_overrides.each do |override|
+      assert_empty(override.components.select do |c|
+        c.class == ComponentOverrideSpec && c.name == "web_proxy" \
+          && defined? c.min_gears
+      end)
+    end
   end
 
   test "no app name or domain name" do
