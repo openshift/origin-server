@@ -169,9 +169,11 @@ node_hash.each do |gear_uuid, gear_info|
   datastore_gear_info = $datastore_hash[gear_uuid]
   if !datastore_gear_info
     if !datastore_has_gear?(gear_uuid)
+      server_identity = gear_info[0]
       puts "#{gear_uuid}...FAIL" if $verbose
-      print_message "Gear #{gear_uuid} exists on node #{gear_info[0]} (uid: #{gear_info[1]}) but does not exist in mongo database"
-      print_message "Please see https://access.redhat.com/solutions/1171163 for more information."
+      print_message "Gear #{gear_uuid} exists on node #{server_identity} (uid: #{gear_info[1]}) but does not exist in mongo database"
+      print_message "To fix this issue, remove the gear by running the oo-devel-node command from the node '#{server_identity}':"
+      print_message "oo-devel-node app-destroy --with-container-uuid #{gear_uuid}"
     end
   elsif !datastore_gear_info['gear_uid'].nil?
     begin

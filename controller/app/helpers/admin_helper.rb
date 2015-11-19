@@ -459,6 +459,8 @@ module AdminHelper
         user_consumed_gears, app_actual_gears = check_consumed_gears(user)
         if user_consumed_gears != app_actual_gears
           print_message "User #{owner_hash['login']} has a mismatch in consumed gears (#{user_consumed_gears}) and actual gears (#{app_actual_gears})"
+          print_message "Set the correct number of consumed gears with the oo-admin-ctl-user command:"
+          print_message "oo-admin-ctl-user --login username --setconsumedgears #{app_actual_gears}"
           error_consumed_gears_user_ids << owner_id
         end
       end
