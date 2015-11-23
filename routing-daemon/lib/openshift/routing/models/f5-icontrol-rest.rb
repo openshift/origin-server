@@ -62,7 +62,7 @@ module OpenShift
       first = @hosts.first
 
       begin
-        options['url'] = "https://#{@hosts.first}#{options['resource']}"
+        options[:url] = "https://#{@hosts.first}#{options[:resource]}"
 
         RestClient::Request.execute(options).tap do |response|
           unless response.code == expected_code
