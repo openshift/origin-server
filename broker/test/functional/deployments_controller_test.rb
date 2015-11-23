@@ -49,6 +49,8 @@ class DeploymentsControllerTest < ActionController::TestCase
   test "deployment create show list" do
     @domain.members.find(@user).role = :edit
     @domain.save; @domain.run_jobs
+    @app.config["deployment_type"] = "git"
+    @app.save
 
     ResultIO.any_instance.stubs(:deployments).returns([{:id => 1, :ref => "mybranch", :sha1 => "1234", :created_at => Time.now, :activations => [Time.now, Time.now]}])
     post :create, {"ref" => "mybranch", "application_id" => @app._id}
@@ -95,6 +97,8 @@ class DeploymentsControllerTest < ActionController::TestCase
   test "validate supported binary artifact formats" do
     @domain.members.find(@user).role = :edit
     @domain.save; @domain.run_jobs
+    @app.config["deployment_type"] = "binary"
+    @app.save
 
     supported_artifact_urls = ["http://localhost/test1.tgz", "http://localhost/test2.tar.gz", "https://localhost/test3.tgz", "https://localhost/test4.tar.gz", "ftp://localhost/test5.tgz", "ftp://localhost/test6.tar.gz", "http://localhost/{558F2532-1116}/test.tgz", "https://localhost/url with space/test7.tgz"]
     unsupported_artifact_urls = ["badurl1/test7.tgz", "notreal://localhost/test8.tgz", "http://localhost/test9.txt", "https://localhost/test10.txt", "http://localhost/test11", "test12", "-1", '!@#!@#@!#!', "not a url", '$%*!&#@!&#!)*#@!DAZSXCAS#R@#_@(_$*%)@*)#@*$_#@i[sadfsa]ew34122]\safdsa|xczxcz', '&^#$%!CSCA#@$#@FDS', "http://localhost/test13.tar", "http://somehost/test14.gz"]
@@ -120,6 +124,9 @@ class DeploymentsControllerTest < ActionController::TestCase
   end
 
   test "validate ref" do
+    @app.config["deployment_type"] = "git"
+    @app.save
+
     # See git-check-ref-format man page for rules
     invalid_values = ["a"*257, "abc.lock", "abc/.xyz", "abc..xyz", "/abc", "abc/", "abc//xyz", "abc.", "abc@{xyz}"]
     invalid_chars = ["^", "~", ":", "?", "*", "\\", " ", "[", ";"]

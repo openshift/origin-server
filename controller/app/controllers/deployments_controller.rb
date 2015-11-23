@@ -43,6 +43,12 @@ class DeploymentsController < BaseController
     return render_error(:unprocessable_entity, "Must specify a git deployment or a binary artifact deployment",
                           -1) unless artifact_url || ref
 
+    return render_error(:unprocessable_entity, "The binary artifact provided is not compatible with the app deployment type, '#{@application.config['deployment_type']}'.",
+                          -1, "artifact_url") if artifact_url && @application.config["deployment_type"] != "binary"
+
+    return render_error(:unprocessable_entity, "The git ref provided is not compatible with the app deployment type, '#{@application.config['deployment_type']}'.",
+                          -1, "ref") if ref && @application.config["deployment_type"] != "git"
+
     result = @application.deploy(hot_deploy, force_clean_build, ref, artifact_url)
 
     #@analytics_tracker.track_event("app_deploy", nil, @application)
