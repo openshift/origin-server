@@ -244,6 +244,7 @@ server {
   server_name <%= alias_str %>;
   location / {
     proxy_pass http://<%= pool_name %>;
+    proxy_set_header Host $host;
     <%= @health_check %>
   }
 }
