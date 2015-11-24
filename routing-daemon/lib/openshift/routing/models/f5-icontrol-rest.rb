@@ -134,7 +134,9 @@ module OpenShift
 
     # Returns [String] of pool names.
     def get_pool_names
-      (JSON.parse(get(resource: "/mgmt/tm/ltm/pool"))['items'] || []).map {|item| item['name']}
+      (JSON.parse(get(resource: "/mgmt/tm/ltm/pool"))['items'] || []).
+        select {|item| item['partition'] == 'Common'}.
+        map {|item| item['name']}
     end
 
     def create_pool pool_name, monitor_name
@@ -151,8 +153,10 @@ module OpenShift
     end
 
     def get_monitor_names
-      (JSON.parse(get(resource: "/mgmt/tm/ltm/monitor/http")) || [])['items'].map {|item| item['name']} + \
-        (JSON.parse(get(resource: "/mgmt/tm/ltm/monitor/https")) || [])['items'].map {|item| item['name']}
+      ((JSON.parse(get(resource: "/mgmt/tm/ltm/monitor/http")) || [])['items'] +
+        (JSON.parse(get(resource: "/mgmt/tm/ltm/monitor/https")) || [])['items']).
+        select {|item| item['partition'] == 'Common'}.
+        map {|item| item['name']}
     end
 
     def create_monitor monitor_name, path, up_code, type, interval, timeout
@@ -210,7 +214,9 @@ module OpenShift
     end
 
     def get_pool_members pool_name
-      JSON.parse(get(resource: "/mgmt/tm/ltm/pool/#{pool_name}/members"))['items'].map {|item| item['name']}
+      JSON.parse(get(resource: "/mgmt/tm/ltm/pool/#{pool_name}/members"))['items'].
+        select {|item| item['partition'] == 'Common'}.
+        map {|item| item['name']}
     end
 
     alias_method :get_active_pool_members, :get_pool_members
