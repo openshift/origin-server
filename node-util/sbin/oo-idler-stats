@@ -106,7 +106,6 @@ def user_list():
             dct[l[1]] = l[0]
     return dct
 
-
 def run(cmd, workdir=None):
     """ run commands in a subprocess and wait for the return code.
         optional: provide a working dir for the command.
@@ -118,7 +117,7 @@ def run(cmd, workdir=None):
 
     proc = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output = proc.communicate()
-    output = output[0].split('\n')
+    output = output[0].strip().split('\n')
 
     if cwd:
         os.chdir(cwd)
@@ -131,7 +130,7 @@ def percent(a, b):
 
 
 def cartridge_types(homedir):
-    return_code, types = run("ls |egrep -v '-|git'", homedir)
+    return_code, types = run("ls |egrep -v -e '-|git'", homedir)
     return types
 
 
@@ -149,34 +148,46 @@ def validate(uuid):
     """ given a user's uuid, verify an app exists. """
     app_path = "/var/lib/openshift/%s" % uuid
 
-    # Is there a /git directory?
-    if not os.path.isdir(app_path + "/git"):
-        return "Path %s/git not found." % app_path
-
-    # Is there something inside the /git directory?
-    dirs = os.listdir(app_path + "/git")
-    if len(dirs) == 0:
-        return "Path %s/git is empty." % app_path
-
-    # Under /git should be appname.git
-    app_name = None
-    for d in dirs:
-        if re.search('\.git$', d):
-            app_name = d.replace(".git", "")
-
-    # Is there stuff inside git/appname.git?
-    gitfiles = os.listdir(app_path + "/git/" + app_name + ".git")
-    if len(gitfiles) == 0:
-        return "Path %s/git/%s.git is empty." % (app_path, app_name)
-
-    # Chances are good that this is a git repo. What's the last commit?
-    last_commit = run('git show HEAD | grep Date | sed "s/Date:   //"',
-                      app_path + "/git/" + app_name + ".git")[1][0]
+    app_name = ""
+    git_repo = False
+    last_commit = "N/A"
 
     # do any cartridges exists?
     types = cartridge_types(app_path)
     if 0 >= len(types):
         return "Path %s does not contain any cartridges." % app_path
+
+    # Loop through all cartridges on gear
+    for cart in types:
+        cmd = " ".join(["cat",os.path.join(app_path, cart, "metadata/manifest.yml"),
+                                               "| grep web_framework"])
+        _, result = run(cmd)
+        # Update the cartridges list
+        if result[0] != '':
+            git_repo = True
+            break
+
+    # Look up env for app name
+    _, result = run("cat " + app_path + "/.env/OPENSHIFT_APP_NAME")
+    app_name = result[0].strip()
+
+    if git_repo:
+        # Is there a /git directory
+        if not os.path.isdir(app_path + "/git"):
+            return "Path %s/git not found." % app_path
+        # Is there something inside the /git directory?
+        dirs = os.listdir(app_path + "/git")
+        if len(dirs) == 0:
+            return "Path %s/git is empty." % app_path
+
+        # Is there stuff inside git/appname.git?
+        gitfiles = os.listdir(app_path + "/git/" + app_name + ".git")
+        if len(gitfiles) == 0:
+            return "Path %s/git/%s.git is empty." % (app_path, app_name)
+
+        # Chances are good that this is a git repo. What's the last commit?
+        last_commit = run('git show HEAD | grep Date | sed "s/Date:   //"',
+                          app_path + "/git/" + app_name + ".git")[1][0]
 
     # is there stuff in cartridges?
     for cartridge in types:
@@ -192,7 +203,7 @@ def validate(uuid):
     return """
     Last updated: %s
     %s (%s) seems okay.
-""" % (last_commit, app_name, app_type)
+    """ % (last_commit, app_name, app_type)
 
 
 def status_output(up, idle, half_idled, tot, pct, state):
