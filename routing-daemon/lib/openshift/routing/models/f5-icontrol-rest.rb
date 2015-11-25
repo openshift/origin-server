@@ -402,12 +402,12 @@ module OpenShift
 
         policy = JSON.parse(policy_json)
 
-        unless policy['controls'].include? 'forwarding'
+        if policy['controls'].nil? || !policy['controls'].include?('forwarding')
           patch(resource: policy_url,
                 payload: { 'controls' => ['forwarding'] }.to_json)
         end
 
-        unless policy['requires'].include? 'http'
+        if policy['requires'].nil? || !policy['requires'].include?('http')
           patch(resource: policy_url, payload: { 'requires' => ['http'] }.to_json)
         end
       rescue RestClient::ResourceNotFound
