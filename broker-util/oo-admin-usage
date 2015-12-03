@@ -4,11 +4,11 @@ require 'rubygems'
 require 'getoptlong'
 
 def show_usage
-    puts <<USAGE
+    puts << "USAGE
 == Synopsis
 
 oo-admin-usage: List the usage data for a user or aggregated usage data of all users for the given timeframe.
-Note: The usage cost displayed is based on the usage duration and the usage rate. 
+Note: The usage cost displayed is based on the usage duration and the usage rate.
 It does not take into account any unbilled usage by the billing provider.
 
 == Usage
@@ -19,9 +19,9 @@ Options:
 -l|--login
     The user login whose usage data is to be displayed
 -a|--app
-    The application name to filter the usage data 
+    The application name to filter the usage data
 -g|--gear
-    The gear id to filter the usage data 
+    The gear id to filter the usage data
 -p|--plan
     Current user plan to filter the usage data
 -s|--start
@@ -30,8 +30,7 @@ Options:
     The end date (yyyy-mm-dd) to filter the usage data (defaults to the current time in UTC)
 -h|--help
     Show Usage info
-USAGE
-  exit 255
+USAGE"
 end
 
 def get_time(date)
@@ -48,6 +47,7 @@ def get_time(date)
   rescue Exception => ex
     puts "Error: Please specify the date as yyyy-mm-dd"
     show_usage
+    exit 255
   end
   Time.at(time).utc
 end
@@ -155,10 +155,12 @@ begin
   opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
   show_usage
+  exit 255
 end
 
 if args["--help"]
   show_usage
+  exit 0
 end
 
 # load the rails environment
@@ -202,6 +204,7 @@ end
 if start_time.to_i > end_time.to_i
   puts "The start time cannot be greater than the end time"
   show_usage
+  exit 255
 end
 puts
 
@@ -260,7 +263,7 @@ OpenShift::DataStore.find(:usage, filter, selection) do |urec|
 
   etime = [end_time, urec['end_time'], current_time].compact.min
   btime = [start_time, urec['begin_time']].compact.max
-  next if etime <= btime 
+  next if etime <= btime
   elapsed_time = etime - btime
 
   if urec['usage_type'] == UsageRecord::USAGE_TYPES[:gear_usage]
@@ -314,7 +317,7 @@ OpenShift::DataStore.find(:usage, filter, selection) do |urec|
       puts "Cost (Est.): #{formatted_number(usage_cost)} ($#{usage_rate[:usd]}/#{usage_rate[:duration].to_s})"
       found_usage_rate = true
     end
-    puts 
+    puts
   end
 end
 

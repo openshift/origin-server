@@ -32,7 +32,6 @@ Options:
 -h|--help
     Show Usage info
 USAGE
-  exit 255
 end
 
 opts = GetoptLong.new(
@@ -52,6 +51,7 @@ begin
   opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
   usage
+  exit 255
 end
 
 gear_uuid = args["--gear_uuid"]
@@ -65,6 +65,7 @@ timeout  = args['--timeout']
 
 if args["--help"]
   usage
+  exit 0
 end
 
 if timeout

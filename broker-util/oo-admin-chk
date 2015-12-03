@@ -60,7 +60,6 @@ Options:
 -h|--help
     Show Usage info
 USAGE
-  exit 255
 end
 
 args = {}
@@ -73,11 +72,15 @@ begin
   opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
   usage
+  exit 255
 end
 
 level = args["--level"].to_i || 0
 $verbose = args["--verbose"]
-usage if args["--help"]
+if args["--help"]
+  usage
+  exit 0
+end
 
 def datastore_has_gear?(gear_uuid, app_id=nil)
   # specifying the app_id first if present, this makes better use of the indexes and performance is better

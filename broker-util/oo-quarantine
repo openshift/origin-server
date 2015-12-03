@@ -37,7 +37,6 @@ def p_usage
   --help                               Show usage info
 
 USAGE
-  exit 255
 end
 
 begin
@@ -52,10 +51,12 @@ begin
   end
 rescue Exception => e
   p_usage
+  exit 255
 end
 
 if opt['help']
   p_usage
+  exit 0
 end
 
 $:.unshift('/var/www/openshift/broker')
@@ -68,6 +69,7 @@ elsif opt['unquarantine-all']
 else
   puts "quarantine-all or unquarantine-all is required!"
   p_usage
+  exit 255
 end
 
 puts "Done!"

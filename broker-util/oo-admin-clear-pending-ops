@@ -42,7 +42,6 @@ Options:
 -h|--help
     Show Usage info
 USAGE
-  exit 255
 end
 
 args = {}
@@ -55,9 +54,13 @@ begin
   opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
   usage
+  exit 255
 end
 
-usage if args["--help"]
+if args["--help"]
+  usage
+  exit 0
+end
 
 require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
 
@@ -83,7 +86,7 @@ def clean_app(a)
     a.pending_op_groups.each do |op|
       puts
       puts "Failed to clear op for app (#{a.uuid}) - #{op.inspect} "
-    end 
+    end
   rescue Mongoid::Errors::DocumentNotFound => ex
     # ignore the exception if the application has been deleted
     raise ex unless Application.where(_id: a._id).count == 0
@@ -120,7 +123,7 @@ def clean_user(u)
   u.pending_op_groups.each do |op|
     puts
     puts "Failed to clear op for user (#{u.id}) - #{op.inspect} "
-  end 
+  end
 end
 
 $team_count = 0
@@ -152,21 +155,21 @@ uuid = args["--uuid"]
 
 if uuid.nil?
   time = (hours == 0) ? nil : (Time.now.utc - hours*60*60)
-   
+
   app_query = {"pending_op_groups.0" => {"$exists" => true}}
   app_query["pending_op_groups.created_at"] = {"$lt" => time} if time
-  Application.no_timeout.where(app_query).each { |a| 
+  Application.no_timeout.where(app_query).each { |a|
     begin
-      clean_app(a) 
+      clean_app(a)
     rescue Exception=>e
       puts e.message
       puts e.backtrace
     end
   }
-   
+
   domain_query = {"pending_ops.0" => {"$exists" => true}}
   domain_query["pending_ops.created_at"] = {"$lt" => time} if time
-  Domain.no_timeout.where(domain_query).each { |d| 
+  Domain.no_timeout.where(domain_query).each { |d|
     begin
       clean_domain(d)
     rescue Exception=>e
@@ -174,10 +177,10 @@ if uuid.nil?
       puts e.backtrace
     end
   }
-   
+
   team_query = {"pending_ops.0" => {"$exists" => true}}
   team_query["pending_ops.created_at"] = {"$lt" => time} if time
-  Team.no_timeout.where(team_query).each { |t| 
+  Team.no_timeout.where(team_query).each { |t|
     begin
       clean_team(t)
     rescue Exception=>e
@@ -185,10 +188,10 @@ if uuid.nil?
       puts e.backtrace
     end
   }
-   
+
   user_query = {"pending_op_groups.0" => {"$exists" => true}}
   user_query["pending_op_groups.created_at"] = {"$lt" => time} if time
-  CloudUser.no_timeout.where(user_query).each { |u| 
+  CloudUser.no_timeout.where(user_query).each { |u|
     begin
       clean_user(u)
     rescue Exception=>e

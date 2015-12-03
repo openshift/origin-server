@@ -44,7 +44,6 @@ oo-register-dns --with-node-hostname node1 \\
   -?|--help                             Print this message
 
 USAGE
-  exit 255
 end
 
 opts = GetoptLong.new(
@@ -62,6 +61,7 @@ begin
   opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
   usage
+  exit 255
 end
 
 ip = args["--with-node-ip"]
@@ -72,6 +72,7 @@ key = args["--key-file"] || "/var/named/#{node_domain}.key"
 
 if args["--help"] || (ip.nil? || ip.empty? || node_hostname.nil? || node_hostname.empty?)
   usage
+  exit 0
 end
 
 rectype = IPAddr.new(ip).ipv6? ? "AAAA" : "A"

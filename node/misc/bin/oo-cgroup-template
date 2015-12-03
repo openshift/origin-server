@@ -45,7 +45,6 @@ To list the template for a gear with UUID:
   -h|--help                             Print this message
 
 USAGE
-  exit 255
 end
 
 require 'rubygems'
@@ -70,6 +69,7 @@ begin
     case k
     when '--help'
       usage
+      exit 0
     when '--with-container-uuid'
       container_uuid = v
     when '--with-all-containers'
@@ -82,14 +82,17 @@ begin
       $oo_debug = true
     else
       usage
+      exit 255
     end
   end
 rescue GetoptLong::Error => e
   usage
+  exit 255
 end
 
 unless all_containers or container_uuid or list_templates
   usage
+  exit 255
 end
 
 begin

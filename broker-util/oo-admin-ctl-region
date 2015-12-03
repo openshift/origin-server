@@ -30,7 +30,6 @@ Options:
 -h|--help
     Show usage info
 USAGE
-  exit 255
 end
 
 def get_region(name)
@@ -54,9 +53,13 @@ begin
   opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
   usage
+  exit 255
 end
 
-usage if args["--help"]
+if args["--help"]
+  usage
+  exit 0
+end
 
 command     = args['--command']
 region_name = args['--region']
