@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.38.4
+Version: 1.38.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -235,7 +235,7 @@ fi
 %{gem_spec}
 %attr(0750,-,-) /usr/sbin/*
 %attr(0755,-,-) /usr/bin/*
-%attr(0750,-,-) %{_var}/log/openshift/node
+%attr(0751,-,-) %{_var}/log/openshift/node
 %attr(0640,-,-) %ghost %{_var}/log/openshift/node/platform.log
 %attr(0640,-,-) %ghost %{_var}/log/openshift/node/platform-trace.log
 /usr/libexec/openshift/lib/quota_attrs.sh
@@ -291,6 +291,12 @@ fi
 %{_mandir}/man8/oo-admin-ctl-iptables-port-proxy.8.gz
 
 %changelog
+* Tue Nov 17 2015 Stefanie Forrester <sedgar@redhat.com> 1.38.5-1
+- Hard code higher tc limits for lo interface (joesmith@redhat.com)
+- Add tc support for multiple IFs via TRAFFIC_CONTORL_DEVS
+  (joesmith@redhat.com)
+- Fix comment about TRAFFIC_CONTROL_ENABLED default (joesmith@redhat.com)
+
 * Fri Oct 23 2015 Wesley Hearn <whearn@redhat.com> 1.38.4-1
 - FrontendHttpServer: Recover from missing manifest (miciah.masters@gmail.com)
 
