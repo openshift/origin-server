@@ -1,3 +1,0 @@
-#!/bin/bash
-# SSH wrapper to specify right config and other files
-/usr/bin/ssh -q -o 'BatchMode=yes' -o 'StrictHostKeyChecking=no' -o "UserKnownHostsFile=$OPENSHIFT_HOMEDIR/.openshift_ssh/known_hosts" -F "$OPENSHIFT_HOMEDIR/.openshift_ssh/config" -i ${OPENSHIFT_APP_SSH_KEY} $@
