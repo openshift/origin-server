@@ -852,6 +852,10 @@ def check_app_dirs
       user_fail(entry, "directory #{entry}/.env doesn't have OPENSHIFT_PRIMARY_CARTRIDGE_DIR")
     end
   end
+  # Bug 1281912 - Check for users that don't have a corresponding gear file
+  copy_all_users.each do |u|
+    user_fail(u, "user #{u} does not have a directory in #{$GEAR_BASE_DIR}")
+  end
 end
 
 def check_upgrades
