@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.38.5
+Version: 1.38.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -291,6 +291,10 @@ fi
 %{_mandir}/man8/oo-admin-ctl-iptables-port-proxy.8.gz
 
 %changelog
+* Fri Dec 04 2015 Wesley Hearn <whearn@redhat.com> 1.38.6-1
+- Bug 1285424 - apache lacks permission to access openshift-node-web-proxy log
+  files (vdinh@redhat.com)
+
 * Tue Nov 17 2015 Stefanie Forrester <sedgar@redhat.com> 1.38.5-1
 - Hard code higher tc limits for lo interface (joesmith@redhat.com)
 - Add tc support for multiple IFs via TRAFFIC_CONTORL_DEVS
