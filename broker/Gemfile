@@ -11,7 +11,7 @@ gem 'systemu'
 gem 'mongoid'
 gem 'bson'
 gem 'bson_ext'
-gem 'net-ssh'
+gem 'net-ssh', '~> 2.9.2'
 gem 'pry', :require => 'pry' if ENV['PRY']
 gem 'syslog-logger', '~> 1.6.8', :require => false
 # Fedora 19 splits psych out into its own gem.

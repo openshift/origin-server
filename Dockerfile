@@ -14,14 +14,12 @@
 # docker run --rm -i -t -e "MONGO_HOST_PORT=<mongo_host_port>" -e "AUTH_SALT=<broker_auth_salt>" openshift-origin-broker /bin/bash --login
 # Where MONGO_HOST_PORT and AUTH_SALT are the config values as defined in broker.conf
 
-FROM fedora
-RUN yum -y install which gcc-c++ openssl-devel readline libyaml-devel readline-devel zlib zlib-devel openssl
+FROM centos
+RUN yum -y install which gcc-c++ openssl-devel libyaml-devel readline-devel zlib-devel openssl  patch
 
 # Install and setup ruby 1.9.3 using rvm and install bundler
-RUN curl -L --connect-timeout 30 get.rvm.io | bash -s stable
-RUN /bin/bash --login -c "rvm install 1.9.3"
-RUN /bin/bash --login -c "rvm use 1.9.3 --default"
-RUN /bin/bash --login -c "gem install bundler"
+RUN yum install -y centos-release-scl
+RUN yum install -y scl-utils ruby193 ruby193-ruby-devel
 
 # Setup default ssl key and cert
 RUN openssl req -new -x509 -nodes -out /etc/pki/tls/certs/localhost.crt -keyout /etc/pki/tls/private/localhost.key -batch
@@ -49,8 +47,7 @@ RUN cp /var/www/openshift/plugins/msg-broker/mcollective/conf/openshift-origin-m
 
 # Install broker oo-* scripts
 RUN cp /var/www/openshift/broker-util/oo-* /usr/sbin/ && chmod 750 /usr/sbin/oo-*
-RUN cp /var/www/openshift/broker-util/lib/* /usr/local/rvm/rubies/ruby-1.9.3-*/lib/ruby/1.9.1/
-
+RUN cp /var/www/openshift/broker-util/lib/* /opt/rh/ruby193/root/usr/share/ruby
 WORKDIR /var/www/openshift/broker
-RUN /bin/bash --login -c "bundle install"
-CMD /bin/bash --login -c "bundle exec rails s puma"
+RUN scl enable ruby193 "bundle install"
+CMD scl enable ruby193 "bundle exec rails s puma"
