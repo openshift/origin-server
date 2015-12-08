@@ -2,7 +2,7 @@
 require 'getoptlong'
 require 'pp'
 
-CTL_DISTRICT_COMMANDS = %w[list-available create add-node set-region unset-region deactivate-node activate-node remove-node add-capacity remove-capacity destroy publish-uids ]
+CTL_DISTRICT_COMMANDS = %w[list nodes-available create add-node set-region unset-region deactivate-node activate-node remove-node add-capacity remove-capacity destroy publish-uids]
 DEFAULT_PLATFORM = "Linux"
 
 def usage
@@ -92,7 +92,7 @@ rescue GetoptLong::Error => e
   exit 255
 end
 
-if args["--help"]
+if args["--help"] || args.empty?
   usage
   exit 0
 end
@@ -166,7 +166,7 @@ if uuid || name
     puts "--size is required with command: #{command}"
     exit 1
   end
-elsif command && ! %w[list-available publish-uids remove-node deactivate-node activate-node set-region unset-region].include?(command)
+elsif command && ! %w[list nodes-available publish-uids remove-node deactivate-node activate-node set-region unset-region].include?(command)
   if command != 'create'
     puts "--uuid or --name is required with command: #{command}"
   else
@@ -197,7 +197,7 @@ end
 reply = ResultIO.new
 begin
   case command
-  when "list-available"
+  when "nodes-available"
     available_nodes.each do |profile, nodes|
       next if node_profile && profile != node_profile
       reply.resultIO << "Nodes in profile: #{profile}\n"

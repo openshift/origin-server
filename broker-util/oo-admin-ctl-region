@@ -56,7 +56,7 @@ rescue GetoptLong::Error => e
   exit 255
 end
 
-if args["--help"]
+if args["--help"] || args.empty?
   usage
   exit 0
 end
