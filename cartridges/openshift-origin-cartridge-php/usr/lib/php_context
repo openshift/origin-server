@@ -9,7 +9,7 @@ function php_context {
 
 function update_configuration {
   # PEAR bin_dir
-  local path=${OPENSHIFT_PHP_DIR}phplib/pear/pear
+  local path=${OPENSHIFT_PHP_DIR}phplib/pear/pear:${OPENSHIFT_HOMEDIR}.composer/vendor/bin
 
   case $OPENSHIFT_PHP_VERSION in
     5.4)
