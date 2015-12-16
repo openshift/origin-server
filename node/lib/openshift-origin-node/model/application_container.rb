@@ -504,6 +504,7 @@ module OpenShift
 
         begin
           buffer << @cartridge_model.stop_gear(options)
+          state.value = State::STOPPED
         rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
           raise e if options[:user_initiated] == true || options[:force] == false
 

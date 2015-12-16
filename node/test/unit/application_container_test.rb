@@ -1245,6 +1245,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     options = {}
     @container.cartridge_model.expects(:web_proxy).returns(nil)
     @container.cartridge_model.expects(:stop_gear).with(options).returns('stop')
+    @container.state.expects(:value=).with(OpenShift::Runtime::State::STOPPED)
     @container.expects(:stopped_status_attr).returns('attr')
     @container.stop_gear(options)
   end
@@ -1262,6 +1263,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
                                                   persist:   false)
         .returns(proxy_result)
     @container.cartridge_model.expects(:stop_gear).with(options).returns('stop')
+    @container.state.expects(:value=).with(OpenShift::Runtime::State::STOPPED)
     @container.expects(:stopped_status_attr).returns('attr')
     @container.stop_gear(options)
   end
@@ -1272,6 +1274,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     @container.cartridge_model.expects(:web_proxy).returns(proxy_cart)
     @container.expects(:update_proxy_status).never
     @container.cartridge_model.expects(:stop_gear).with(options).returns('stop')
+    @container.state.expects(:value=).with(OpenShift::Runtime::State::STOPPED)
     @container.expects(:stopped_status_attr).returns('attr')
     @container.stop_gear(options)
   end
@@ -1282,6 +1285,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     @container.cartridge_model.expects(:web_proxy).returns(proxy_cart)
     @container.expects(:update_proxy_status).never
     @container.cartridge_model.expects(:stop_gear).with(options).returns('stop')
+    @container.state.expects(:value=).with(OpenShift::Runtime::State::STOPPED)
     @container.expects(:stopped_status_attr).returns('attr')
     @container.stop_gear(options)
   end
@@ -1299,6 +1303,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
   def test_stop_gear_no_exception
     options = {user_initiated: false, force: true}
     @container.cartridge_model.expects(:stop_gear).with(options).returns('stop')
+    @container.state.expects(:value=).with(OpenShift::Runtime::State::STOPPED)
 
     assert_nothing_raised do
       @container.stop_gear(options)
