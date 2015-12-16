@@ -384,7 +384,6 @@ def add_gear_size(user, gear_size)
     end
   rescue Exception=>e
     $stderr.puts e.message
-    $stderr.puts e.backtrace.join("\n")
     exit 1
   end
   puts "Done."

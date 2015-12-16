@@ -398,7 +398,7 @@ class CloudUser
   def add_gear_size(gear_size)
     available_sizes = Rails.configuration.openshift[:gear_sizes]
     unless available_sizes.include?(gear_size)
-      raise Exception.new("Size #{gear_size} is not defined. Defined sizes are: #{available_sizes.join ', '}.")
+      raise Exception.new("\nERROR: Size '#{gear_size}' is not defined. Available gear sizes: #{available_sizes.join ', '}.")
     end
     unless capabilities['gear_sizes'].include?(gear_size)
       self._capabilities['gear_sizes'] = capabilities['gear_sizes'] + [gear_size]
