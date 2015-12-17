@@ -22,7 +22,7 @@ If you don't have OpenShift Origin up and running, have a look at these deployme
 
 [float]
 === Platform as a Service
-Platform as a Service is changing the way developers approach developing software. Developers typically use a local sandbox with their preferred application server and only deploy locally on that instance. For instance, developers typically start JBoss EAP locally using the startup.sh command and drop their .war or .ear file in the deployment directory and they are done. Developers have a hard time understanding why deploying to the production infrastructure is such a time consuming process.
+Platform as a Service is changing the way developers approach developing software. Developers typically use a local sandbox with their preferred application server and only deploy locally on that instance. For instance, developers typically start JBoss EAP locally using the `startup.sh` command and drop their `.war` or `.ear` file in the deployment directory and they are done. Developers have a hard time understanding why deploying to the production infrastructure is such a time consuming process.
 
 System Administrators understand the complexity of not only deploying the code, but procuring, provisioning and maintaining a production level system. They need to stay up to date on the latest security patches and errata, ensure the firewall is properly configured, maintain a consistent and reliable backup and restore plan, monitor the application and servers for CPU load, disk IO, HTTP requests, etc.
 
@@ -40,18 +40,18 @@ This manual covers some of the most basic things that you will need to do to man
 *Tools used:*
 
 * text editor
-* oo-admin-ctl-user
+* `oo-admin-ctl-user`
 
 === Set Default Gear Quotas and Sizes
-A users default gear size and quota is specified in the _/etc/openshift/broker.conf_ configuration file located on the broker host.
+A user's default gear size and quota is specified in the `/etc/openshift/broker.conf` configuration file located on the broker host.
 
 The _VALID_GEAR_SIZES_ setting is not applied to users but specifies the gear sizes that the current OpenShift Origin PaaS installation supports.
 
-The _DEFAULT_MAX_GEARS_ settings specifies the number of gears to assign to all users upon user creation. This is the total number of gears that a user can create by default.
+The _DEFAULT_MAX_GEARS_ setting specifies the number of gears to assign to all users upon user creation. This is the total number of gears that a user can create by default.
 
-The _DEFAULT_GEAR_SIZE_ setting is the size of gear that a newly created user has access to.
+The _DEFAULT_GEAR_SIZE_ setting specifies the size of gear that a newly created user has access to.
 
-Take a look at the _/etc/openshift/broker.conf_ configuration file to determine the current settings for your installation:
+Take a look at the `/etc/openshift/broker.conf` configuration file to determine the current settings for your installation:
 
 *Execute the following on the broker host*:
 
@@ -61,7 +61,7 @@ Take a look at the _/etc/openshift/broker.conf_ configuration file to determine 
 
 By default, OpenShift Origin sets the default gear size to small and the number of gears a user can create to 100.
 
-When changing the _/etc/openshift/broker.conf_ configuration file, keep in mind that the existing settings are cached until you restart the _openshift-broker_ service.
+When changing the `/etc/openshift/broker.conf` configuration file, keep in mind that the existing settings are cached until you restart the _openshift-broker_ service.
 
 === Set the Number of Gears a Specific User Can Create
 There are often times when you want to increase or decrease the number of gears a particular user can consume without modifying the setting for all existing users. OpenShift Origin provides a command that will allow the administrator to configure settings for an individual user. To see all of the available options that can be performed on a specific user, enter the following command on the broker host:
@@ -70,7 +70,7 @@ There are often times when you want to increase or decrease the number of gears 
 # oo-admin-ctl-user
 ----
 
-To see how many gears that a given user has consumed as well as how many gears they have access to create, you can provide the following switches to the _oo-admin-ctl-user_ command:
+To see how many gears that a given user has consumed as well as how many gears they have access to create, you can provide the following switches to the `oo-admin-ctl-user` command:
 
 ----
 # oo-admin-ctl-user -l <username>
@@ -86,7 +86,7 @@ User <username>:
     
 ----
 
-In order to change the number of gears that the user has permission to create, you can pass the --setmaxgears switch to the command. For instance, if we only want to allow a user to be able to create 25 gears, we would use the following command:
+In order to change the number of gears that the user has permission to create, you can pass the `--setmaxgears` switch to the command. For instance, if we only want to allow a user to be able to create 25 gears, we would use the following command:
 
 ----
 # oo-admin-ctl-user -l <username> --setmaxgears 25
@@ -104,7 +104,7 @@ User <username>:
 ----
 
 === Set the Type of Gears a Specific User Can Create
-In a production environment, a customer will typically have different gear sizes that are available for developers to consume. In this example, we will only create small gears. However, to add the ability to create medium size gears for a given user, you can pass the -addgearsize switch to the _oo-admin-ctl-user_ command.
+In a production environment, a customer will typically have different gear sizes that are available for developers to consume. In this example, we will only create small gears. However, to add the ability to create medium size gears for a given user, you can pass the `--addgearsize` switch to the `oo-admin-ctl-user` command:
 
 ----
 # oo-admin-ctl-user -l <username> --addgearsize medium
@@ -121,7 +121,7 @@ User <username>:
   
 ----
 
-In order to remove the ability for a user to create a specific gear size, you can use the --removegearsize switch:
+In order to remove the ability for a user to create a specific gear size, you can use the `--removegearsize` switch:
 
 ----
 # oo-admin-ctl-user -l <username> --removegearsize medium
@@ -137,7 +137,7 @@ In order to remove the ability for a user to create a specific gear size, you ca
 *Tools used:*
 
 * text editor
-* oo-admin-ctl-district
+* `oo-admin-ctl-district`
 
 Districts facilitate moving gears between node hosts in order to manage resource usage. They also make it possible to deactivate nodes so they receive no further gears. As it is difficult to introduce districts to an installation after it is in use, they should be created from the start when it is quite simple.
 
@@ -161,14 +161,14 @@ Districts define a set of node hosts within which gears can be reliably moved to
 
 Gears are allocated resources including an external port range and IP address range, which are calculated according to their numeric Linux user ID (*UID*) on the node host. A gear can only be moved to a node host where its UID is not already in use. Districts work by reserving a UID for the gear across all of the node hosts in the district, meaning only the node hosting the gear will use its UID. This allows the gear to maintain the same UID (and related resources) when moved to any other node within the district.
 
-In addition, the district pool of UIDs (6000 of them due to the limited range of external ports) is allocated to gears randomly (rather than sequentially) which makes it more likely that even if a gear is moved to a new district, its UID will be available. Without districts, nodes allocate gear UIDs locally and sequentially, making it extremely likely that a gear's UID will be in use on other nodes.
+In addition, the district pool of UIDs (6000 of them due to the limited range of external ports) is allocated to gears randomly (rather than sequentially), which makes it more likely that even if a gear is moved to a new district, its UID will be available. Without districts, nodes allocate gear UIDs locally and sequentially, making it extremely likely that a gear's UID will be in use on other nodes.
 
 In the past, it was possible to change a gear's UID when moving it, which required that it be reconfigured for the related resources in order to continue to function normally. However, this made cartridge maintenance difficult due to the corner cases introduced, and did nothing to help application developers who hard-coded resource settings into their applications (where they couldn't be updated automatically) rather than using environment variables which could be updated during a move. In the end, disallowing UID changes during a move and using districts to reserve UIDs saves developers and administrators time and trouble.
 
 One other function of districts should be mentioned: a node host can be marked as deactivated, so that the broker gives it no additional gears. The existing gears continue to run until they are destroyed or moved to another node. This enables decommissioning a node with minimal disruption to its gears.
 
 === Enabling Districts on the Broker
-To use districts, the broker's MCollective plugin must be configured to enable districts. Edit the _/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf_ configuration file and confirm the following parameters are set:
+To use districts, the broker's MCollective plugin must be configured to enable districts. Edit the `/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf` configuration file and confirm the following parameters are set:
 
 *Confirm the following on the broker host*:
 
@@ -186,7 +186,7 @@ DISTRICTS_REQUIRE_FOR_APP_CREATE=true
 The default of "false" allows undistricted nodes to be used when no district exists in the profile with capacity for gears; this default enables nodes in a trial install to be used immediately without having to understand or implement districts. However, in a production system using districts, it would be undesirable for gears to be placed on a node before it is districted (which could happen if no districted node has capacity), because nodes cannot be placed in a district once they host any gears. So, change this value to "true" to completely prevent the use of undistricted nodes.
 
 === Creating and Populating Districts
-To create a district that will support a gear profile of "small", we will use the _oo-admin-ctl-district_ command. After defining the district, we can add our node host (node.example.com) as the only node in that district.
+To create a district that will support a gear profile of "small", we will use the `oo-admin-ctl-district` command. After defining the district, we can add our node host (node.example.com) as the only node in that district.
 Execute the following commands to create a district named small_district which can only hold _small_ gear types:
 
 *Execute the following on the broker host*:
@@ -215,13 +215,13 @@ Successfully created district: 513b50508f9f44aeb90090f19d2fd940
 
 ==== District Representation on the Broker
 
-If you are familiar with JSON, you will understand the format of this output. What actually happened is a new document was created in the link:oo_system_architecture_guide.html#broker[broker]'s MongoDB database. To view this document inside of the database, execute the following (substitute MongoDB access parameters from broker.conf if needed):
+If you are familiar with JSON, you will understand the format of this output. What actually happened is a new document was created in the link:oo_system_architecture_guide.html#broker[broker]'s MongoDB database. To view this document inside of the database, execute the following (substitute MongoDB access parameters from `broker.conf` if needed):
 
 ----
 # mongo -u openshift -p mooo openshift_broker_dev
 ----
 
-This will drop you into the mongo shell where you can perform commands against the broker database. To list all of the available collections in the _openshift_broker_dev_ database, you can issue the following command:
+This will drop you into the MongoDB shell where you can perform commands against the broker database. To list all of the available collections in the _openshift_broker_dev_ database, you can issue the following command:
 
 ----
 > db.getCollectionNames()
@@ -260,7 +260,7 @@ The output should be similar to:
 
 NOTE: The _servers_ array does not contain any data yet.
 
-Exit the Mongo shell using the exit command:
+Exit the MongoDB shell using the exit command:
 
 ----
 > exit
@@ -271,10 +271,10 @@ Exit the Mongo shell using the exit command:
 Now we can add our node host, node.example.com, to the _small_district_ that we created above:
 
 ----
-  # oo-admin-ctl-district -c add-node -n small_district -i node.example.com
+# oo-admin-ctl-district -c add-node -n small_district -i node.example.com
 ----
 
-It is important to note that the server identity (node.example.com here) is the node's hostname as configured on that node, which could be different from the PUBLIC_HOSTNAME configured in /etc/openshift/node.conf on the node. The PUBLIC_HOSTNAME is used in CNAME records and must resolve to the host via DNS; the hostname could be something completely different and may not resolve in DNS at all.
+It is important to note that the server identity (node.example.com here) is the node's hostname as configured on that node, which could be different from the `PUBLIC_HOSTNAME` configured in `/etc/openshift/node.conf` on the node. The `PUBLIC_HOSTNAME` is used in CNAME records and must resolve to the host via DNS; the hostname could be something completely different and may not resolve in DNS at all.
 
 The hostname is recorded in MongoDB both in the district and with any gears that are hosted on the node, so changing the node's hostname will disrupt the broker's ability to use the node. In general, it's wisest to use the hostname as the DNS name and not change either after install.
 
@@ -310,17 +310,17 @@ If you continued to add additional nodes to this district, the _servers_ array w
 This command line tool can be used just to display district information. Simply run the command with no arguments to view the JSON records in the MongoDB database for all districts:
 
 ----
-  # oo-admin-ctl-district
+# oo-admin-ctl-district
 ----
 
 === Removing a Node From a District
 
-For various reasons, you may want to remove gears from a node host and the host from a district. You may find that a lot of gears on a node host become idle over time, and you may want to "compact" the district by decommissioning or re-purposing a node host. For this purpose, you need a combination of oo-admin-ctl-district and oo-admin-move and the following procedure.
+For various reasons, you may want to remove gears from a node host and the host from a district. You may find that a lot of gears on a node host become idle over time, and you may want to "compact" the district by decommissioning or re-purposing a node host. For this purpose, you need a combination of `oo-admin-ctl-district` and `oo-admin-move` and the following procedure.
 
 As an example, suppose you had node1.example.com and node2.example.com in a district named "small_district", and wanted to remove node2.
 
 1. Run `oo-admin-chk` on a broker host and `oo-accept-node` on node2.example.com, and fix any problems found with the gears on node2. It's a better idea to take care of these up front than to try to move potentially broken gears.
-2. deactivate the node within the district. This keeps the node from accepting any further gear placements, although the existing gears continue running.
+2. Deactivate the node within the district. This keeps the node from accepting any further gear placements, although the existing gears continue running.
 +
 ----
 # oo-admin-ctl-district -c deactivate-node -n small_district -i node2.example.com
@@ -337,7 +337,7 @@ As an example, suppose you had node1.example.com and node2.example.com in a dist
 In order to remove a district, first set its capacity to 0:
 
 ----
-$ oo-admin-ctl-district -c remove-capacity -n district_name -s 6000
+# oo-admin-ctl-district -c remove-capacity -n district_name -s 6000
 ----
 
 Then, remove all gears and nodes as explained in the previous section.
@@ -345,7 +345,7 @@ Then, remove all gears and nodes as explained in the previous section.
 Finally, remove the district itself:
 
 ----
-$ oo-admin-ctl-district -c delete -n district_name
+# oo-admin-ctl-district -c delete -n district_name
 ----
 
 === Managing Gear Capacity
@@ -353,7 +353,7 @@ Districts and node hosts have two different capacity limits for the number of ge
 
 ==== Node Host
 
-For a node host, the maximum number of active gears allowed per node is specified with the _max_active_gears_ value in _/etc/openshift/resource_limits.conf_; by default it is 100, but most administrators will need to modify this. Note that stopped or idle gears are not counted toward this limit; it is possible for a node to have any number of inactive gears, bounded only by storage. It is also possible to exceed the limit by starting inactive gears after the limit has been reached - nothing prevents or corrects this; reaching the limit simply exempts the node from future gear placement by the broker.
+For a node host, the maximum number of active gears allowed per node is specified with the _max_active_gears_ value in `/etc/openshift/resource_limits.conf`; by default it is 100, but most administrators will need to modify this. Note that stopped or idle gears are not counted toward this limit; it is possible for a node to have any number of inactive gears, bounded only by storage. It is also possible to exceed the limit by starting inactive gears after the limit has been reached - nothing prevents or corrects this; reaching the limit simply exempts the node from future gear placement by the broker.
 
 Determining the _max_active_gears_ limit to use involves a certain amount of prognostication on the part of an administrator. The safest way to calculate the limit is to consider the resource most likely to be exhausted first (typically RAM) and divide the amount of available resource by the resource limit per gear.
 
@@ -408,34 +408,36 @@ There is a tool for viewing gear usage across nodes and districts; it can be inv
 the broker:
 
 ----
-  # oo-stats
+# oo-stats
 ----
 
-Consult the man page or the -h option for script arguments. By default this tool summarizes gear usage by districts and profiles in a human-readable format. It can also produce several computer-readable formats for use by automation or monitoring.
+Consult the man page or the output of `oo-stats -h` for script arguments. By default, this tool summarizes gear usage by districts and profiles in a human-readable format. It can also produce several computer-readable formats for use by automation or monitoring.
 
 === Moving a Gear From One Node to Another
 
 To move a gear between nodes, use the `oo-admin-move` tool on the broker.
 
-Moving gears requires the rsync_id_rsa private key in the broker host's /etc/openshift/ and public key in each node host's /root/.ssh/authorized_keys as explained in the deployment guide.
+Moving gears requires the `rsync_id_rsa` private key in the broker host's `/etc/openshift/` and that the corresponding public key be in each node host's `/root/.ssh/authorized_keys` as explained in the deployment guide.
 
-Moving without districts:
+To move gears between nodes without districts, use the following command.
+
+*Execute the following on the broker host*:
 
 ----
- [root@broker ~]# oo-admin-move --gear_uuid 3baf79139b0b449d90303464dfa8dd6f -i node2.example.com
- URL: http://app3-demo.example.com 
- Login: demo
- App UUID: 3baf79139b0b449d90303464dfa8dd6f 
- Gear UUID: 3baf79139b0b449d90303464dfa8dd6f
- DEBUG: Source district uuid: NONE
- DEBUG: Destination district uuid: NONE
- [...]
- DEBUG: Starting cartridge 'ruby-1.8' in 'app3' after move on node2.example.com
- DEBUG: Fixing DNS and mongo for gear 'app3' after move
- DEBUG: Changing server identity of 'app3' from 'node1.example.com' to 'node2.example.com'
- DEBUG: The gear's node profile changed from medium to small
- DEBUG: Deconfiguring old app 'app3' on node1.example.com after move
- Successfully moved 'app3' with gear uuid '3baf79139b0b449d90303464dfa8dd6f' from 'node1.example.com' to 'node2.example.com'
+# oo-admin-move --gear_uuid 3baf79139b0b449d90303464dfa8dd6f -i node2.example.com
+URL: http://app3-demo.example.com 
+Login: demo
+App UUID: 3baf79139b0b449d90303464dfa8dd6f 
+Gear UUID: 3baf79139b0b449d90303464dfa8dd6f
+DEBUG: Source district uuid: NONE
+DEBUG: Destination district uuid: NONE
+[...]
+DEBUG: Starting cartridge 'ruby-1.8' in 'app3' after move on node2.example.com
+DEBUG: Fixing DNS and mongo for gear 'app3' after move
+DEBUG: Changing server identity of 'app3' from 'node1.example.com' to 'node2.example.com'
+DEBUG: The gear's node profile changed from medium to small
+DEBUG: Deconfiguring old app 'app3' on node1.example.com after move
+Successfully moved 'app3' with gear uuid '3baf79139b0b449d90303464dfa8dd6f' from 'node1.example.com' to 'node2.example.com'
 ----
 
 == Adding Cartridges
@@ -447,8 +449,7 @@ Moving without districts:
 
 *Tools used:*
 
-* yum
-* bundle
+* `yum`
 
 By default, OpenShift Origin caches certain values for faster retrieval. Clearing this cache allows the retrieval of updated settings.
 
@@ -457,7 +458,7 @@ For example, the first time MCollective retrieves the list of cartridges availab
 This chapter will focus on installing cartridges to allow OpenShift Origin to create JBoss gears.
 
 === List Available Cartridges
-For a complete list of all cartridges that are available to install, you can perform a search using the yum command that will output all OpenShift Origin cartridges.
+For a complete list of all cartridges that are available to install, you can perform a search using the `yum` command that will output all OpenShift Origin cartridges.
 
 *Run the following command on the node host*:
 
@@ -485,7 +486,7 @@ You should see the following cartridges available to install:
 ====
 *What about JBoss?*
 
-JBoss cartridges are distributed with OpenShift, however they will not work without a Java application server to run against.
+JBoss cartridges are distributed with OpenShift.  However, they will not work without a Java application server to run against.
 The JBoss and WildFly application servers are not currently available as RPMs, so unfortunately we cannot include them
 in our dependencies repo. Refer to the link:oo_m4_release_notes.html[OpenShift Origin M4 Release Notes] for a workaround to enable JBoss cartridges.
 ====
@@ -494,7 +495,7 @@ in our dependencies repo. Refer to the link:oo_m4_release_notes.html[OpenShift O
 From a Broker host, run the following command to poll a Node for available cartridge information:
 
 ----
-$ oo-admin-ctl-cartridge -c import-node --activate
+# oo-admin-ctl-cartridge -c import-node --activate
 ----
 
 This will automatically register the new cartridges with the Broker and make them available to users for new hosted applications.
@@ -510,7 +511,7 @@ You will be prompted to authenticate and then be presented with an application c
 
 image:console-jboss.png[image]
 
-If you do not see the new cartridges available on the web console, check that the new cartridges are available by viewing the contents of the _/usr/libexec/openshift/cartridges_ directory:
+If you do not see the new cartridges available on the web console, check that the new cartridges are available by viewing the contents of the `/usr/libexec/openshift/cartridges` directory:
 
 ----
 # cd /usr/libexec/openshift/cartridges
@@ -526,15 +527,15 @@ image:console-diy.png[image]
 == Using the Administrative Console
 
 The optional OpenShift Origin administrative console (a.k.a. "admin console")
-enables OpenShift administrators an at-a-glance view of an OpenShift
+provides OpenShift administrators an at-a-glance view of an OpenShift
 deployment, in order to search and navigate OpenShift entities and make
 reasonable inferences about adding new capacity.
 Consult the Deployment Guide for instructions on enabling the admin console.
 
-Note: in this first iteration, the admin console is read-only, and does not enable making any changes to settings or data.
+Note: in this first iteration, the admin console is read-only and does not enable making any changes to settings or data.
 
 === Configuration
-The admin console is configured via the _/etc/openshift/plugins.d/openshift-origin-admin-console.conf_ file (which can be overridden in a development environment with settings in the _-dev.conf_ version of that file). The example file installed with the plugin contains lengthy comments on the available settings which we need not repeat here.
+The admin console is configured via the `/etc/openshift/plugins.d/openshift-origin-admin-console.conf` file (which can be overridden in a development environment with settings in the `-dev.conf` version of that file). The example file installed with the plugin contains lengthy comments on the available settings which we need not repeat here.
 
 ==== Access control
 Notably absent from the config file is any sort of access control. There is no concept of an OpenShift administrative role. Either a visitor can browse to the admin console or not, so the place to control access is with proxy configuration. Keep in mind that the current admin console is informational only and any actions to be taken require logging in to an OpenShift host.
@@ -548,32 +549,32 @@ Note that the capacity data and suggestions are generated and cached (for one ho
 
 ==== Loading data from a file
 
-The admin console uses the same Admin Stats library used by _oo-stats_ to collect capacity data. In fact, you can record YAML or JSON output from _oo-stats_ and use this directly instead of the actual system data:
+The admin console uses the same Admin Stats library used by `oo-stats` to collect capacity data. In fact, you can record YAML or JSON output from `oo-stats` and use this directly instead of the actual system data:
 
 ----
- # oo-stats -f yaml > /tmp/stats.yaml
+# oo-stats -f yaml > /tmp/stats.yaml
 ----
 
 Then copy this file to where you have the admin-console loaded, configure it as _STATS_FROM_FILE_ in the configuration file, adjust its context as described below, and restart the broker. Capacity views and suggestions will all be based on the loaded data (although navigation will still only work for entities actually present).
 
-You need to ensure that the broker can actually read the data file. Because SELinux limits what the broker application can read (for example, it cannot ordinarily read /tmp entries), the file's context will likely need adjustment as follows:
+You need to ensure that the broker can actually read the data file. Because SELinux limits what the broker application can read (for example, it cannot ordinarily read `/tmp` entries), the file's context will likely need adjustment as follows:
 
 ----
- # chcon system_u:object_r:httpd_sys_content_t:s0 /tmp/stats.yaml
+# chcon system_u:object_r:httpd_sys_content_t:s0 /tmp/stats.yaml
 ----
 
 === Exposed data
 
-One of the goals for the admin console is to expose OpenShift system data for use by external tools. As a small step toward that goal, it is possible to retrieve the raw data from some of the application controllers as JSON. Note that this should not be considered the long-term API and is likely to change in future releases. You can access the following URLs when added to the appropriate server name, e.g. you could access _/admin-console/capacity/profiles.json_ on the broker with:
+One of the goals for the admin console is to expose OpenShift system data for use by external tools. As a small step toward that goal, it is possible to retrieve the raw data from some of the application controllers as JSON. Note that this should not be considered the long-term API and is likely to change in future releases. You can access the following URLs when added to the appropriate server name, e.g. you could access `/admin-console/capacity/profiles.json` on the broker with the following command:
 
 ----
- # curl http://localhost:8080/admin-console/capacity/profiles.json
+# curl http://localhost:8080/admin-console/capacity/profiles.json
 ----
 
-* _/admin-console/capacity/profiles.json_ - this returns all profile summaries from the Admin Stats library (the same library used by oo-stats). Add the _?reload=1_ parameter to ensure the data is fresh rather than cached.
-* _/admin-console/stats/gears_per_user.json_ - this returns frequency data for gears owned by a user
-* _/admin-console/stats/apps_per_domain.json_ - this returns frequency data for apps belonging to a domain
-* _/admin-console/stats/domains_per_user.json_ - this returns frequency data for domains owned by a user
+* `/admin-console/capacity/profiles.json` - this returns all profile summaries from the Admin Stats library (the same library used by `oo-stats`). Add the _?reload=1_ parameter to ensure the data is fresh rather than cached.
+* `/admin-console/stats/gears_per_user.json` - this returns frequency data for gears owned by a user
+* `/admin-console/stats/apps_per_domain.json` - this returns frequency data for apps belonging to a domain
+* `/admin-console/stats/domains_per_user.json` - this returns frequency data for domains owned by a user
 
 ''''Under Construction'''' - by no means to be considered complete or even necessarily correct.
 
@@ -591,53 +592,53 @@ These tools are installed with the openshift-origin-broker and openshift-origin-
 
 This script checks that broker setup is valid and functional. It is run without options on a broker.
 
-If there are no errors, it simply prints "PASS" and exits with return code 0 (unless the -v option is added, in which case it also prints the checks that it is performing).
+If there are no errors, it simply prints "PASS" and exits with return code 0 (unless the `-v` option is added, in which case it also prints the checks that it is performing).
 
 If there are errors, they are printed, and the return code is the number of errors.
 
 ----
- # oo-accept-broker -v
- INFO: SERVICES: DATA: mongo, Auth: mongo, Name bind
- INFO: AUTH_MODULE: rubygem-openshift-origin-auth-mongo
- INFO: NAME_MODULE: rubygem-openshift-origin-dns-bind
- INFO: Broker package is: openshift-origin-broker
- INFO: checking packages
- INFO: checking package ruby
- INFO: checking package rubygems
- INFO: checking package rubygem-rails
- INFO: checking package rubygem-passenger
- INFO: checking package rubygem-openshift-origin-common
- INFO: checking package rubygem-openshift-origin-controller
- INFO: checking package openshift-origin-broker
- INFO: checking ruby requirements
- INFO: checking ruby requirements for openshift-origin-controller
- INFO: checking ruby requirements for config/application
- INFO: checking firewall settings
- INFO: checking services
- INFO: checking datastore
- INFO: checking cloud user authentication
- INFO: auth plugin = /var/www/openshift/broker/config/initializers/broker.rb:2: uninitialized constant ApplicationObserver (NameError) from -:6
- INFO: checking dynamic dns plugin
- INFO: checking messaging configuration 
- PASS
+# oo-accept-broker -v
+INFO: SERVICES: DATA: mongo, Auth: mongo, Name bind
+INFO: AUTH_MODULE: rubygem-openshift-origin-auth-mongo
+INFO: NAME_MODULE: rubygem-openshift-origin-dns-bind
+INFO: Broker package is: openshift-origin-broker
+INFO: checking packages
+INFO: checking package ruby
+INFO: checking package rubygems
+INFO: checking package rubygem-rails
+INFO: checking package rubygem-passenger
+INFO: checking package rubygem-openshift-origin-common
+INFO: checking package rubygem-openshift-origin-controller
+INFO: checking package openshift-origin-broker
+INFO: checking ruby requirements
+INFO: checking ruby requirements for openshift-origin-controller
+INFO: checking ruby requirements for config/application
+INFO: checking firewall settings
+INFO: checking services
+INFO: checking datastore
+INFO: checking cloud user authentication
+INFO: auth plugin = /var/www/openshift/broker/config/initializers/broker.rb:2: uninitialized constant ApplicationObserver (NameError) from -:6
+INFO: checking dynamic dns plugin
+INFO: checking messaging configuration 
+PASS
 ----
 
 This is a good monitoring script to make sure nothing has gone wrong with a broker host.
 
 ==== `oo-admin-chk`
 
-This script checks that app records in the Mongo datastore are consistent with gear presence on the node hosts. It is a good sanity check for proper system operation.
+This script checks that application records in the MongoDB datastore are consistent with gear presence on the node hosts. It is a good sanity check for proper system operation.
 
 Typical output:
 
 ----
 oo-admin-chk -v
-Checking application gears in respective nodes :
-Checking node gears in application database:
+Checking application gears in respective nodes
+Checking node gears in application database
 Success
 ----
 
-(Without -v you just get the "Success" line.)
+(Without `-v` you just get the "Success" line.)
 
 If this does not run cleanly, consult the link:oo_troubleshooting_guide.html[Troubleshooting Guide] for hints.
 
@@ -646,24 +647,24 @@ If this does not run cleanly, consult the link:oo_troubleshooting_guide.html[Tro
 A utility for updating DNS A records in BIND (generally for a broker or node host, though could be other infrastructure hosts. Do not use this to change DNS records for apps/gears, as those are CNAME records). It just wraps an nsupdate command.
 
 ----
- # oo-register-dns -?
- == Synopsis
- 
- oo-register-dns: Register node's DNS name with Bind
-   This command must be run as root.
- 
- == Usage
- 
- oo-register-dns --with-node-hostname node1 \
-                --with-node-ip 192.168.0.1 \
-                --domain example.com                
- 
- == List of arguments
-  -h|--with-node-hostname   host        Hostname for the node (required)
-  -n|--with-node-ip         ip          IP of the node (required)
-  -d|--domain               domain      Domain name for this node (optional, default: example.com)  
-  -k|--key-file             file        Bind key (optional, default: /var/named/<domain name>.key)  
-  -?|--help                             Print this message
+# oo-register-dns -?
+== Synopsis
+
+oo-register-dns: Register node's DNS name with Bind
+  This command must be run as root.
+
+== Usage
+
+oo-register-dns --with-node-hostname node1 \
+               --with-node-ip 192.168.0.1 \
+               --domain example.com                
+
+== List of arguments
+ -h|--with-node-hostname   host        Hostname for the node (required)
+ -n|--with-node-ip         ip          IP of the node (required)
+ -d|--domain               domain      Domain name for this node (optional, default: example.com)  
+ -k|--key-file             file        Bind key (optional, default: /var/named/<domain name>.key)  
+ -?|--help                             Print this message
 ----
 
 ==== `oo-admin-ctl-district`
@@ -671,32 +672,32 @@ A utility for updating DNS A records in BIND (generally for a broker or node hos
 This is a utility for all district operations. See the full explanation in a later section. The options are as follows:
 
 ----
- # oo-admin-ctl-district -h
- == Synopsis
- 
- oo-admin-ctl-district: Control districts
- 
- == Usage
- 
- oo-admin-ctl-district OPTIONS
- 
- Options:
- -u|--uuid     <district uuid>
-    District uuid  (alphanumeric, canonical way to identify the district)
- -c|--command <command>
-    (add-node|remove-node|deactivate-node|activate-node|add-capacity|remove-capacity|create|destroy)
- -n|--name <district name>
-    District name (Arbitrary identifier, used on create or in place of uuid on other commands)
- -p|--node_profile <gear_size>
-    (e.g. small|medium) Specify gear profile when creating a district
- -i|--server_identity
-    Node server_identity (FQDN, required when operating on a node)
- -s|--size
-    Capacity to add or remove (positive number) (required for capacity operations)
- -b|--bypass
-    Ignore warnings
- -h|--help
-    Show usage info
+# oo-admin-ctl-district -h
+== Synopsis
+
+oo-admin-ctl-district: Control districts
+
+== Usage
+
+oo-admin-ctl-district OPTIONS
+
+Options:
+-u|--uuid     <district uuid>
+   District uuid  (alphanumeric, canonical way to identify the district)
+-c|--command <command>
+   (add-node|remove-node|deactivate-node|activate-node|add-capacity|remove-capacity|create|destroy)
+-n|--name <district name>
+   District name (Arbitrary identifier, used on create or in place of uuid on other commands)
+-p|--node_profile <gear_size>
+   (e.g. small|medium) Specify gear profile when creating a district
+-i|--server_identity
+   Node server_identity (FQDN, required when operating on a node)
+-s|--size
+   Capacity to add or remove (positive number) (required for capacity operations)
+-b|--bypass
+   Ignore warnings
+-h|--help
+   Show usage info
 ----
 
 ==== `oo-admin-move`
@@ -704,30 +705,30 @@ This is a utility for all district operations. See the full explanation in a lat
 Used to move a gear from one node in a district to another, or even outside its district.
 
 ----
- # oo-admin-move -h
- == Synopsis
- 
- oo-admin-move: Move an app from one node to another
- 
- == Usage
- 
- oo-admin-move OPTIONS
- 
- Options:
- --gear_uuid <gear_uuid>
-     Gear uuid to move
- --destination_district_uuid <district_uuid>
-    Destination district uuid
- -i|--target_server_identity <server_identity>
-    Target server identity
- -p|--node_profile <node_profile>
-    Node profile
- -t|--timeout
-    timeout
- --allow_change_district
-    Allow the move to be between districts
- -h|--help
-    Show Usage info
+# oo-admin-move -h
+== Synopsis
+
+oo-admin-move: Move an app from one node to another
+
+== Usage
+
+oo-admin-move OPTIONS
+
+Options:
+--gear_uuid <gear_uuid>
+    Gear uuid to move
+--destination_district_uuid <district_uuid>
+   Destination district uuid
+-i|--target_server_identity <server_identity>
+   Target server identity
+-p|--node_profile <node_profile>
+   Node profile
+-t|--timeout
+   timeout
+--allow_change_district
+   Allow the move to be between districts
+-h|--help
+   Show Usage info
 ----
 
 ==== `oo-admin-ctl-user`
@@ -736,27 +737,27 @@ This is used to administer what a user is allowed to use on the system, mainly n
 
 ----
  # oo-admin-ctl-user -h
- 
- Options:
-  -l|--rhlogin <rhlogin>
-    OpenShift login  (required)
-  --setmaxgears <number>
-    Set the maximum number of gears a user is allowed to use
-  --setconsumedgears <number>
-    Set the number of gears a user has consumed (use carefully to correct occasional off-by-one caused by race condition)
-  --addgearsize <gearsize>
-    Add gearsize to the capability for this rhlogin user
-  --removegearsize <gearsize>
-    Remove gearsize from the capability for this rhlogin user
-  -h|--help
-    Show Usage info
- 
- Examples:
-  List the current user settings with:
-    oo-admin-ctl-user -l bob@redhat.com
 
-  Set the maximum number of gears a user is allowed to use with:
-    oo-admin-ctl-user -l bob@redhat.com --setmaxgears 10
+Options:
+ -l|--rhlogin <rhlogin>
+   OpenShift login  (required)
+ --setmaxgears <number>
+   Set the maximum number of gears a user is allowed to use
+ --setconsumedgears <number>
+   Set the number of gears a user has consumed (use carefully to correct occasional off-by-one caused by race condition)
+ --addgearsize <gearsize>
+   Add gearsize to the capability for this rhlogin user
+ --removegearsize <gearsize>
+   Remove gearsize from the capability for this rhlogin user
+ -h|--help
+   Show Usage info
+
+Examples:
+ List the current user settings with:
+   oo-admin-ctl-user -l bob@redhat.com
+
+ Set the maximum number of gears a user is allowed to use with:
+   oo-admin-ctl-user -l bob@redhat.com --setmaxgears 10
 ----
 
 ==== `oo-admin-ctl-domain`
@@ -788,35 +789,35 @@ Used to query and control a user's domain (AKA namespace). This reports basicall
     Users SSH key name
  -h|--help:
     Show Usage info
+----
 
 The "info" command is default if no other is provided. The output is very detailed YAML.
-----
 
 ==== `oo-admin-ctl-app`
 
 Used to administratively run commands against an app.
 
 ----
- # oo-admin-ctl-app -h
- == Synopsis
- 
- oo-admin-ctl-app: Control user applications
- 
- == Usage
- 
- oo-admin-ctl-app OPTIONS
- 
- Options:
- -l|--rhlogin <rhlogin>
-    Red Hat login (RHN or OpenShift login with OpenShift access) (required)
- -a|--app     <application>
-    Application name  (alphanumeric) (required)
- -c|--command <command>
-    (start|stop|force-stop|restart|status|destroy|force-destroy) (required)
- -b|--bypass
-    Ignore warnings
- -h|--help
-    Show Usage info
+# oo-admin-ctl-app -h
+== Synopsis
+
+oo-admin-ctl-app: Control user applications
+
+== Usage
+
+oo-admin-ctl-app OPTIONS
+
+Options:
+-l|--rhlogin <rhlogin>
+   Red Hat login (RHN or OpenShift login with OpenShift access) (required)
+-a|--app     <application>
+   Application name  (alphanumeric) (required)
+-c|--command <command>
+   (start|stop|force-stop|restart|status|destroy|force-destroy) (required)
+-b|--bypass
+   Ignore warnings
+-h|--help
+   Show Usage info
 ----
 
 === Node Host Tools
@@ -831,28 +832,28 @@ This script checks that node setup is valid and functional and its gears are in 
 
 If there are no errors, it simply prints "PASS" and exits with return code 0.
 
-If there are errors, they are printed, and the return code is the number of errors. Here are the items that it checks (can be used with -v to show these details; otherwise you see just errors and end result):
+If there are errors, they are printed, and the return code is the number of errors. Here are the items that it checks (can be used with `-v` to show these details; otherwise you see just errors and end result):
 
 ----
- # oo-accept-node -v
- INFO: loading node configuration file /etc/openshift/node.conf
- INFO: loading resource limit file /etc/openshift/resource_limits.conf
- INFO: checking selinux status
- INFO: checking selinux origin policy
- INFO: checking selinux booleans
- INFO: checking package list
- INFO: checking services
- INFO: checking kernel semaphores >= 512
- INFO: checking cgroups configuration
- INFO: checking presence of /cgroup
- INFO: checking presence of /cgroup/all
- INFO: checking presence of /cgroup/all/openshift
- INFO: checking filesystem quotas
- INFO: checking quota db file selinux label
- INFO: checking 54 user accounts
- INFO: checking application dirs
- INFO: checking system httpd configs 
- PASS
+# oo-accept-node -v
+INFO: loading node configuration file /etc/openshift/node.conf
+INFO: loading resource limit file /etc/openshift/resource_limits.conf
+INFO: checking selinux status
+INFO: checking selinux origin policy
+INFO: checking selinux booleans
+INFO: checking package list
+INFO: checking services
+INFO: checking kernel semaphores >= 512
+INFO: checking cgroups configuration
+INFO: checking presence of /cgroup
+INFO: checking presence of /cgroup/all
+INFO: checking presence of /cgroup/all/openshift
+INFO: checking filesystem quotas
+INFO: checking quota db file selinux label
+INFO: checking 54 user accounts
+INFO: checking application dirs
+INFO: checking system httpd configs 
+PASS
 ----
 
 This is a good monitoring script to make sure nothing has gone wrong with a node host.
@@ -862,13 +863,13 @@ This is a good monitoring script to make sure nothing has gone wrong with a node
 Good overview of gear statistics in general (not necessarily related to idling). No options, just returns a single line of stats about the gears on the node.
 
 ----
- # oo-idler-stats -h
- Usage: oo-idler-stats [options]
+# oo-idler-stats -h
+Usage: oo-idler-stats [options]
 
- Options:
-  -h, --help     show this help message and exit
-  -v, --verbose  Print additional details.
-  --validate     Perform additional sanity checks.
+Options:
+ -h, --help     show this help message and exit
+ -v, --verbose  Print additional details.
+ --validate     Perform additional sanity checks.
 ----
 
 ==== `oo-admin-ctl-gears`
@@ -891,7 +892,7 @@ Usage is like a service script:
 
 ==== Idler-Related Scripts
 
-The idler is a tool for shutting down gears that haven't been used recently, in order to reclaim their resources and overcommit the node host's resource usage.
+The idler is a tool for shutting down gears that haven't been used recently in order to reclaim their resources and overcommit the node host's resources.
 
 See https://github.com/openshift/origin-server/blob/master/node-util/README-Idler.md for more details about the idler.
 
@@ -899,7 +900,7 @@ See https://github.com/openshift/origin-server/blob/master/node-util/README-Idle
 
 These are the basic tools for idling and restoring a gear. 
 
-oo-idler stops the application, forwards the application's URL to a /var/www/html/restorer.php, and records the application's status as 'idled'.
+`oo-idler` stops the application, forwards the application's URL to a `/var/www/html/restorer.php`, and records the application's status as 'idled'.
 
 ----
  Usage: /usr/bin/oo-idler
@@ -908,27 +909,28 @@ oo-idler stops the application, forwards the application's URL to a /var/www/htm
  -n idles a gear without restarting the node's httpd process. This is useful when idling a number of gears (if you build your own auto-idler); make all calls except the last with -n, and then remove -n on the last call to restart httpd.
 ----
 
-oo-restorer is what restorer.php calls to start the gear when access is made. It can also be run manually.
+`oo-restorer` is what `restorer.php` calls to start the gear when access is made. It can also be run manually.
 
 ----
- Usage: /usr/bin/oo-restorer
-  -u UUID  (app to restore UUID)
+# oo-restorer
+Usage: /usr/sbin/oo-restorer
+ -u UUID  (app to restore UUID)
 ----
 
-restorer.php currently relies on oddjob to restart a gear; normally a web request would be in the wrong context to restart a gear and httpd, so oddjob is used to send a request to oo-restorer so that the restore can be performed from the right context. Restoring will not work if the oddjobd and messagebus services are not running.
+`restorer.php` currently relies on oddjob to restart a gear; normally a web request would be in the wrong SELinux context to restart a gear and httpd, so oddjob is used to send a request to `oo-restorer` so that the restore can be performed from the right context. Restoring will not work if the oddjobd and messagebus services are not running.
 
 ===== `oo-last-access`, `oo-autoidler`
 
 These tools enable automatic idling of stale gears.
 
 * `oo-last-access` is used to record in the gear operations directory how long it has been since the last access either via the web or git. This should be run regularly in a cron job.
-* `oo-autoidler` retrieves a list of stale gears and run oo-idler on all of them to make them idle. It should be run regularly from a cron job.
+* `oo-autoidler` retrieves a list of stale gears and run `oo-idler` on all of them to make them idle. It should be run regularly from a cron job.
 
 An example auto-idler cron script might look like:
 
 ----
- # run the last-access compiler hourly
- 0 * * * * /usr/bin/oo-last-access > /var/lib/openshift/last_access.log 2>&1
- # run the auto-idler twice daily and idle anything stale for 5 days
- 30 7,19 * * * /usr/bin/oo-autoidler 5
+# run the last-access compiler hourly
+0 * * * * /usr/bin/oo-last-access > /var/lib/openshift/last_access.log 2>&1
+# run the auto-idler twice daily and idle anything stale for 5 days
+30 7,19 * * * /usr/bin/oo-autoidler 5
 ----
