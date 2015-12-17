@@ -193,7 +193,7 @@ command :idle do |c|
           idle_gear(gear_uuid)
         rescue Exception => e
           $log.error e.message
-          $log.error "Failed to idle #{gear_dir}"
+          $log.error "Failed to idle #{gear_uuid}"
         end
       end
     end
