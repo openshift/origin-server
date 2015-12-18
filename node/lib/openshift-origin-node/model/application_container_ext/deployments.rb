@@ -410,8 +410,8 @@ module OpenShift
           # explode file
           out, err, rc = run_in_container_context(extract_command,
                                                   in: options[:stdin],
-                                                  out: $stderr,
-                                                  err: $stderr,
+                                                  out: nil,
+                                                  err: nil,
                                                   env: env,
                                                   chdir: destination)
 

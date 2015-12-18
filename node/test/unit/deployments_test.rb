@@ -422,8 +422,8 @@ EOF
 
     @container.expects(:run_in_container_context).with('extract',
                                                        in: nil,
-                                                       out: $stderr,
-                                                       err: $stderr,
+                                                       out: nil,
+                                                       err: nil,
                                                        env: gear_env,
                                                        chdir: destination).returns(["", "", 0])
 
