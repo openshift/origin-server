@@ -1,10 +1,10 @@
 NAME
-  oo-admin-ctl-district 
-  
+  oo-admin-ctl-district
+
 SYNOPSIS
-  oo-admin-ctl-district [-h|--help] [-u|--uuid district_uuid] 
-  [-c|--command cmd] [-n|--name district_name] 
-  [-p|--node_profile gear_size] [-i|--server_identity srv_ident] 
+  oo-admin-ctl-district [-h|--help] [-u|--uuid district_uuid]
+  [-c|--command cmd] [-n|--name district_name]
+  [-p|--node_profile gear_size] [-i|--server_identity srv_ident]
   [-s|--size cap_size] [-r|--region region_name] [-z|--zone zone_name]
   [-b|--bypass]
 
@@ -12,27 +12,27 @@ DESCRIPTION
   This is a utility for all district operations on OpenShift Origin.
 
 OPTIONS
-  -h|--help  
+  -h|--help
     Display a simple help dialog.
-  
-  -u|--uuid district_uuid  
+
+  -u|--uuid district_uuid
     District uuid (alphanumeric, canonical way to identify the district).
 
-  -c|--command cmd  
-    Available commands: add-node, remove-node, deactivate-node, activate-node,
-    add-capacity, remove-capacity, create, destroy, set-region, unset-region
+  -c|--command cmd
+    Available commands: list, nodes-available, add-node, remove-node, deactivate-node,
+    activate-node, add-capacity, remove-capacity, create, destroy, set-region, unset-region
 
-  -n|--name district_name  
+  -n|--name district_name
     District name. Arbitrary identifier used on create or in place of uuid for
     other commands. (alphanumeric, underscore, hyphen, dot)
 
-  -p|--node_profile gear_size  
+  -p|--node_profile gear_size
     Specify gear profile when creating a district. Example: small|medium
 
-  -i|--server_identity srv_ident  
+  -i|--server_identity srv_ident
     Node server_identity (FQDN, required when operating on a node).
 
-  -s|--size  
+  -s|--size
     Capacity to add or remove. Must be positive integer, required for capacity
     operations.
 
@@ -42,18 +42,18 @@ OPTIONS
   -z|--zone zone_name
     Zone within the region. Only valid when region is specified.
 
-  -b|--bypass  
+  -b|--bypass
     Ignore all warnings.
 
 EXAMPLE
 
   $ oo-admin-ctl-district
-  
+
 SEE ALSO
   oo-admin-ctl-district(8), oo-admin-move(8),
   oo-admin-chk(8), oo-accept-broker(8),
   oo-admin-ctl-app(8), oo-admin-ctl-domain(8),
   oo-admin-ctl-user(8), oo-register-dns(8)
- 
+
 AUTHOR
-  Adam Miller <admiller@redhat.com> - man page written for OpenShift Origin 
+  Adam Miller <admiller@redhat.com> - man page written for OpenShift Origin
