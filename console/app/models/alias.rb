@@ -17,41 +17,29 @@ class Alias < RestApi::Base
   custom_id :id
 
   # Optional accessors for form upload
-  attr_accessor :certificate_file, :certificate_chain_file, :certificate_private_key_file
+  attr_accessor :certificate_file, :certificate_private_key_file
 
   belongs_to :application
 
   alias_attribute :name, :id
   alias_attribute :certificate, :ssl_certificate
-  alias_attribute :certificate_chain, :ssl_certificate_chain
   alias_attribute :certificate_private_key, :private_key
   alias_attribute :certificate_pass_phrase, :pass_phrase
 
-  validates_presence_of :certificate_file, :message => "Required if a certificate chain or private key file is selected.", :if => lambda { |a| a.certificate_chain_file.present? || a.certificate_private_key_file.present? }
+  validates_presence_of :certificate_file, :message => "Required if a private key file is selected.", :if => lambda { |a| a.certificate_private_key_file.present? }
   validates :certificate_file, :length => {:minimum => 1, :message => "SSL certificate file was empty."}, :allow_nil => true
 
-  validates_presence_of :certificate_private_key_file, :message => "Required if a certificate or certificate chain file is selected.", :if => lambda { |a| a.certificate_chain_file.present? || a.certificate_file.present? }
   validates :certificate_private_key_file, :length => {:minimum => 1, :message => "Certificate private key file was empty."}, :allow_nil => true
 
-  validates :certificate_chain_file, :length => {:minimum => 1, :message => "SSL certificate chain file was empty."}, :allow_nil => true
 
   def certificate_file=(value)
     @certificate_file = value.present? ? File.read(value.path) : nil;
     recreate_ssl_certificate
   end
 
-  def certificate_chain_file=(value)
-    @certificate_chain_file = value.present? ? File.read(value.path) : nil;
-    recreate_ssl_certificate
-  end
-
   def recreate_ssl_certificate
     if !@certificate_file.nil?
       self.ssl_certificate = @certificate_file
-      if !@certificate_chain_file.nil?
-        self.ssl_certificate.strip!
-        self.ssl_certificate << "\n" << @certificate_chain_file.strip << "\n"
-      end
     end
     normalize_ssl_certificate
   end
@@ -88,7 +76,6 @@ class Alias < RestApi::Base
     e = super
     {
       :certificate_file => :ssl_certificate,
-      :certificate_chain_file => :ssl_certificate_chain,
       :certificate_private_key_file => :private_key,
       :certificate_pass_phrase => :pass_phrase
     }.each do |field, api_field|

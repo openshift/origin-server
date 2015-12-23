@@ -84,16 +84,9 @@
           = f.file_field :certificate_file, :id => 'certificate_file', :disabled => !@private_ssl_certificates_supported 
           = f.inline_errors_for :certificate_file
         .controls
-          %p.help-block Certificate files must be Base64 PEM-encoded and typically have a .crt or .pem extension. You may combine multiple certificates and certificate chains in a single file, but the RSA or DSA private key must always be provided in a separate file.
+          %p.help-block Certificate files must be Base64 PEM-encoded and typically have a .crt or .pem extension. You must combine primary and intermediate certificates into a single file.  If your SSL certificate does not include a concatenated full chain file (ex: fullchain.pem) then you must manually concatenate the certificate files and upload as a single file.  The RSA or DSA private key must be uploaded as a separate file in the 'Certificate Private Key*' field below.
 
-      = control_group(e.has_key?(:certificate_chain_file)) do
-        %label.control-label{:for => 'certificate_chain_file'} 
-          SSL Certificate Chain
-        .controls
-          = f.file_field :certificate_chain_file, :id => 'certificate_chain_file', :disabled => !@private_ssl_certificates_supported 
-          = f.inline_errors_for :certificate_chain_file
-        .controls
-          %p.help-block  Optionally you can provide a certificate chain/bundle in a separate PEM-encoded file.
+          %li= link_to "More on how to concatenate and upload SSL Certs", community_developer_portal_url(path='en/managing-domains-ssl.html#using-a-custom-ssl-certificate'), :target => '_blank', :class => 'external'
 
       = control_group(e.has_key?(:certificate_private_key_file)) do
         %label.control-label{:for => 'certificate_private_key_file'} 
