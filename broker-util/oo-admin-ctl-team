@@ -256,7 +256,7 @@ class Command
           members_to_add.push(user.login)
         end
       end
-      out_file.puts "MEMBER|ADD|#{team.name}|#{members_to_add.join(",")}"
+      out_file.puts "MEMBER|ADD|#{team.name}|#{members_to_add.join(",")}" unless members_to_add.empty?
       if options.remove_old_users
         members_to_remove = team.members.select(&:explicit_role?).reject {|m| user_ids.include? m._id}
         if members_to_remove.count > 0
