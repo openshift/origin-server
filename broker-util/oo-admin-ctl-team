@@ -10,7 +10,7 @@ PATH = "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/env
 class Command
 
   def create(options)
-    if options.name 
+    if options.name
       raise ArgumentError, "Use --maps-to to specify the group the team maps to" if options.maps_to.nil?
     elsif options.groups
       raise ArgumentError, "Path to config file required. Use --config-file to specify a file" if options.config_file.nil?
@@ -31,8 +31,8 @@ class Command
           puts "ERROR: Could not create team: #{ex.message}"
           next
         end
-      end 
-    end 
+      end
+    end
     exit 0
   rescue ArgumentError
     warn $!
@@ -198,11 +198,11 @@ class Command
             end
             members_to_add.push(u)
           end
-          if command == "ADD"      
+          if command == "ADD"
             team.add_members(members_to_add)
           elsif command == "REMOVE"
             members_to_remove = team.members.select {|m| user_names.include? m.n}
-            team.remove_members(members_to_remove) 
+            team.remove_members(members_to_remove)
           else
             puts "ERROR: Command \"#{command}\" not available for \"#{object_type}\""
           end
@@ -237,7 +237,7 @@ class Command
     env!(options)
     puts "Syncing to file #{options.out_file} ..."
 
-    teams_to_sync = Team.where(onwer_id: nil).select{|t| t.maps_to}
+    teams_to_sync = Team.where(owner_id: nil).select{|t| t.maps_to}
     teams_to_sync.each do |team|
       users = get_users_in_group(team.maps_to)
       members_to_add = []
@@ -295,7 +295,7 @@ class Command
       if options.remove_old_users
         members_to_remove = team.members.select(&:explicit_role?).reject {|m| user_ids.include? m._id}
         puts "Removing members #{members_to_remove.collect {|m| m.n}} from team: \"#{team.name}\""
-        team.remove_members(members_to_remove) 
+        team.remove_members(members_to_remove)
       end
 
       new_users = users.reject {|user| team.members.collect{|m| m.n }.include? user}
@@ -342,7 +342,7 @@ class Command
         # if user name given for auth, use it; otherwise anonymous access is used.
         @ldap.auth @ldap_config["Username"], @ldap_config["Password"] if @ldap_config["Username"]
         unless @ldap.bind
-          puts "Could not connect to LDAP server \"#{@ldap.host}\": #{@ldap.get_operation_result.message}" 
+          puts "Could not connect to LDAP server \"#{@ldap.host}\": #{@ldap.get_operation_result.message}"
           exit 1
         end
       end
@@ -374,7 +374,7 @@ class Command
       attributes = @ldap_config["Get-Group-Users"]["Attributes"]
 
       if @ldap_config["Get-Group-Users"]["Filter"]
-        filter = Net::LDAP::Filter.construct(@ldap_config["Get-Group-Users"]["Filter"].gsub("<group_dn>", group_dn)) 
+        filter = Net::LDAP::Filter.construct(@ldap_config["Get-Group-Users"]["Filter"].gsub("<group_dn>", group_dn))
         entries = @ldap.search(:base => base, :filter => filter, :attributes => attributes)
       else
         entries = @ldap.search(:base => base, :attributes => attributes)
