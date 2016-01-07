@@ -4,7 +4,7 @@ require 'rubygems'
 require 'getoptlong'
 
 def show_usage
-    puts << "USAGE
+    puts <<USAGE
 == Synopsis
 
 oo-admin-usage: List the usage data for a user or aggregated usage data of all users for the given timeframe.
@@ -30,7 +30,7 @@ Options:
     The end date (yyyy-mm-dd) to filter the usage data (defaults to the current time in UTC)
 -h|--help
     Show Usage info
-USAGE"
+USAGE
 end
 
 def get_time(date)
