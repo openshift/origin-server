@@ -124,7 +124,7 @@ class AppQuery
     retval = []
 
     Application.where(name: appname).each { |app|
-      retval = _domain_user_loop(app)
+      retval.concat(_domain_user_loop(app))
     }
     return retval
   end
