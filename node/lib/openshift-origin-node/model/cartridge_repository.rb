@@ -461,7 +461,7 @@ module OpenShift
           names.inject(memo) do |memo, (name, sw_hash)|
             sw_hash.inject(memo) do |memo, (sw_ver, cart_hash)|
               cart_hash.inject(memo) do |memo, (cart_ver, cartridge)|
-                memo << "(#{vendor}, #{name}, #{sw_ver}, #{cart_ver}): " << cartridge.to_s << "\n"
+                cart_ver != "_" ? memo << "(#{vendor}, #{name}, #{sw_ver}, #{cart_ver}): " << cartridge.to_s << "\n" : memo
               end
             end << '>'
           end
