@@ -436,12 +436,12 @@ end
 
 
 #
-# Check gear processes belong to cgroups
+# Check gear threads belong to cgroups
 #
-def check_cgroup_procs
-    verbose("checking cgroups processes")
+def check_cgroup_tasks
+    verbose("checking cgroups tasks")
 
-    ### Gather current procs running ###
+    ### Gather current threads running ###
     min_uid = $CONF.get('GEAR_MIN_UID').to_i
     max_uid = $CONF.get('GEAR_MAX_UID').to_i
 
@@ -455,10 +455,11 @@ def check_cgroup_procs
 
     verbose("determining node uid range: #{min_uid} to #{max_uid}")
 
-    all_user_procs = %x[/bin/ps -e -o uid,pid].split("\n")
-    ps_procs = Hash.new{|hash, key| hash[key] = Array.new}
-    all_user_procs.each do |line|
-        uid,pid = line.split[0,2]
+    # Bug 1067107 - Check tids against tasks instead of pids against cgroup procs
+    all_user_threads = %x[/bin/ps -e H -o uid,pid,tid].split("\n")
+    ps_threads = Hash.new{|hash, key| hash[key] = Hash.new}
+    all_user_threads.each do |line|
+        uid,pid,tid = line.split[0,3]
         uid = uid.to_i
 
         if uid.between?(min_uid, max_uid)
@@ -470,34 +471,34 @@ def check_cgroup_procs
             end
 
             uname = passwd_lines[0].name
-            ps_procs[uname] += [pid]
-            ps_procs[uname].uniq!
+            ps_threads[uname][tid] = pid
         end
     end
 
-    ### Gather cgroup procs ###
-    cgroup_procs = Hash.new{|hash, key| hash[key] = Hash.new{|hash, key| hash[key] = Array.new}}
+    ### Gather cgroup tasks ###
+    tasks = Hash.new{|hash, key| hash[key] = Hash.new{|hash, key| hash[key] = Array.new}}
 
     # Support mounting cgroup controllers under /cgroup/all or
     # /cgroup/<controller>
-    Dir.glob("/cgroup/*/openshift/*/cgroup.procs").each do |file|
+    Dir.glob("/cgroup/*/openshift/*/tasks").each do |file|
         _, _, controller, _, uuid, _ = file.split("/")
         lines = []
         IO.foreach(file).each { |line| lines << line.strip }
-        cgroup_procs[controller][uuid] = lines
+        tasks[controller][uuid] = lines
     end
 
     ### Compare ###
-    ps_procs.each do |uuid,procs|
-        cgroup_procs.each do |controller,controller_procs|
-            missing = procs - controller_procs[uuid]
-            missing.each do |pid|
-                # ensure the process is still running and not defunct before failing
-                # this fixes both the transient process and the defunct process
+    ps_threads.each do |uuid,threads|
+        tasks.each do |controller,controller_tasks|
+            missing = threads.keys - controller_tasks[uuid]
+            missing.each do |tid|
+                # ensure the thread is still running and not defunct before failing
+                # this fixes both the transient threads and the defunct thread
                 # detection problems
                 begin
-                    if File.read("/proc/#{pid}/status") !~ /^State:\s+Z/
-                        user_fail(uuid, "#{uuid} has a process missing from cgroups: #{pid} cgroups controller: #{controller}")
+                    pid = threads[tid]
+                    if File.read("/proc/#{pid}/task/#{tid}/status") !~ /^State:\s+Z/
+                        user_fail(uuid, "#{uuid} has a thread: tid:#{tid}, pid:#{pid} missing from cgroups controller: #{controller}")
                     end
                 rescue Errno::ENOENT
                 end
@@ -970,7 +971,7 @@ if __FILE__ == $0
       check_service_contexts
       check_semaphores
       check_cgroup_config
-      check_cgroup_procs
+      check_cgroup_tasks
       check_tc_config
       check_quotas
       check_users
