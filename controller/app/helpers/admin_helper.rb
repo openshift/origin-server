@@ -25,6 +25,7 @@ module AdminHelper
   $summary_count = 0
   $total_errors = 0
   $verbose = false
+  $invalid_plan = false
 
   $billing_enabled = Rails.configuration.respond_to?('billing')
   $districts_enabled = Rails.configuration.msg_broker[:districts][:enabled]
@@ -99,8 +100,13 @@ module AdminHelper
     user["ssh_keys"].each { |k| user_ssh_keys << ["#{user['_id'].to_s}-#{k['name']}", Digest::MD5.hexdigest(k["content"]), nil] if k["content"] } if user["ssh_keys"].present?
     user_caps = user["capabilities"]
     if user["plan_id"]
-      plan_caps = OpenShift::BillingService.instance.get_plans[user["plan_id"].to_sym][:capabilities]
-      user_caps = plan_caps.deep_dup.merge(user_caps)
+      plans = OpenShift::BillingService.instance.get_plans
+      if plans.present?
+        plan_caps = plans[user["plan_id"].to_sym][:capabilities]
+        user_caps = plan_caps.deep_dup.merge(user_caps)
+      else
+        $invalid_plan = true
+      end
     end
     user_info = {"consumed_gears" => user["consumed_gears"], "domains" => {}, "login" => user["login"], "ssh_keys" => user_ssh_keys,
                "max_untracked_addtl_storage_per_gear" => user_caps["max_untracked_addtl_storage_per_gear"],
@@ -128,6 +134,10 @@ module AdminHelper
         $user_hash[user["_id"].to_s] = get_user_info(user)
         $user_gear_sizes |= user["capabilities"]["gear_sizes"] if user["capabilities"].present? and user["capabilities"]["gear_sizes"].present?
       end
+    end
+    # Check for invalid plans from get_user_info
+    if $invalid_plan
+      puts "Warning: At least one user has a plan id defined, but no plans could be found. Plan-defined user capabilities will not be considered."
     end
   end
 
