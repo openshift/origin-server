@@ -55,10 +55,12 @@ createWebSocketServer(app8080);
 
 var  sslcerts_path = "../sslcerts/";
 var  server_name = "localhost";
+var  cipher_list = "kEECDH:+kEECDH+SHA:kEDH:+kEDH+SHA:+kEDH+CAMELLIA:kECDH:+kECDH+SHA:kRSA:" + 
+               "+kRSA+SHA:+kRSA+CAMELLIA:!aNULL:!eNULL:!SSLv2:!RC4:!DES:!EXP:!SEED:!IDEA:+3DES";
 var ssl_options = {
   key:  fs.readFileSync(sslcerts_path + server_name + ".key"),
   cert: fs.readFileSync(sslcerts_path + server_name + ".crt"),
-  secureProtocol: 'SSLv23_method',
+  ciphers: cipher_list,
   secureOptions: constants.SSL_OP_NO_SSLv3
 };
 
