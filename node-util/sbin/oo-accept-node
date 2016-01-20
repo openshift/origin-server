@@ -547,6 +547,12 @@ def check_quotas
     verbose("checking filesystem quotas")
     oo_device=%x[/bin/df -P #{$GEAR_BASE_DIR} | /usr/bin/tail -1].split[0]
     oo_mount=%x[/bin/df -P #{$GEAR_BASE_DIR} | /usr/bin/tail -1 | /usr/bin/tr -s ' '].split[5]
+    awk = %[{ if ($1 == "#{oo_device}" && $3 == "#{oo_mount}") { print $6 } }]
+    fs_options = %x[mount | /bin/awk '#{awk}'].split('\n').last rescue ""
+    if fs_options.match /loop=([^,]+)/
+      oo_device = $1
+      do_warn "#{oo_mount} is a loop mount (loop device: #{oo_device}).  Using a loop mount may reduce performance."
+    end
     fs_type=%x[/bin/df -TP #{oo_mount} | tail -1 2>&1].split[1]
     if fs_type=="xfs"
       unless %x[/usr/sbin/repquota -v #{oo_mount} | /bin/grep "Accounting.*Enforcement"].strip == "Accounting: ON; Enforcement: ON"
