@@ -8,8 +8,18 @@
 # max_connections -> OPENSHIFT_MYSQL_MAX_CONNECTIONS
 # ft_min_word_len -> OPENSHIFT_MYSQL_FT_MIN_WORD_LEN
 # ft_max_word_len -> OPENSHIFT_MYSQL_FT_MAX_WORD_LEN
+# default-character-set -> OPENSHIFT_MYSQL_DEFAULT_CHARACTER_SET
+# character-set-server -> OPENSHIFT_MYSQL_CHARACTER_SET_SERVER
+# collation-server -> OPENSHIFT_MYSQL_COLLATION_SERVER
+# character-set-client-handshake -> OPENSHIFT_MYSQL_CHARACTER_SET_CLIENT_HANDSHAKE
+
+[client]
+default-character-set = <%= ENV['OPENSHIFT_MYSQL_DEFAULT_CHARACTER_SET'] ? ENV['OPENSHIFT_MYSQL_DEFAULT_CHARACTER_SET'] : 'utf8mb4' %>
 
 [mysqld]
+character-set-server = <%= ENV['OPENSHIFT_MYSQL_CHARACTER_SET_SERVER'] ? ENV['OPENSHIFT_MYSQL_CHARACTER_SET_SERVER'] : 'utf8mb4' %>
+collation-server = <%= ENV['OPENSHIFT_MYSQL_COLLATION_SERVER'] ? ENV['OPENSHIFT_MYSQL_COLLATION_SERVER'] : 'utf8mb4_unicode_ci' %>
+character-set-client-handshake = <%= ENV['OPENSHIFT_MYSQL_CHARACTER_SET_CLIENT_HANDSHAKE'] ? ENV['OPENSHIFT_MYSQL_CHARACTER_SET_CLIENT_HANDSHAKE'] : 'TRUE' %>
 datadir=<%= ENV['OPENSHIFT_MYSQL_DIR'] %>data/
 socket=<%= ENV['OPENSHIFT_MYSQL_DB_SOCKET'] %>
 # Disable reverse DNS resolving of gear ip BZ#1051348
@@ -61,6 +71,7 @@ max_allowed_packet = 16M
 
 [mysql]
 no-auto-rehash
+default-character-set = <%= ENV['OPENSHIFT_MYSQL_DEFAULT_CHARACTER_SET'] ? ENV['OPENSHIFT_MYSQL_DEFAULT_CHARACTER_SET'] : 'utf8mb4' %>
 # Remove the next comment character if you are not familiar with SQL
 #safe-updates
 
