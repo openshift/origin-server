@@ -71,16 +71,13 @@ class AliasesControllerTest < ActionController::TestCase
 
   [{:name => "empty cert file", :cert => "empty.crt", :key => "cert_key_rsa"},
     {:name => "empty key file", :cert => "cert.crt", :key => "empty_cert_key_rsa"},
-    {:name => "empty chain file", :cert => "cert.crt", :key => "cert_key_rsa", :chain => "empty.crt"},
     {:name => "key file present and nil cert", :key => "cert_key_rsa"},
-    {:name => "cert file present and nil key", :cert => "cert.crt"},
-    {:name => "chain file present and nil cert", :key => "cert_key_rsa", :chain => "cert.crt"},
-    {:name => "chain file present and nil key", :cert => "cert.crt", :chain => "cert.crt"}
+    {:name => "cert file present and nil key", :cert => "cert.crt"}
   ].each do |files| 
     test "should assign error with #{files[:name]}" do
       app = with_app
 
-      post :create, {:alias => get_post_form_with_certificate(files[:cert], files[:key], files[:chain]), :application_id => app}
+      post :create, {:alias => get_post_form_with_certificate(files[:cert], files[:key]), :application_id => app}
 
       assert a = assigns(:alias)
       assert !a.errors.empty?
@@ -93,7 +90,7 @@ class AliasesControllerTest < ActionController::TestCase
     @ssl_test_alias = "www.example#{uuid}.com"
     
     assert_difference('Alias.find(:all, :as => @user, :params => {:application_name => app.name, :domain_id => app.domain_id}).length', 1) do
-      post :create, {:alias => get_post_form_with_certificate("cert.crt", "cert_key_rsa", nil), :application_id => app}
+      post :create, {:alias => get_post_form_with_certificate("cert.crt", "cert_key_rsa"), :application_id => app}
     end
 
     assert a = assigns(:alias)
@@ -149,7 +146,7 @@ class AliasesControllerTest < ActionController::TestCase
     a.application = app
     a.save!
 
-    post :update, {:alias => get_post_form_with_certificate("empty.crt", nil, nil), :id => test_alias, :application_id => app}
+    post :update, {:alias => get_post_form_with_certificate("empty.crt", nil), :id => test_alias, :application_id => app}
 
     assert a = assigns(:alias)
     assert !a.errors.empty?
@@ -198,10 +195,9 @@ class AliasesControllerTest < ActionController::TestCase
     {:id => alias_id}
   end
 
-  def get_post_form_with_certificate (cert_file_name, key_file_name, chain_file_name)
+  def get_post_form_with_certificate (cert_file_name, key_file_name)
     get_post_form_without_certificate(ssl_test_alias).merge({
       :certificate_file => cert_file_name.nil? ? nil : fixture_file_upload(cert_file_name, 'application/pkix-cert'),
-      :certificate_chain_file => chain_file_name.nil? ? nil : fixture_file_upload(chain_file_name, 'application/pkix-cert'),
       :certificate_private_key_file => key_file_name.nil? ? nil : fixture_file_upload(key_file_name, 'application/octet-stream'),
       :certificate_pass_phrase => ''
     })
