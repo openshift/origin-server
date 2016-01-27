@@ -8,6 +8,9 @@
 # max_connections -> OPENSHIFT_MYSQL_MAX_CONNECTIONS
 # ft_min_word_len -> OPENSHIFT_MYSQL_FT_MIN_WORD_LEN
 # ft_max_word_len -> OPENSHIFT_MYSQL_FT_MAX_WORD_LEN
+# max_allowed_packet -> OPENSHIFT_MYSQL_MAX_ALLOWED_PACKET
+# table_open_cache -> OPENSHIFT_MYSQL_TABLE_OPEN_CACHE
+# sort_buffer_size -> OPENSHIFT_MYSQL_SORT_BUFFER_SIZE
 
 [mysqld]
 datadir=<%= ENV['OPENSHIFT_MYSQL_DIR'] %>data/
@@ -26,7 +29,7 @@ innodb_use_native_aio = <%= ENV['OPENSHIFT_MYSQL_AIO'] || '1'%>
 key_buffer_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? '32' : (ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i * 0.1).to_i %>M
 max_allowed_packet = <%= ENV['OPENSHIFT_MYSQL_MAX_ALLOWED_PACKET'] ? ENV['OPENSHIFT_MYSQL_MAX_ALLOWED_PACKET'] : '200M' %>
 table_open_cache = <%= ENV['OPENSHIFT_MYSQL_TABLE_OPEN_CACHE'] ? ENV['OPENSHIFT_MYSQL_TABLE_OPEN_CACHE'] : '4' %>
-sort_buffer_size = 128K
+sort_buffer_size = <%= ENV['OPENSHIFT_MYSQL_SORT_BUFFER_SIZE'] ? ENV['OPENSHIFT_MYSQL_SORT_BUFFER_SIZE'] : '256K' %>
 read_buffer_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? '8' : (ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i * 0.05).to_i %>M
 read_rnd_buffer_size = 256K
 net_buffer_length = 2K
@@ -72,4 +75,3 @@ sort_buffer_size = 8M
 
 [mysqlhotcopy]
 interactive-timeout
-
