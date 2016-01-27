@@ -692,6 +692,9 @@ OPENSHIFT_MYSQLDB_DB_PORT:: The MySQL port
 OPENSHIFT_MYSQLDB_DB_LOG_DIR:: The path to the MySQL log directory
 OPENSHIFT_MYSQL_VERSION:: The version of the MySQL server
 OPENSHIFT_MYSQL_TIMEZONE:: The MySQL server timezone
+OPENSHIFT_MYSQL_SORT_BUFFER_SIZE:: The maximum size of MySQL sort buffer
+OPENSHIFT_MYSQL_MAX_ALLOWED_PACKET:: The maximum size of MySQL communication packet
+OPENSHIFT_MYSQL_TABLE_OPEN_CACHE:: The maximum number of tables the server keeps open
 OPENSHIFT_MYSQL_LOWER_CASE_TABLE_NAMES:: Sets how the table names are stored and compared
 OPENSHIFT_MYSQL_DEFAULT_STORAGE_ENGINE:: The default storage engine (table type)
 OPENSHIFT_MYSQL_MAX_CONNECTIONS:: The maximum permitted number of simultaneous client connections
