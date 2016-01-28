@@ -132,6 +132,7 @@ fi
 %endif
 %attr(0755,-,-) %{_bindir}/node-find-proxy-route-files
 %attr(0640,-,-) %{_sysconfdir}/openshift/web-proxy-config.json
+%config(noreplace) %{_sysconfdir}/openshift/web-proxy-config.json
 %attr(0644,-,-) %{_sysconfdir}/logrotate.d/%{name}
 %ghost %attr(0660,root,root) %{logroot}/supervisor.log
 %dir %attr(0700,apache,apache) %{logroot}

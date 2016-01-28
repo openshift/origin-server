@@ -121,7 +121,8 @@
       "ssl"            : {
         "ca"         : "/etc/pki/tls/certs/localhost.crt",
         "certificate": "/etc/pki/tls/certs/localhost.crt",
-        "private_key": "/etc/pki/tls/private/localhost.key"
+        "private_key": "/etc/pki/tls/private/localhost.key",
+        "ciphers"    : "kEECDH:+kEECDH+SHA:kEDH:+kEDH+SHA:+kEDH+CAMELLIA:kECDH:+kECDH+SHA:kRSA:+kRSA+SHA:+kRSA+CAMELLIA:!aNULL:!eNULL:!SSLv2:!RC4:!DES:!EXP:!SEED:!IDEA:+3DES"
       }
     }
   },
