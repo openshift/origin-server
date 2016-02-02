@@ -138,7 +138,7 @@ $datastore_hash.each do |gear_uuid, gear_info|
   server_identity = gear_info['server_identity']
   app_id = gear_info['app_id']
 
-  if (current_time - creation_time) > 600
+  if (current_time - creation_time) > 21600
     if !node_hash.has_key? gear_uuid
       gear_si_present = (gear_hash.has_key?server_identity)
       datastore_si_present = (datastore_has_gear?(gear_uuid, app_id))
