@@ -52,6 +52,7 @@ module OpenShift
               @template_http  = PathUtils.join(@basedir, TEMPLATE_HTTP)
               @template_https = PathUtils.join(@basedir, TEMPLATE_HTTPS)
               @ssl_cert_path = (@config.get("OPENSHIFT_DEFAULT_SSL_CRT_PATH") || "/etc/pki/tls/certs/localhost.crt")
+              @ssl_chain_path = (@config.get("OPENSHIFT_DEFAULT_SSL_CRT_CHAIN_PATH") || "/etc/pki/tls/certs/localhost.crt")
               @ssl_key_path = (@config.get("OPENSHIFT_DEFAULT_SSL_KEY_PATH") || "/etc/pki/tls/private/localhost.key")
             end
 
@@ -132,6 +133,7 @@ module OpenShift
                 gear_uuid                  = @container_uuid
                 app_namespace              = @namespace
                 ssl_certificate_file       = @ssl_cert_path
+                ssl_certificate_chain_file = @ssl_chain_path
                 ssl_key_file               = @ssl_key_path
 
                 buffer = ERB.new(File.read(@template_http)).result(binding) << "\n"
@@ -383,6 +385,7 @@ module OpenShift
 
                 ssl_certificate_file = ssl_certificate_path(server_alias)
                 ssl_key_file = ssl_key_path(server_alias)
+                ssl_certificate_chain_file = ssl_certificate_path(server_alias)
 
                 File.open(ssl_certificate_file, FILE_OPTS, 0600) do |f|
                   f.write(ssl_cert)

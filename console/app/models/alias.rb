@@ -29,6 +29,7 @@ class Alias < RestApi::Base
   validates_presence_of :certificate_file, :message => "Required if a private key file is selected.", :if => lambda { |a| a.certificate_private_key_file.present? }
   validates :certificate_file, :length => {:minimum => 1, :message => "SSL certificate file was empty."}, :allow_nil => true
 
+  validates_presence_of :certificate_private_key_file, :message => "Required if a certificate is selected.", :if => lambda { |a| a.certificate_file.present? }
   validates :certificate_private_key_file, :length => {:minimum => 1, :message => "Certificate private key file was empty."}, :allow_nil => true
 
 
