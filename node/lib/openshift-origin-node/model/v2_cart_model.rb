@@ -400,7 +400,11 @@ module OpenShift
           if cartridge.name == primary_cartridge.name and empty_repository?
             output << "CLIENT_MESSAGE: An empty Git repository has been created for your application.  Use 'git push' to add your code."
           else
-            output << start_cartridge('start', cartridge, user_initiated: true)
+            if (@state.value == State::STARTED)
+              output << start_cartridge('restart', cartridge, user_initiated: true)
+            else
+              output << start_cartridge('start', cartridge, user_initiated: true)
+            end
           end
           output << cartridge_action(cartridge, 'post_install', software_version)
         end

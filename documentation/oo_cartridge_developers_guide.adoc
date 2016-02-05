@@ -74,13 +74,13 @@ An example `manifest.yml` file:
 Name: PHP
 Cartridge-Short-Name: PHP
 Cartridge-Version: '1.0.1'
-Compatible-Versions: 
+Compatible-Versions:
   - '1.0.1'
 Cartridge-Vendor: redhat
 Display-Name: PHP 5.3
 Description: "PHP is a general-purpose server-side scripting language..."
 Version: '5.3'
-Versions: 
+Versions:
   - '5.3'
 License: "The PHP License, version 3.0"
 License-Url: http://www.php.net/license/3_0.txt
@@ -207,7 +207,7 @@ Versions: ['5.3']
 The `web_framework` category is used to describe a primary cartridge that accepts inbound HTTP and HTTPS as well as WebSocket requests.  An application can have a single cartridge with the `web_framework` category.  Lastly, when using a `web_framework` category, SSL termination occurs at the platform layer, before the cartridge interaction takes place and the original inbound protocol is passed using the `X-Forwarded-Proto` header to the cartridge.
 
 ===== Web Proxy Category
-The `web_proxy` category is used to describe a cartridge that is responsible for routing web traffic to the application's gears.  If a scalable application is created with a cartridge that has the `web_framework` category, a `web_proxy` cartridge is also added to it to enable auto-scaling.  Subsequently, whenever the `web_framework` cartridge needs to scale beyond a single gear, the `web_proxy` cartridge will automatically route to the end point described by the `Public-Port-Name` with a value of `PROXY_PORT`.  The `web_proxy` will also be automatically updated with routing rules to address the new gears over HTTP as they are added.  An application can have a single cartridge with the `web_proxy` category.     
+The `web_proxy` category is used to describe a cartridge that is responsible for routing web traffic to the application's gears.  If a scalable application is created with a cartridge that has the `web_framework` category, a `web_proxy` cartridge is also added to it to enable auto-scaling.  Subsequently, whenever the `web_framework` cartridge needs to scale beyond a single gear, the `web_proxy` cartridge will automatically route to the end point described by the `Public-Port-Name` with a value of `PROXY_PORT`.  The `web_proxy` will also be automatically updated with routing rules to address the new gears over HTTP as they are added.  An application can have a single cartridge with the `web_proxy` category.
 
 ===== Service Category
 The `service` category is used to describe a primary cartridge that is not necessarily HTTP-based.  This means that the cartridge can scale independently but is not necessarily addressable outside of the platform.  Because of this, when creating an application in OpenShift, there is a restriction that at least one `web_framework` cartridge be present in the application so that the DNS registration for the application contains at least one well known addressable endpoint for the application over HTTP.  However, in many cases, an application might need to consist of a `web_framework` cartridge and other `service` cartridges such as MySQL.  By using the category of `service` for a cartridge like MySQL, it will install the cartridge on separate gears from the `web_framework` cartridge and allow it to scale independently as well.
@@ -219,7 +219,7 @@ The `embedded` category is used to describe whether a cartridge can be co-locate
 The `plugin` category is the equivalent of the `embedded` category for scalable applications.  A plugin cartridge is designed to be co-located with another cartridge in a scalable application.  It relies upon `Group-Overrides` being defined to determine which cartridge it should co-locate with.  An example of this is the cron cartridge that is a plugin and specifies through `Group-Overrides` that it needs to co-locate with the `web_framework` cartridge.
 
 ===== Domain Scope Category
-The `domain_scope` category describes a cartridge that can only have a single instance within the domain.  For example, the jenkins server cartridge has the `domain_scope` category to ensure that there is a single jenkins server application within the entire domain.  All other applications `embed` the jenkins client cartridge to enable builds that are handled by the jenkins server. 
+The `domain_scope` category describes a cartridge that can only have a single instance within the domain.  For example, the jenkins server cartridge has the `domain_scope` category to ensure that there is a single jenkins server application within the entire domain.  All other applications `embed` the jenkins client cartridge to enable builds that are handled by the jenkins server.
 
 ==== Descriptive Categories
 The `descriptive` categories are primarily used in the OpenShift web console and the `rhc` client tools to improve the user experience.  In the web console, `descriptive` categories show up as tags which allow users to search and quickly filter the available cartridges.  When using the client tools, these categories are used to apply matching logic on cartridge related operations.  For example, if a user ran:
@@ -251,25 +251,25 @@ Group-Overrides:
 
 
 === Scaling
-This section defines the scaling parameters for a cartridge and is applicable when the cartridge is added to a scalable application.  The `Min` and `Max` parameters define the scaling limits for the cartridge.  Setting both the `Min` and `Max` equal to 1 indicates that the cartridge cannot scale.  On the other hand, if `Max` is specified as -1, then there is no maximum scaling limit and the cartridge can scale up as long as the user's gear limit is not exceeded.  The scaling limits are enforced during auto-scaling as well as when setting the cartridge scaling limits manually. 
+This section defines the scaling parameters for a cartridge and is applicable when the cartridge is added to a scalable application.  The `Min` and `Max` parameters define the scaling limits for the cartridge.  Setting both the `Min` and `Max` equal to 1 indicates that the cartridge cannot scale.  On the other hand, if `Max` is specified as -1, then there is no maximum scaling limit and the cartridge can scale up as long as the user's gear limit is not exceeded.  The scaling limits are enforced during auto-scaling as well as when setting the cartridge scaling limits manually.
 
 When using `Group-Overrides` to co-locate two or more cartridges that can all scale, it is important to ensure that their scaling limits match.  There are occasions, however, when this is not desirable, such as in the case of a `web_proxy` that is co-located with the `web_framework`.  In this case it doesn't make sense to have the `web_proxy` cartridge be present on every gear where the `web_framework` gear is located.  The `Multiplier` parameter enables this by allowing the cartridge to be placed on fewer gears within the group instance.  For example, if the `Multiplier` is set to 3, then every third gear within the group instance will have the cartridge installed.  Similarly, if the `Multiplier` is set to 1, then all gears within the group instance will have the cartridge installed on them.
 
 
 === Provides
-`Provides` is a list of *features* or *functionalities* that the cartridge provides to the application.  For example, the php-5.3 cartridge provides *php-5.3* as well as, more generically, *php*. 
+`Provides` is a list of *features* or *functionalities* that the cartridge provides to the application.  For example, the php-5.3 cartridge provides *php-5.3* as well as, more generically, *php*.
 
 ----
-Provides: 
+Provides:
   - php-5.3
   - php
 ----
 
 
 === Requires
-`Requires` is a list of *features* or *functionalities* that this cartridge depends upon for its operation.  These dependencies would be matched against other available cartridges to find the ones that *provide* them.  For example, a *framework* cartridge like *Rails* could require a *language/runtime* cartridge like *Ruby*.  In this case, if an application is being created with the *Rails* cartridge, based on the `Requires` specification, a cartridge that provides *Ruby* would be automatically added to the application.  
+`Requires` is a list of *features* or *functionalities* that this cartridge depends upon for its operation.  These dependencies would be matched against other available cartridges to find the ones that *provide* them.  For example, a *framework* cartridge like *Rails* could require a *language/runtime* cartridge like *Ruby*.  In this case, if an application is being created with the *Rails* cartridge, based on the `Requires` specification, a cartridge that provides *Ruby* would be automatically added to the application.
 
-The functionality specified in the `Requires` section must identify a single cartridge.  In case multiple cartridges are matched, then the cartridge cannot be added and an error is raised to the user. 
+The functionality specified in the `Requires` section must identify a single cartridge.  In case multiple cartridges are matched, then the cartridge cannot be added and an error is raised to the user.
 
 
 === Source-Url
@@ -1208,7 +1208,7 @@ Next, during the `activate` phase:
 4.  All secondary cartridges in the application are started.
 5.  The primary cartridge `deploy` control action is executed.
 6.  The `deploy` user action hook is executed, if present.
-7.  The primary cartridge is started (the application is now fully started).
+7.  The primary cartridge is started or restarted depending on the current status of the cartridge (the application is now fully started).
 8.  The primary cartridge `post-deploy` control action is executed.
 9.  The `post_deploy` user action hook is executed, if present.
 10.  If the app is scalable, SSH to each child gear and execute `gear activate $deployment_id` which performs all the activation steps (except this one)
