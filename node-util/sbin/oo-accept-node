@@ -178,6 +178,10 @@ def user_fail(uuid, msg)
   do_fail(msg)
 end
 
+def do_warn(msg)
+    eputs("WARNING: " + msg)
+end
+
 def do_fail(msg)
     eputs("FAIL: " + msg)
     $STATUS += 1
@@ -262,32 +266,32 @@ def validate_env
   if ENV[$SEBOOL_LIST].nil?
       $SEBOOL_LIST=DEFAULT_SEBOOL_LIST
   else
-      eputs "WARNING: ENV overrides SEBOOL_LIST"
+      do_warn "ENV overrides SEBOOL_LIST"
   end
 
   if ENV[$PACKAGES].nil?
       $PACKAGES=DEFAULT_PACKAGES
   else
-      eputs "WARNING: ENV overrides PACKAGES"
+      do_warn "ENV overrides PACKAGES"
   end
 
   if ENV[$SERVICES].nil?
       $SERVICES=DEFAULT_SERVICES
   else
-      eputs "WARNING: ENV overrides SERVICES"
+      do_warn "ENV overrides SERVICES"
   end
 
   if ENV[$SERVICE_CONTEXTS].nil?
       $SERVICE_CONTEXTS=DEFAULT_SERVICE_CONTEXTS
   else
-      eputs "WARNING: ENV overrides SERVICE_CONTEXTS"
+      do_warn "ENV overrides SERVICE_CONTEXTS"
   end
 
 
   if ENV[$MINSEM].nil?
       $MINSEM=DEFAULT_MINSEM
   else
-      eputs "WARNING: ENV overrides MINSEM"
+      do_warn "ENV overrides MINSEM"
   end
 end
 
