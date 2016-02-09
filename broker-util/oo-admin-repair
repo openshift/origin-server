@@ -107,7 +107,7 @@ if fix_ssh_keys.nil? and fix_district_uids.nil? and fix_consumed_gears.nil? and
    fix_orphaned_envs.nil?
   puts "You must specify at least one item to fix."
   usage
-  exit 0
+  exit 255
 end
 
 require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"

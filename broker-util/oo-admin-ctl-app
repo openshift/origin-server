@@ -72,9 +72,14 @@ cartridge = args['--cartridge']
 server_alias = args['--alias'].dup if args['--alias']
 multiplier = args['--multiplier']
 
-if login.nil? or app_name.nil? or command.nil? or args["--help"]
+if args["--help"]
   usage
   exit 0
+end
+
+if login.nil? or app_name.nil? or command.nil?
+  usage
+  exit 255
 end
 
 require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"

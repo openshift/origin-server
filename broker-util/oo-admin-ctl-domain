@@ -81,9 +81,14 @@ allowed_gear_sizes = args["--allowed_gear_sizes"]
 role = args["--role"]
 member = args["--member"]
 
-if login.nil? or args["--help"]
+if args["--help"]
   usage
   exit 0
+end
+
+if login.nil?
+  usage
+  exit 255
 end
 
 require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"

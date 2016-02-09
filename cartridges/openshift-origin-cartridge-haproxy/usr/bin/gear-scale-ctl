@@ -39,7 +39,7 @@ begin
 
   if 0 != ARGV.length
     usage
-    exit 0
+    exit 255
   end
 
   if opts['server'].nil? || opts['server'].empty? \

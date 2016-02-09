@@ -70,9 +70,14 @@ rescue GetoptLong::Error => e
 end
 
 # Check this _before_ loading the rails env
-if args["--help"] || (STDIN.tty? && args.empty?)
+if args["--help"]
   usage
   exit 0
+end
+
+if STDIN.tty? && args.empty?
+  usage
+  exit 255
 end
 
 if args['--timeout']

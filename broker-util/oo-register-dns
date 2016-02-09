@@ -70,9 +70,14 @@ node_domain = args["--domain"] || "example.com"
 server = args["--dns-server"] || "127.0.0.1"
 key = args["--key-file"] || "/var/named/#{node_domain}.key"
 
-if args["--help"] || (ip.nil? || ip.empty? || node_hostname.nil? || node_hostname.empty?)
+if args["--help"]
   usage
   exit 0
+end
+
+if ip.nil? || ip.empty? || node_hostname.nil? || node_hostname.empty?
+  usage
+  exit 255
 end
 
 rectype = IPAddr.new(ip).ipv6? ? "AAAA" : "A"
