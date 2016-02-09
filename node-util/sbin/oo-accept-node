@@ -178,6 +178,10 @@ def user_fail(uuid, msg)
   do_fail(msg)
 end
 
+def do_warn(msg)
+    eputs("WARNING: " + msg)
+end
+
 def do_fail(msg)
     eputs("FAIL: " + msg)
     $STATUS += 1
@@ -262,32 +266,32 @@ def validate_env
   if ENV[$SEBOOL_LIST].nil?
       $SEBOOL_LIST=DEFAULT_SEBOOL_LIST
   else
-      eputs "WARNING: ENV overrides SEBOOL_LIST"
+      do_warn "ENV overrides SEBOOL_LIST"
   end
 
   if ENV[$PACKAGES].nil?
       $PACKAGES=DEFAULT_PACKAGES
   else
-      eputs "WARNING: ENV overrides PACKAGES"
+      do_warn "ENV overrides PACKAGES"
   end
 
   if ENV[$SERVICES].nil?
       $SERVICES=DEFAULT_SERVICES
   else
-      eputs "WARNING: ENV overrides SERVICES"
+      do_warn "ENV overrides SERVICES"
   end
 
   if ENV[$SERVICE_CONTEXTS].nil?
       $SERVICE_CONTEXTS=DEFAULT_SERVICE_CONTEXTS
   else
-      eputs "WARNING: ENV overrides SERVICE_CONTEXTS"
+      do_warn "ENV overrides SERVICE_CONTEXTS"
   end
 
 
   if ENV[$MINSEM].nil?
       $MINSEM=DEFAULT_MINSEM
   else
-      eputs "WARNING: ENV overrides MINSEM"
+      do_warn "ENV overrides MINSEM"
   end
 end
 
@@ -542,9 +546,14 @@ end
 
 def check_quotas
     verbose("checking filesystem quotas")
-    oo_device=%x[/bin/df -P #{$GEAR_BASE_DIR} | /usr/bin/tail -1].split[0]
-    oo_mount=%x[/bin/df -P #{$GEAR_BASE_DIR} | /usr/bin/tail -1 | /usr/bin/tr -s ' '].split[5]
-    fs_type=%x[/bin/df -TP #{oo_mount} | tail -1 2>&1].split[1]
+    oo_device, fs_type, _, _, _, _, oo_mount =
+      %x[/bin/df -PT #{$GEAR_BASE_DIR}].split("\n").last.split
+    awk = %[{ if ($1 == "#{oo_device}" && $3 == "#{oo_mount}") { print $6 } }]
+    fs_options = %x[mount | /bin/awk '#{awk}'].split('\n').last rescue ""
+    if fs_options.match /loop=([^,]+)/
+      oo_device = $1
+      do_warn "#{oo_mount} is a loop mount (loop device: #{oo_device}).  Using a loop mount may reduce performance."
+    end
     if fs_type=="xfs"
       unless %x[/usr/sbin/repquota -v #{oo_mount} | /bin/grep "Accounting.*Enforcement"].strip == "Accounting: ON; Enforcement: ON"
           do_fail "quotas are not enabled on #{oo_mount} (#{oo_device})"
