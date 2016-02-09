@@ -56,9 +56,14 @@ rescue GetoptLong::Error => e
   exit 255
 end
 
-if args["--help"] || args.empty?
+if args["--help"]
   usage
   exit 0
+end
+
+if args.empty?
+  usage
+  exit 255
 end
 
 command     = args['--command']

@@ -649,9 +649,14 @@ if args["--setusageaccountid"]
   usage_account_id = args["--setusageaccountid"].to_i
 end
 
-if logins.empty? or args["--help"]
+if args["--help"]
   usage
   exit 0
+end
+
+if logins.empty?
+  usage
+  exit 255
 end
 
 account_to_add = args["--addsubaccount"]
