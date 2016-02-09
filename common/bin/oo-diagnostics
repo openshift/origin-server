@@ -1216,7 +1216,7 @@ class OODiag
     else
       mode = "test"
     end
-    
+
     msg_log = `grep 'Broker key authentication failed' #{log_dir + mode}.log`
 
     unless msg_log.empty?
@@ -1236,6 +1236,7 @@ class OODiag
     end
   end
 
+  # Test certificate from the broker
   def test_broker_certificate
     skip_test unless @is_broker
 
@@ -1257,30 +1258,6 @@ class OODiag
     if subject == issuer
       do_warn "Using a self-signed certificate for the broker"
     end
-
-    broker_host_env = File.read("/etc/openshift/env/OPENSHIFT_BROKER_HOST")
-
-    # Retrieve the SSL cert from broker_host_env
-    env_response = `curl -k -s -v https://#{broker_host_env.chomp}/ -o /dev/null 2>&1`
-    if $? != 0
-      do_fail <<-CANNOTCONNECT
-        Attempt to connect to #{broker_host_env} but failed. curl returned with
-        #{env_response.strip.empty? ? "no output." : "the following output:\n" + env_response}
-
-        Please check whether the httpd service in #{broker_host_env} is running.
-      CANNOTCONNECT
-      return
-    end
-
-    # Get SSL cert's issuer, subject and commonname
-    env_issuer = env_response.slice(/^\*\s*issuer: .*$/).gsub(/^\*\s*issuer: /,"")
-    env_subject = env_response.slice(/^\*\s*subject: .*$/).gsub(/^\*\s*subject: /,"")
-    env_commonname = env_response.slice(/^\*\s*common name: .*$/).gsub(/^\*\s*common name: /,"")
-
-    # Check to see if SSL certs from current broker and BROKER_HOST match
-    do_fail "SSL cert issuer doesn't match between localhost and #{broker_host_env} defined in /etc/openshift/env/OPENSHIFT_BROKER_HOST" if env_issuer != issuer
-    do_fail "SSL cert subject doesn't match between localhost and #{broker_host_env} defined in /etc/openshift/env/OPENSHIFT_BROKER_HOST" if env_subject != subject
-    do_fail "SSL cert commonname doesn't match between localhost and #{broker_host_env} defined in /etc/openshift/env/OPENSHIFT_BROKER_HOST" if env_commonname != commonname
 
     apacheconfig = `httpd -S 2> /dev/null`.slice(  / ^\*:443.*  (\n^\s.*)*  \n(\S|\z) /x  )
     servername = apacheconfig.scan(/(?:(?:default server )|(?:port 443 namevhost ))(\S+) \((?:[^:]+)/)
@@ -1305,6 +1282,49 @@ class OODiag
         end
       end
     end
+  end
+
+  # Test certificate from the node
+  def test_node_certificate
+    skip_test unless @is_node
+
+    # Retrieve the SSL cert from Apache
+    response = `curl -k -s -v https://localhost/ -o /dev/null 2>&1`
+    if $? != 0
+      do_fail <<-CANNOTCONNECT
+        An error arose while trying to connect to the SSL reverse proxy.  curl returned with
+        #{response.strip.empty? ? "no output." : "the following output:\n" + response}
+
+        Please check whether the httpd service is running.
+      CANNOTCONNECT
+      return
+    end
+
+    issuer = response.slice(/^\*\s*issuer: .*$/).gsub(/^\*\s*issuer: /,"")
+    subject = response.slice(/^\*\s*subject: .*$/).gsub(/^\*\s*subject: /,"")
+    if subject == issuer
+      do_warn "Using a self-signed certificate for the node"
+    end
+
+    broker_host_env = File.read("/etc/openshift/env/OPENSHIFT_BROKER_HOST")
+
+    # Retrieve the SSL cert from broker_host_env
+    broker_response = `curl -k -s -v https://#{broker_host_env.chomp}/ -o /dev/null 2>&1`
+    if $? != 0
+      do_fail <<-CANNOTCONNECT
+        Attempted to connect to #{broker_host_env} but failed. curl returned with
+        #{broker_response.strip.empty? ? "no output." : "the following output:\n" + broker_response}
+
+        Please check whether the httpd service on #{broker_host_env} is running.
+      CANNOTCONNECT
+      return
+    end
+
+    # Get SSL cert's issuer
+    broker_issuer = broker_response.slice(/^\*\s*issuer: .*$/).gsub(/^\*\s*issuer: /,"")
+
+    # Check to see if SSL cert issuer from current node and BROKER_HOST match
+    do_warn "SSL cert issuer doesn't match between localhost and #{broker_host_env} defined in /etc/openshift/env/OPENSHIFT_BROKER_HOST" if broker_issuer != issuer
   end
 
   def test_abrt_addon_python
