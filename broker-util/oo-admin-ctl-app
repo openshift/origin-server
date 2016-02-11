@@ -290,6 +290,7 @@ begin
   else
     puts "Command must be one of: #{CTL_APP_COMMANDS}"
     usage
+    exit 255
   end
 rescue OpenShift::UserException => e
   puts e.message

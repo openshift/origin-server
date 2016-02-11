@@ -76,6 +76,7 @@ end
 
 unless all_containers or container_uuid
   usage
+  exit 255
 end
 
 begin
