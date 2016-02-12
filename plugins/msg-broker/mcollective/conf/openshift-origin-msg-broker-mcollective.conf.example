@@ -34,3 +34,8 @@ ZONES_MIN_PER_GEAR_GROUP=1
 # Specify how to address a node when doing rsync commands.  Valid options are
 # ip_address, server_identity, and public_hostname
 NODE_RSYNC_ADDRESS="ip_address"
+
+# Gear disk quota buffer.  This will ensure that nodes can be evacuated and gears
+# can be moved if a gear is over quota limits, up to this quota multiplier.
+QUOTA_BLOCKS_BUFFER=1.2
+QUOTA_INODES_BUFFER=1.2
