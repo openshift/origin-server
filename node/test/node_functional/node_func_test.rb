@@ -26,6 +26,9 @@ module OpenShift
         super
 
         @uid = 5994
+        # quota buffer multiplier is configured on broker
+        @quota_blocks_buffer = 1.2
+        @quota_inodes_buffer = 1.2
 
         @config.stubs(:get).with("GEAR_BASE_DIR").returns(GEAR_BASE_DIR)
         @config.stubs(:get).with("GEAR_GECOS").returns('Functional Test')
@@ -69,17 +72,20 @@ module OpenShift
       end
 
       def test_set_quota_fail_quota
+        # test won't fail until blocks exceed blocksmax * blocks buffer
         results = Runtime::Node.get_quota(@uuid)
+
         assert_raises(NodeCommandException) do
-          OpenShift::Runtime::Node.set_quota(@uuid, results[:blocks_used] - 1, '')
+          OpenShift::Runtime::Node.set_quota(@uuid, (results[:blocks_used] - 1) * @quota_blocks_buffer, '')
         end
       end
 
       def test_set_quota_fail_inodes
+        # test won't fail until inodes exceed inodesmax * inodes buffer
         results = Runtime::Node.get_quota(@uuid)
 
         assert_raises(NodeCommandException) do
-          OpenShift::Runtime::Node.set_quota(@uuid, results[:blocks_used], results[:inodes_used] - 1)
+          OpenShift::Runtime::Node.set_quota(@uuid, results[:blocks_used], (results[:inodes_used] - 1) * @quota_inodes_buffer)
         end
       end
 

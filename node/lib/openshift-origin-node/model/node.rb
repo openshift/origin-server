@@ -180,15 +180,21 @@ module OpenShift
         end
 
         if current_quota > blocksmax.to_i
-          raise NodeCommandException.new(
+          # rather than raise Exception, allow current_quota to exceed limit and exceed buffer to allow gear moves, restarts, stops, idles to complete
+          if current_quota > blocksmax.to_i * 1.5
+             raise NodeCommandException.new(
                     Utils::Sdk.translate_out_for_client("Current usage #{current_quota} exceeds requested quota #{blocksmax}",
                                                         :error))
+          end
         end
 
         if current_inodes > inodemax.to_i
-          raise NodeCommandException.new(
+          # rather than raise Exception, allow current_inodes to exceed limit and exceed buffer to allow gear moves, restarts, stops, idles to complete
+          if current_inodes > inodemax.to_i * 1.5
+             raise NodeCommandException.new(
                     Utils::Sdk.translate_out_for_client("Current inodes #{current_inodes} exceeds requested inodes #{inodemax}",
                                                         :error))
+          end
         end
 
         mountpoint      = self.get_gear_mountpoint
