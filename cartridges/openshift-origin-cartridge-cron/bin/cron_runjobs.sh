@@ -64,10 +64,10 @@ log_message ":START: $freq cron run for openshift user '$OPENSHIFT_GEAR_UUID'"
 SCRIPTS_DIR="$OPENSHIFT_REPO_DIR/.openshift/cron/$freq"
 if [ -d "$SCRIPTS_DIR" ]; then
    # Run all scripts in the scripts directory serially.
-   executor="run-parts"
+   executor="setsid run-parts"
    if [ -n "$MAX_RUN_TIME" ]; then
      # TODO: use signal -s 1 --kill-after=$KILL_AFTER_TIME" when available
-     executor="timeout -s 9 $MAX_RUN_TIME run-parts"
+     executor="setsid timeout -s 9 $MAX_RUN_TIME run-parts"
    fi
 
    (
