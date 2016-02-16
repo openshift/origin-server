@@ -182,8 +182,8 @@ function check_mongo_connectivity() {
         verbose "At least one Mongo replicant is listening on the specified host and port."
       fi
     else
-      host=$(echo $MONGO_HOST | cut -d\: -f1)
-      port=$(echo $MONGO_HOST | cut -d\: -f2)
+      host=$(echo $MONGO_HOST | cut -d\: -f1 | tr -d \'\")
+      port=$(echo $MONGO_HOST | cut -d\: -f2 | tr -d \'\")
       timeout 1 bash -c "cat </dev/null > /dev/tcp/$host/$port"
 
       if [ $? != 0 ]
