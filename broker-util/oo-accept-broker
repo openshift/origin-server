@@ -160,8 +160,9 @@ function check_mongo_connectivity() {
       for mongo_replicant in $(echo $MONGO_HOST | sed s/,/\ /g)
       do
         ((replica_count++))
-        host=$(echo $mongo_replicant | cut -d: -f1)
-        port=$(echo $mongo_replicant | cut -d: -f2)
+        # Note: Remove unwanted single or double qoutes before parsing using tr command
+        host=$(echo $mongo_replicant | cut -d: -f1 | tr -d \'\")
+        port=$(echo $mongo_replicant | cut -d: -f2 | tr -d \'\")
         timeout 1 bash -c "cat </dev/null > /dev/tcp/$host/$port" &> /dev/null
 
         if [ $? != 0 ]
@@ -393,7 +394,7 @@ EOF
 # ============================================================================
 #
 # Configuration and Variables
-# 
+#
 # ============================================================================
 
 #
@@ -543,7 +544,7 @@ function check_mongo_login() {
     then
         ssl_opt="--ssl"
     fi
-    mongo $1/$2 --username $3 --password $ssl_opt<<EOF 2>&1 >/dev/null 
+    mongo $1/$2 --username $3 --password $ssl_opt<<EOF 2>&1 >/dev/null
 $4
 exit
 EOF
@@ -893,7 +894,7 @@ function check_dns_bind() {
     fi
 
     # remove it.
-    dns_bind_update_record ${APP_VALUES[DNS_AUTH]} ${APP_VALUES[DNS_SERVER]} "${APP_VALUES[DNS_KEYNAME]}" "${APP_VALUES[DNS_KEYVAL]}" "${APP_VALUES[DNS_KEYALGORITHM]}" "${APP_VALUES[DNS_KRB_KEYTAB]}" "${APP_VALUES[DNS_KRB_PRINCIPAL]}" delete txt testrecord.${APP_VALUES[DNS_SUFFIX]} 
+    dns_bind_update_record ${APP_VALUES[DNS_AUTH]} ${APP_VALUES[DNS_SERVER]} "${APP_VALUES[DNS_KEYNAME]}" "${APP_VALUES[DNS_KEYVAL]}" "${APP_VALUES[DNS_KEYALGORITHM]}" "${APP_VALUES[DNS_KRB_KEYTAB]}" "${APP_VALUES[DNS_KRB_PRINCIPAL]}" delete txt testrecord.${APP_VALUES[DNS_SUFFIX]}
     # verify that the record is removed
     if host -t txt testrecord.${APP_VALUES[DNS_SUFFIX]}. ${APP_VALUES[DNS_SERVER]} >/dev/null
     then
@@ -1034,7 +1035,7 @@ STATUS=0
 probe_version
 check_packages $PACKAGES
 check_ruby_requirements $OSO_RUBY_LIBS
-if [ -z "$container" ]; then 
+if [ -z "$container" ]; then
   #Can't check selinux/iptables if we are running inside a container
   check_selinux_enforcing
   check_selinux_booleans
