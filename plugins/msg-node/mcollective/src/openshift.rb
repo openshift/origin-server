@@ -157,7 +157,9 @@ module MCollective
         exitcode, output, addtl_params = execute_action(action, args)
 
         if args['--with-container-uuid']
-          report_quota(output, args['--with-container-uuid'])
+          if action != "configure"
+            report_quota(output, args['--with-container-uuid'])
+          end
           if report_resource(output, args['--with-app-name'])
             exitcode = 222
           end
