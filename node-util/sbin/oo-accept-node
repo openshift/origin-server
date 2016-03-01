@@ -549,7 +549,8 @@ def check_quotas
     oo_device, fs_type, _, _, _, _, oo_mount =
       %x[/bin/df -PT #{$GEAR_BASE_DIR}].split("\n").last.split
     awk = %[{ if ($1 == "#{oo_device}" && $3 == "#{oo_mount}") { print $6 } }]
-    fs_options = %x[mount | /bin/awk '#{awk}'].split('\n').last rescue ""
+    fs_options = %x[mount | /bin/awk '#{awk}'].
+      split("\n").last.sub(/^\((.*)\)$/, '\1') rescue ""
     if fs_options.match /loop=([^,]+)/
       oo_device = $1
       do_warn "#{oo_mount} is a loop mount (loop device: #{oo_device}).  Using a loop mount may reduce performance."
