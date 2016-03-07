@@ -34,7 +34,11 @@ module OpenShift
     # * id: string - a unique app identifier
     # * district: <type> - a classifier for app placement
     #
-    def initialize(id, district=nil)
+    def initialize(id, district=nil, blocks_multiplier=1, inodes_multiplier=1)
+      blocks_multiplier=Rails.configuration.msg_broker[:quota_blocks_buffer]
+      inodes_multiplier=Rails.configuration.msg_broker[:quota_inodes_buffer]
+      @blocks_multiplier = blocks_multiplier
+      @inodes_multiplier = inodes_multiplier
       @id = id
       @district = district
       @disable_print_debug = false
@@ -1768,6 +1772,46 @@ module OpenShift
     end
 
     def update_cluster(gear, options)
+      app = gear.application
+      head_gear_quota = get_quota(app)
+      # set head_gear quotas if necessary
+      # will be necessary if trying to move a non-primary gear before bumping
+      # an over-the-quota-limit head gear
+      #
+      # Find default quotas for node profile
+      default_container = ApplicationContainerProxy.find_available(options)
+      default_quota = default_container.rpc_get_facts_direct(["quota_blocks", "quota_files"])
+      default_blocks = Integer(default_quota[:quota_blocks])
+      default_inodes = Integer(default_quota[:quota_files])
+
+      head_blocks_current_limit = Integer(head_gear_quota[3])
+      head_blocks_used = Integer(head_gear_quota[1])
+
+      head_inodes_current_limit = Integer(head_gear_quota[6])
+      head_inodes_used = Integer(head_gear_quota[4])
+
+      # if head_gear quota usage > 98% current limit, then update-cluster wil need a
+      # small buffer to complete.
+      if head_blocks_used > head_blocks_current_limit * 0.98 || head_inodes_used > head_inodes_current_limit
+        # Use a multiplier of 1.01 to avoid moves failing due to lack of disk space for rewrite of haproxy.cfg and add 10 inodes to inode limit (will be reset to default if usage < default limits).
+        head_blocks_increment = head_blocks_current_limit * 1.01
+        if head_blocks_increment > default_blocks * @blocks_multiplier.to_f
+          head_blocks_increment = default_blocks * @blocks_multiplier.to_f
+        end
+        set_quota(app, head_blocks_increment/1024/1024, head_inodes_current_limit + 10)
+        log_debug "WARNING: Head gear exceeds quota limit, using quota buffer for update-cluster."
+        log_debug "DEBUG: New gear blocks limit:#{head_blocks_increment.round}, new inodes limit: #{head_inodes_current_limit + 10}"
+      else
+        # reset quotas to default if previously bumped but are now under default limits
+        # or if usage < default limit
+        if head_blocks_used < default_blocks
+          head_blocks_current_limit = default_blocks
+        end
+        if head_inodes_used < default_inodes
+          head_inodes_current_limit = default_inodes
+        end
+        set_quota(app, head_blocks_current_limit/1024/1024, head_inodes_current_limit)
+      end
       args = build_base_gear_args(gear)
       args = build_update_cluster_args(options, args)
       result = execute_direct(@@C_CONTROLLER, 'update-cluster', args)
@@ -2029,9 +2073,40 @@ module OpenShift
           end
         end
       else
-        # leave quota the same if node profile does not change
-        quota_blocks = Integer(gear_quota[3])
-        quota_files = Integer(gear_quota[6])
+        # if gear is over disk quota limit, increase destination quota slightly so gear move, start, stop, restart complete
+        # if gear has reached limit + buffer, oo-evacuate script must be used to move gear
+        # get the base quota blocks and files destination container
+        destination_quota = destination_container.rpc_get_facts_direct(["quota_blocks", "quota_files"])
+        # set destination container quotas - the default quotas according to node profile
+        # Bump with quota buffer if necessary, to a max of original quota * multiplier.  Quota bumped in 1% block and 10 inode increments
+        quota_blocks = Integer(destination_quota[:quota_blocks])
+        @dest_quota_blocks_b4_bump = quota_blocks
+        quota_blocks_buffer = Integer(quota_blocks) * @blocks_multiplier.to_f
+        quota_files = Integer(destination_quota[:quota_files])
+        @dest_quota_files_b4_bump = quota_files
+        quota_files_buffer = Integer(quota_files) * @inodes_multiplier.to_f
+        # get current block and file usage from the source container
+        blocks_used = Integer(gear_quota[1])
+        inodes_used = Integer(gear_quota[4])
+        quota_blocks_increment = [Integer(blocks_used) * 1.01, Integer(quota_blocks) * 1.01].max
+        quota_files_increment = [Integer(inodes_used) + 10, Integer(quota_files) + 10].max
+
+        if blocks_used >= quota_blocks * 0.98 || inodes_used >= quota_files
+          if blocks_used > quota_blocks_buffer || inodes_used > quota_files_buffer
+            log_debug "Cannot move #{gear.group_instance.gear_size} size gear to #{destination_node_profile}.  Gear exceeds quota blocks: #{destination_quota[:quota_blocks]} inodes: #{destination_quota[:quota_files]} and quota limit buffer (#{quota_blocks_buffer.round}, #{quota_files_buffer.round}) also exhausted."
+            raise OpenShift::UserException.new("Error moving gear. Cannot move gear to #{destination_node_profile} node profile while gear exceeds profile quota limits.")
+          end
+          log_debug "WARNING: Quota exceeds 98% of target quota limits, using buffer."
+          log_debug "QUOTA BUFFER: blocks max: #{quota_blocks_buffer.round} inodes max: #{quota_files_buffer.round} allowed in increments."
+          quota_blocks = quota_blocks_increment
+          quota_files = quota_files_increment
+          log_debug "DEBUG: Current blocks quota increased by 1% to #{quota_blocks.round}."
+          log_debug "DEBUG: Current inodes quota increased by 10 inodes to #{quota_files.round}."
+        else
+          # leave quota the same if node profile does not change and gear is not over quota limit
+          quota_blocks = Integer(gear_quota[3])
+          quota_files = Integer(gear_quota[6])
+        end
       end
 
       # get the application state
@@ -2063,7 +2138,7 @@ module OpenShift
             if app.scalable and not cart.is_web_proxy?
               begin
                 reply.append destination_container.expose_port(gear, cinst)
-              rescue Exception=>e
+              rescue Exception=> e
                 # just pass because some embedded cartridges do not have expose-port hook implemented (e.g. jenkins-client)
               end
             end
@@ -2151,7 +2226,12 @@ module OpenShift
 
       move_gear_destroy_old(gear, source_container, destination_container, district_changed)
 
-      log_debug "Successfully moved gear with uuid '#{gear.uuid}' of app '#{app.name}' from '#{source_container.id}' to '#{destination_container.id}'"
+      # if gear is over disk quota limit, issue warning after move
+      if Integer(gear_quota[1]) > @dest_quota_blocks_b4_bump  || Integer(gear_quota[4]) > @dest_quota_files_b4_bump
+        log_debug "WARNING:  Gear with uuid '#{gear.uuid}' of app '#{app.name}' was moved successfully from '#{source_container.id}' to '#{destination_container.id}' but quota limits for #{destination_node_profile} node profile exceeded."
+      else
+        log_debug "Successfully moved gear with uuid '#{gear.uuid}' of app '#{app.name}' from '#{source_container.id}' to '#{destination_container.id}'"
+      end
       reply
     end
 
