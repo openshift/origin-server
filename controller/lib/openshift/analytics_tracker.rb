@@ -5,18 +5,18 @@ module OpenShift
 
     attr_reader :analytics_provider_instance
 
-    @@oo_analytics_provider = nil
+    @@oo_analytics_provider = []
 
     ##
     # Switch the Analytics plugin class.
     #
     # @param provider_class [Class] Class that extends OpenShift::AnalyticsTracker.
     def self.provider=(provider_class)
-      @@oo_analytics_provider = provider_class
+      @@oo_analytics_provider []= provider_class
     end
 
     def initialize(request)
-      @analytics_provider_instance = @@oo_analytics_provider.new(request) if @@oo_analytics_provider
+        @analytics_provider_instance = @@oo_analytics_provider.map { |provider| provider.new(request) } unless @@oo_analytics_provider.empty?
     end
 
     ##
@@ -24,7 +24,7 @@ module OpenShift
     #
     # @param user [CloudUser] - The user being identified
     def identify(user, push=true)
-      analytics_provider_instance.identify(user) if analytics_provider_instance && Rails.configuration.analytics[:enabled]
+      analytics_provider_instance.each { |provider| provider.identify(user) } unless analytics_provider_instance.empty? || Rails.configuration.analytics[:disabled]
     end
 
     ##
@@ -35,7 +35,7 @@ module OpenShift
     # @param application [Application] - The application being tracked (optional)
     # @param props [Hash] - Additional properties to track
     def track_event(event, membership=nil, application=nil, props=nil)
-      analytics_provider_instance.track_event(event, membership, application, props) if analytics_provider_instance && Rails.configuration.analytics[:enabled]
+      analytics_provider_instance.each { |provider| provider.track_event(event, membership, application, props) } unless analytics_provider_instance.empty? || Rails.configuration.analytics[:disabled]
     end
 
     ##
@@ -45,7 +45,7 @@ module OpenShift
     # @param user [CloudUser] - The user being tracked
     # @param props [Hash] - Additional properties to track
     def track_user_event(event, user, props=nil)
-      analytics_provider_instance.track_user_event(event, user, props) if analytics_provider_instance && Rails.configuration.analytics[:enabled]
+      analytics_provider_instance.each { |provider| provider.track_user_event(event, user, props) } unless analytics_provider_instance.empty? || Rails.configuration.analytics[:disabled]
     end
 
   end
