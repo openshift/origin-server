@@ -27,7 +27,13 @@ class LastAccessUpdater
     @last_access_data = Hash.new
     @addrs_ignore = Array.new
     @hosts_ignore = ["localhost"]
+    @useragent_ignore = []
   end
+
+  def load_useragent_ignore
+    ignore_list = OpenShift::Config.new.get("UNIDLER_IGNORE_LIST") || ""
+    @useragent_ignore = ignore_list.split(',')
+   end
 
   def load_addrs_ignore
     matchaddr = Regexp.new('inet6? (.*)\/[0-9]')
@@ -115,7 +121,8 @@ class LastAccessUpdater
     # Doing the file read with awk is 10x faster than doing it inside
     # Ruby and we desperately need speed here.
     ignore_cond = [@hosts_ignore.map { |a| "$2 != \"#{a}\"" },
-                   @addrs_ignore.map { |a| "$1 != \"#{a}\"" }].flatten.join(' && ')
+                   @addrs_ignore.map { |a| "$1 != \"#{a}\"" },
+                  "$_ !~ /#{ @useragent_ignore.join('|') }/" ].flatten.join(' && ')
     awk_cmd = %Q[{ if ( #{ignore_cond} ) h[$2]=$5" "$6 } END{ for ( i in h ) { printf("%s=%s\\n",i,h[i]) } }]
     # Pack separate log files one at a time so we can enforce the rule
     # that most recent timestamp wins.
@@ -207,6 +214,7 @@ single_instance do
   logfiles = [ENV["APACHE_ACCESS_LOG"], ENV["NODE_WEB_PROXY_ACCESS_LOG"], ENV["NODE_WEB_PROXY_WEBSOCKETS_LOG"]]
   l = LastAccessUpdater.new(ENV["GEAR_BASE_DIR"], logfiles)
   l.load_addrs_ignore
+  l.load_useragent_ignore
   l.load_gears_data
   l.add_alias_data
   gears_found_count = l.parse_log
