@@ -8,10 +8,15 @@ module OpenShift
 
       included do
         before_filter ->{ Mongoid.identity_map_enabled = true }
+        before_filter :default_format_json
       end
 
       protected
         attr :requested_api_version
+
+        def default_format_json
+          request.format ||= 'json'
+        end
 
         def check_version
           version = catch(:version) do
