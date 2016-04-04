@@ -453,10 +453,21 @@ function finish_websocket(upg_reqhost, proxy_server, ws) {
   proxy_server.debug()  &&  Logger.debug('Sending a websocket request to %s',
                                          util.inspect(ws_endpoint));
 
+  var zheaders = { 'headers': {}};
+
+  zheaders.headers['user-agent'] = upgrade_req.headers['user-agent'];
+
+  /*  Set X-Forwarded-For HTTP extension header.  */
+  var xff = upgrade_req.connection.remoteAddress  ||
+            upgrade_req.socket.remoteAddress;
+  zheaders.headers['X-Forwarded-For'] = xff;
+
+  /*  Set X-Client-IP HTTP extension header.      */
+  zheaders.headers['X-Client-IP'] = xff;
+
   proxy_server.debug()  &&  Logger.debug(JSON.stringify(upgrade_req.headers));
 
   /* Pass down the cookie, if any */
-  var zheaders = { 'headers': {}};
   if (upgrade_req.headers.cookie) {
     zheaders.headers.Cookie = upgrade_req.headers.cookie;
   }
