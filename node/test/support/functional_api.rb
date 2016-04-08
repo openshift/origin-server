@@ -119,13 +119,18 @@ class FunctionalApi
   end
 
   def delete_domain
-    response = RestClient.get("#{@url_base}/domains/#{@namespace}/applications", accept: :json)
+    # Getting 401 authentication errors here...
+    # Alternatively, look at passing @login:'password' to the RestClient calls
+    # :user => @login, :password => "password"
+    response = RestClient.get("#{@url_base}/domains/#{@namespace}/applications", accept: :json, :user => @login, :password => "password")
     response = JSON.parse(response)
 
     response['data'].each do |app_data|
       id = app_data['id']
       logger.info("Deleting application id #{id}")
-      RestClient.delete("#{@url_base}/applications/#{id}", {timeout: 480})
+      RestClient.delete("#{@url_base}/applications/#{id}", {timeout: 480, user: @login, password: "password"})
+      #RestClient.delete("#{@url_base}/applications/#{id}", {timeout: 480, :user => @login, :password => "password"})
+
     end
 
     logger.info("Deleting domain #{@namespace}")
