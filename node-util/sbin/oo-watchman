@@ -72,10 +72,6 @@ module OpenShift
         @gears  = gears
         @epoch  = epoch
 
-        @retry_delay  = 300
-        @gear_retries = 3
-        @retry_period = 28800
-        @debug        = false
         @logger       = logger(config)
         @incidents    = {}
 
@@ -496,10 +492,11 @@ if ENV['DAEMONS_ARGV']
     gears  = OpenShift::Runtime::CachedGears.new(config, '/etc/passwd')
 
     watcher              = OpenShift::Runtime::Watchman.new(config, gears)
-    watcher.gear_retries = ENV['GEAR_RETRIES'].to_i unless ENV['GEAR_RETRIES'].nil?
-    watcher.retry_delay  = ENV['RETRY_DELAY'].to_i unless ENV['RETRY_DELAY'].nil?
-    watcher.retry_period = ENV['RETRY_PERIOD'].to_i unless ENV['RETRY_PERIOD'].nil?
-    watcher.debug        = ENV['WATCHMAN_DEBUG'] unless ENV['WATCHMAN_DEBUG'].nil?
+    watcher.gear_retries = ENV['GEAR_RETRIES'] ? ENV['GEAR_RETRIES'].to_i : 3
+    watcher.retry_delay  = ENV['RETRY_DELAY'] ? ENV['RETRY_DELAY'].to_i : 300
+    watcher.retry_period = ENV['RETRY_PERIOD'] ? ENV['RETRY_PERIOD'].to_i : 28800
+    watcher.debug        = ENV['WATCHMAN_DEBUG'] ? ENV['WATCHMAN_DEBUG'] : false
+
     watcher.apply
   end
 end
