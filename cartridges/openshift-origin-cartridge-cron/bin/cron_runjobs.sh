@@ -37,7 +37,7 @@ CART_CONF_DIR=$OPENSHIFT_CRON_DIR/configuration
 function log_message() {
    msg=${1-""}
    [ -z "$msg" ]  &&  return 0
-   logger -i -s "user-cron-jobs" -p user.info "`date`: $msg"
+   logger -i -s "user-cron-jobs" -p user.info -t "cron_sys_log:" "`date`: $msg"
 }
 
 # Ensure arguments.
