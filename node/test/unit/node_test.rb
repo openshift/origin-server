@@ -18,6 +18,16 @@ require 'fakefs/safe'
 require 'yaml'
 require 'pp'
 
+module FakeFS
+  class File
+    class Stat
+      def dev
+        return 5555
+      end
+    end
+  end
+end
+
 class NodeTest < OpenShift::NodeTestCase
 
   def setup
