@@ -788,6 +788,34 @@ module OpenShift
       rpc_get_fact_direct('quota_files').to_i
     end
 
+    # <<accessor>>
+    # Get the available disk space of a Node
+    #
+    # RETURNS:
+    # * Integer: the available disk space of a node in blocks
+    #
+    # NOTES:
+    # * method on Node
+    # * calls rpc_get_fact_direct
+    #
+    def get_node_disk_free
+      rpc_get_fact_direct('node_disk_free').to_i
+    end
+
+    # <<accessor>>
+    # Get the total disk space of a Node
+    #
+    # RETURNS:
+    # * Integer: the total disk space of a node in blocks
+    #
+    # NOTES:
+    # * method on Node
+    # * calls rpc_get_fact_direct
+    #
+    def get_node_total_size
+      rpc_get_fact_direct('node_total_size').to_i
+    end
+
     #
     # Add a component to an existing gear on the node
     #
@@ -2375,7 +2403,18 @@ module OpenShift
       reply = ResultIO.new
       source_container = gear.get_proxy
       platform = gear.group_instance.platform
+      quota = get_quota(gear)
+      source_used_blocks = quota[1] unless quota.nil?
       log_debug "DEBUG: Gear platform is '#{platform}'"
+      destination_avail_space = destination_container.get_node_disk_free
+      destination_total_space = destination_container.get_node_total_size
+
+      # check here to make sure addition of gear to destination_container
+      # will not result in > 95% full destination_container
+      if (destination_avail_space - source_used_blocks.to_i)/destination_total_space > 0.05
+        raise OpenShift::NodeUnavailableException.new("Gear '#{gear.uuid}' cannot be moved to '#{destination_container.id}'.  Not enough disk space, node would be > 95% full after move.", 140)
+      end
+
       log_debug "DEBUG: Creating new account for gear '#{gear.uuid}' on #{destination_container.id}"
       sshkey_required = false
       initial_deployment_dir_required = false

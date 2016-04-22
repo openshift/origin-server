@@ -347,6 +347,8 @@ module OpenShift
         res['gears_started_count'] = 0
         res['gears_deploying_count'] = 0
         res['gears_unknown_count'] = 0
+        res['node_disk_free'] = 0
+        res['node_total_size'] = 0
         OpenShift::Runtime::ApplicationContainer.all(nil, false).each do |app|
           # res['git_repos_count'] += 1 if ApplicationRepository.new(app).exists?
           res['gears_total_count'] += 1
@@ -365,6 +367,15 @@ module OpenShift
             res['gears_unknown_count'] += 1
           end
         end
+
+        # fact for available disk space on a node, considered in gear moves to ensure minimum buffer of free space on nodes
+        mountpoint = self.get_gear_mountpoint
+        df_cmd = "df -aP #{mountpoint} | awk -F' ' 'NR == 2 {print $2,$4}'"
+        df_output, stderr, rc = Utils.oo_spawn(df_cmd)
+        raise NodeCommandException.new "Error: #{stderr} executing command #{df_cmd}" unless rc == 0
+        df_total_size, df_free = df_output.split
+        res['node_total_size'] = df_total_size.to_i
+        res['node_disk_free'] = df_free.to_i
 
         # consider a gear active unless explicitly not
         res['gears_active_count'] = res['gears_total_count'] - res['gears_idled_count'] - res['gears_stopped_count']
