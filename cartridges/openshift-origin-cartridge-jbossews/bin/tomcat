@@ -32,16 +32,12 @@ memory_options="-Xms40m -Xmx${max_heap}m -XX:MaxPermSize=${max_permgen}m -XX:+Ag
 # Specify options to pass to the Java VM.
 #
 if [ -z "$JAVA_OPTS" ]; then
-   JAVA_OPTS="$memory_options -DOPENSHIFT_APP_UUID=${OPENSHIFT_APP_UUID} -Djava.util.logging.config.file=$CATALINA_BASE/conf/logging.properties -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true"                                                                                                                                    
+   JAVA_OPTS="$memory_options -DOPENSHIFT_APP_UUID=${OPENSHIFT_APP_UUID} -Djava.util.logging.config.file=$CATALINA_BASE/conf/logging.properties -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true"
 
    if marker_present "enable_jpda"; then
       echo "enable_jpda marker found; enabling debugging on ${OPENSHIFT_JBOSSEWS_IP}:${OPENSHIFT_JBOSSEWS_JPDA_PORT}"
    	  JAVA_OPTS="$JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=${OPENSHIFT_JBOSSEWS_IP}:${OPENSHIFT_JBOSSEWS_JPDA_PORT},server=y,suspend=n"
    fi
-fi
-
-if [ -n "$JAVA_OPTS_EXT" ]; then
-    JAVA_OPTS="$JAVA_OPTS $JAVA_OPTS_EXT"
 fi
 
 JAVACMD=$JAVA_HOME/bin/java
@@ -86,9 +82,28 @@ EOF
   fi
 done
 
+# Split the input nicely into multiple arguments for JVM
+# Although we attempt to sanitize $input, using eval on user input is always risky.
+# Doing so is acceptable here because we are in the gear user's SELinux context,
+# but we must be mindful not to re-use this function outside the gear user's context.
+sh_split() {
+  local input="$*"
+  input="${input//\\/\\\\}"
+  input="${input//\`/\\\`}"
+  input="${input//\$/\\$}"
+  input="${input//$'\n'/ }"
+  input="${input//;/\\;}"
+  eval "set -- $input"
+  args=( "$@" )
+}
+
+if [ -n "$JAVA_OPTS_EXT" ]; then
+    sh_split "$JAVA_OPTS_EXT"
+fi
+
 # Control the Tomcat instance
 if [ "$1" = "start" ]; then
-  ${JAVACMD} $JAVA_OPTS $LOGGING_CONFIG $CATALINA_OPTS \
+  ${JAVACMD} $JAVA_OPTS ${JAVA_OPTS_EXT:+"${args[@]}"} $LOGGING_CONFIG $CATALINA_OPTS \
     -classpath "$CLASSPATH" \
     -Dcatalina.base="$CATALINA_BASE" \
     -Dcatalina.home="$CATALINA_HOME" \
@@ -99,7 +114,7 @@ if [ "$1" = "start" ]; then
       echo $! > $CATALINA_PID
     fi
 elif [ "$1" = "start-security" ]; then
-  ${JAVACMD} $JAVA_OPTS $LOGGING_CONFIG $CATALINA_OPTS \
+  ${JAVACMD} $JAVA_OPTS ${JAVA_OPTS_EXT:+"${args[@]}"} $LOGGING_CONFIG $CATALINA_OPTS \
     -classpath "$CLASSPATH" \
     -Dcatalina.base="$CATALINA_BASE" \
     -Dcatalina.home="$CATALINA_HOME" \
@@ -107,12 +122,12 @@ elif [ "$1" = "start-security" ]; then
     -Djava.io.tmpdir="$CATALINA_TMPDIR" \
     -Djava.security.manager \
     -Djava.security.policy=="${CATALINA_BASE}/conf/catalina.policy" \
-    org.apache.catalina.startup.Bootstrap start 2>&1 
+    org.apache.catalina.startup.Bootstrap start 2>&1
     if [ ! -z "$CATALINA_PID" ]; then
       echo $! > $CATALINA_PID
     fi
 elif [ "$1" = "stop" ]; then
-  ${JAVACMD} $JAVA_OPTS $LOGGING_CONFIG \
+  ${JAVACMD} $JAVA_OPTS ${JAVA_OPTS_EXT:+"${args[@]}"} $LOGGING_CONFIG \
     -classpath "$CLASSPATH" \
     -Dcatalina.base="$CATALINA_BASE" \
     -Dcatalina.home="$CATALINA_HOME" \
