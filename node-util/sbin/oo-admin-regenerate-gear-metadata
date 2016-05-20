@@ -158,7 +158,7 @@ if __FILE__ == $0
 
     opts.on('-y', '--assumeyes', 'Answer yes for all questions') { opt_assume_yes = true }
     opts.on('-q', '--quiet', 'Quiet operation') { opt_verbose = false }
-    opts.on('--no-accept-node', 'Don\'t run accept node') { opt_run_accept_node = false }
+    opts.on('-n', '--no-accept-node', 'Don\'t run accept node') { opt_run_accept_node = false }
   end
   optparse.parse!
 

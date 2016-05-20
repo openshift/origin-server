@@ -540,20 +540,20 @@ or names.
     options.command = command
   end
 
-  opts.on('--broker PATH', "The path to the broker",
+  opts.on('-b', '--broker PATH', "The path to the broker",
           " (default #{PATH})") do |path|
     options.broker = path
   end
 
-  opts.on('--raw', "Dump all cartridge information as JSON") do
+  opts.on('-r', '--raw', "Dump all cartridge information as JSON") do
     options.raw = true
   end
 
-  opts.on('--force', "Replace with new version even if unchanged") do
+  opts.on('-f', '--force', "Replace with new version even if unchanged") do
     options.force = true
   end
 
-  opts.on('--obsolete', "Force activation of obsolete cartridges") do
+  opts.on('-o', '--obsolete', "Force activation of obsolete cartridges") do
     options.obsolete = true
   end
 
@@ -565,7 +565,7 @@ or names.
     options.activate = true
   end
 
-  opts.on('--dry-run', "Show the results of the update without changing anything.") do
+  opts.on('-d', '--dry-run', "Show the results of the update without changing anything.") do
     options.dry_run = true
   end
 
@@ -581,7 +581,7 @@ or names.
     options.quiet = true
   end
 
-  opts.on('--ids IDS', "ID for a cartridge version to activate or deactivate (comma-delimited).") do |ids|
+  opts.on('-i', '--ids IDS', "ID for a cartridge version to activate or deactivate (comma-delimited).") do |ids|
     options.ids = ids.split(/[\, ]/)
   end
 

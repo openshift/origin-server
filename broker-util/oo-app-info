@@ -85,7 +85,7 @@ if $0 == __FILE__
     opts.separator ''
     opts.separator 'Additional:'
     opts.on('--deleted', 'Look for deleted Applications') { params[:deleted] = true }
-    opts.on('--raw', 'Print raw data structure without formatting.') { params[:raw] = true }
+    opts.on('r', '--raw', 'Print raw data structure without formatting.') { params[:raw] = true }
   end
   optparse.parse!
 

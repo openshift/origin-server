@@ -34,7 +34,8 @@ oo-admin-broker-auth OPTIONS
 Options:
 --rekey-all
     Rekey all Gears using Broker authentication tokens
---rekey [uuid]
+-r|--rekey [uuid]
+    Rekey an individual gear
 -t|--timeout [integer]
     How long to wait for MCollective Node discovery
 -v|--verbose

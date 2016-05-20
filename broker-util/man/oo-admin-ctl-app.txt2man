@@ -18,6 +18,9 @@ OPTIONS
 
   -a|--app app_name  
     Application name, alphanumeric. Required.
+
+  -n|--domain domain
+    Domain name.
   
   -c|--command cmd  
     Command to envoke upon the application, available commands are: start,
@@ -35,6 +38,9 @@ OPTIONS
   
   -b|--bypass  
     Ignore all warnings.
+
+  --multiplier multiplier
+    Multiplier factor to be set for the cartridge.
 
 EXAMPLE
 

@@ -33,7 +33,7 @@ OPTIONS
   Additional:
     --deleted
       Look for deleted Applications
-    --raw
+    -r or --raw
       Print raw data structure without formatting.
   
 
