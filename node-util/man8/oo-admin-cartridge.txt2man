@@ -22,23 +22,23 @@ OPTIONS
     Provide additional output.
 
 COMMANDS
-  --action ACTION
+  -a|--action ACTION
     install copies the cartridge source found at the directory provided by --source into the cartridge repository
     erase   removes the named version of the cartridge from the cartridge repository. It is up to the OpenShift Operator
             to determine the version of the cartridge is not being used in any gear.
     list    list the cartridge versions installed in the cartridge repository
 
-  --recursive
+  -R|--recursive
     The source directory provided contains cartridge source directories, rather than pointing to one cartridge
 
-  --mco
+  -m|--mco
     Use the mcollective mco agent to update the cartridge repository.  (only supported in testing environments)
 
-  --cartridge_vendor VENDOR --name NAME --version VERSION --cartridge_version VERSION
+  -o|--cartridge_vendor VENDOR --name NAME --version VERSION --cartridge_version VERSION
     When erasing a cartridge from the cartridge repository you must provide the exact version to remove. 'redhat' is the
     default VENDOR.
 
-  --force
+  -f|--force
     Override verifications before erasing cartridge from repository
 
 CONFIGURATION

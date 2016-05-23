@@ -48,11 +48,11 @@ OPTIONS
   -h|--help
     Display a simple usage page.
 
-  --dry-run
+  -d|--dry-run
     Display the results of running an operation, but do not make any changes
     to the database.
 
-  --raw
+  -r|--raw
     When outputting cartridge information, display each manifest as JSON
 
   -a|--active
@@ -67,26 +67,26 @@ OPTIONS
   --all
     Display all information
 
-  --ids IDS
+  -i|--ids IDS
     ID for a cartridge version to activate or deactivate (comma-delimited).
 
   --node NODE
     With import-node, server-identity for a node to import from.
 
-  --profile PROFILES
+  -p|--profile PROFILES
     With import-profile, profile to import from (may be comma-separated list).
 
   -u|--url URL
     URL of a cartrige manifest to import.
 
-  --broker PATH
+  -b|--broker PATH
     The path to the broker (default /var/www/openshift/broker/config/environment)
 
-  --force
+  -f|--force
     By default, import and import-node will skip unchanged cartridges. Use this
     switch to force them to create a new version.
 
-  --obsolete
+  -o|--obsolete
     By default, obsolete cartridges will not be activated. Use this switch to
     automatically update obsolete cartridges.
 
