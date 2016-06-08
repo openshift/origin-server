@@ -4,6 +4,7 @@ NAME
 SYNOPSIS
   oo-admin-move --gear_uuid gear-uuid[,gear-uuid,gear-uuid]
   [--change_district]
+  [--change_region]
   [--destination_district_uuid district-uuid]
   [-i|--target_server_identity server-identity] [--json]
   [-p|--node_profile node-profile] [-t|--timeout time-out]
@@ -35,6 +36,9 @@ OPTIONS
 
   --change_district  
     Move the gear to a district different from its current district.
+  
+  --change_region
+    Move the gear to a region different from its current region.
 
   --destination_district_uuid district-uuid  
     Move the gear to a specific destination district with given uuid.
