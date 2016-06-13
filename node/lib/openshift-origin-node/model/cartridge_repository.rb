@@ -220,7 +220,7 @@ module OpenShift
 
           FileUtils.rm_r(entry.repository_path)
           parent = Pathname.new(entry.repository_path).parent
-          FileUtils.rm_r(parent) if 0 == parent.children.count
+          FileUtils.rm_r(parent.to_s) if 0 == parent.children.count
         end
 
         entry
