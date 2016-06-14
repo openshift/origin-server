@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.38.5
+Version: 1.38.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -86,6 +86,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Jun 14 2016 Stefanie Forrester <sedgar@redhat.com> 1.38.6-1
+- controller: default to JSON for REST API (miciah.masters@gmail.com)
+
 * Tue Nov 17 2015 Stefanie Forrester <sedgar@redhat.com> 1.38.5-1
 - Add tc support for multiple IFs via TRAFFIC_CONTORL_DEVS
   (joesmith@redhat.com)
