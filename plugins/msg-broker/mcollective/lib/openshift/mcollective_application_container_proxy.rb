@@ -1932,6 +1932,8 @@ module OpenShift
       ensure
         dns.close
       end
+      log_debug "DEBUG: Updating routing information for gear '#{gear.uuid}' after move"
+      gear.publish_routing_info
       reply
     end
 
@@ -1957,6 +1959,8 @@ module OpenShift
       gear_comps = gear.component_instances.to_a
       start_order,stop_order = app.calculate_component_orders
 
+      log_debug "DEBUG: Unpublishing routing information for gear '#{gear.uuid}'"
+      gear.unpublish_routing_info
       app.update_proxy_status(action: :disable, gear_uuid: gear.uuid) if app.scalable
 
       do_force_stop = false
@@ -1986,6 +1990,7 @@ module OpenShift
           reply.append source_container.force_stop(gear)
         end
       end
+
       reply
     end
 

@@ -132,6 +132,12 @@ class Gear
     result_io
   end
 
+  def unpublish_routing_info
+    self.port_interfaces.each do |pi|
+      pi.unpublish_endpoint(self.application)
+    end
+  end
+
   def publish_routing_info
     self.port_interfaces.each do |pi|
       pi.publish_endpoint(self.application)
