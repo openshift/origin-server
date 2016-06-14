@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.38.6
+Version: 1.38.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -291,6 +291,9 @@ fi
 %{_mandir}/man8/oo-admin-ctl-iptables-port-proxy.8.gz
 
 %changelog
+* Tue Jun 14 2016 Stefanie Forrester <sedgar@redhat.com> 1.38.7-1
+- Fix Jenkins failures on pull/merge requests (jolamb@redhat.com)
+
 * Fri Dec 04 2015 Wesley Hearn <whearn@redhat.com> 1.38.6-1
 - Bug 1285424 - apache lacks permission to access openshift-node-web-proxy log
   files (vdinh@redhat.com)
