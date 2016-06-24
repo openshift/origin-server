@@ -24,7 +24,7 @@ OPTIONS
 COMMANDS
   -a|--action ACTION
     install copies the cartridge source found at the directory provided by --source into the cartridge repository
-    erase   removes the named version of the cartridge from the cartridge repository. It is up to the OpenShift Operator
+    erase   removes all software versions for the given cartridge version from the cartridge repository. It is up to the OpenShift Operator
             to determine the version of the cartridge is not being used in any gear.
     list    list the cartridge versions installed in the cartridge repository
 
