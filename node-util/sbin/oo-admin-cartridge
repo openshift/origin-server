@@ -123,7 +123,7 @@ parser  = OptionParser.new do |opts|
   opts.on('-l', '--list', 'List cartridges in repository') { options.action ||= :list }
   opts.on('-o', '--cartridge_vendor VENDOR', 'Cartridge vendor of cartridge to erase. default: redhat') { |o| options.cartridge_vendor = o }
   opts.on('-n', '--name NAME', 'Name of cartridge to erase') { |o| options.name = o }
-  opts.on('-v', '--version VERSION', 'Version of packaged software to erase') { |o| options.version = o }
+  opts.on('-v', '--version VERSION', 'Version of packaged software to erase (Note: All software versions of given cartridge version will be erased.)') { |o| options.version = o }
   opts.on('-c', '--cartridge_version VERSION', 'Version of cartridge to erase') { |o| options.cartridge_version = o }
   opts.on('-f', '--force', 'Force erase of cartridge') {|o| options.force = true}
 
