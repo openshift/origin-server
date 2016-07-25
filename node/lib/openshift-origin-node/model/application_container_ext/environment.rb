@@ -10,7 +10,6 @@ module OpenShift
         include Kerberos
         include SecureShell
 
-        USER_VARIABLE_MAX_COUNT      = 50
         USER_VARIABLE_NAME_MAX_SIZE  = 128
         USER_VARIABLE_VALUE_MAX_SIZE = 512
         RESERVED_VARIABLE_NAMES      = %w(OPENSHIFT_PRIMARY_CARTRIDGE_DIR OPENSHIFT_NAMESPACE PATH IFS USER SHELL HOSTNAME LOGNAME)
@@ -273,13 +272,17 @@ module OpenShift
 
         # Add user environment variable(s)
         def user_var_add(variables, gears = [])
+          config = ::OpenShift::Config.new
+          # Default to 50 maximum allowed user variables
+          user_variable_max_count = (config.get('USER_VARIABLE_MAX_COUNT') || "50" ).to_i
+
           directory = PathUtils.join(@container_dir, '.env', 'user_vars')
           FileUtils.mkpath(directory) unless File.directory?(directory)
 
-          if (Dir.entries(directory).size - 2 + variables.size) > USER_VARIABLE_MAX_COUNT
+          if (Dir.entries(directory).size - 2 + variables.size) > user_variable_max_count
             variables.each_pair do |name,value|
               path = PathUtils.join(directory, name)
-              return 255, "CLIENT_ERROR: User Variables maximum of #{USER_VARIABLE_MAX_COUNT} exceeded\n" if !File.exists?(path)
+              return 255, "CLIENT_ERROR: User Variables maximum of #{user_variable_max_count} exceeded\n" if !File.exists?(path)
             end
           end
 
