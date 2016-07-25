@@ -39,6 +39,11 @@ module OpenShift
         @aliases = @lb_model.get_pool_aliases pool_name
       end
 
+      def synch
+        @members = @lb_model.get_pool_members @name
+        @aliases = @lb_model.get_pool_aliases @name
+      end
+
       def members
         @members ||= @lb_model.get_pool_members @name
       end
@@ -490,6 +495,12 @@ module OpenShift
         @logger.info "Requesting list of pools from load balancer..."
         Hash[@lb_model.get_pool_names.map {|pool_name| [pool_name, Pool.new(self, @lb_model, pool_name)]}]
       end
+    end
+
+    def synch_pools
+      # Set @pools to nil so that it will be lazily resynchronized the next time
+      # the pools method is used.
+      @pools = nil
     end
 
     # If a monitor is already created or is being created in the load balancer, it will be in monitors.

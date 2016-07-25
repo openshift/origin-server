@@ -296,9 +296,26 @@ module OpenShift
       @monitor_path_format.gsub(/%./, '%a' => app_name, '%n' => namespace)
     end
 
-    def create_application app_name, namespace
+    def with_pool app_name, namespace, create_if_nil=true
       pool_name = generate_pool_name app_name, namespace
+      if @lb_controller.pools[pool_name].nil?
+        @logger.info "Pool #{pool_name} unrecognized; resynching pools..."
+        @lb_controller.synch_pools
+      end
 
+      if @lb_controller.pools[pool_name].nil?
+        if create_if_nil
+          create_application app_name, namespace, pool_name
+        else
+          @logger.info "Pool #{pool_name} not found; ignoring"
+          return
+        end
+      end
+
+      yield @lb_controller.pools[pool_name]
+    end
+
+    def create_application app_name, namespace, pool_name
       if @monitor_name_format && @monitor_name_format.match(/%a/) && @monitor_name_format.match(/%n/)
         monitor_name = generate_monitor_name app_name, namespace
         monitor_path = generate_monitor_path app_name, namespace
@@ -321,10 +338,9 @@ module OpenShift
     end
 
     def delete_application app_name, namespace
-      pool_name = generate_pool_name app_name, namespace
-      unless @lb_controller.pools[pool_name].nil?
-        @logger.info "Deleting pool: #{pool_name}"
-        @lb_controller.delete_pool pool_name
+      with_pool app_name, namespace, false do |pool|
+        @logger.info "Deleting pool: #{pool.name}"
+        @lb_controller.delete_pool pool.name
 
         # Check that the monitor is specific to the application (as indicated by
         # having the application's name and namespace in the monitor's name).
@@ -333,65 +349,75 @@ module OpenShift
           monitor_path = generate_monitor_path app_name, namespace
           unless monitor_name.nil? or monitor_name.empty? or monitor_path.nil? or monitor_path.empty?
             @logger.info "Deleting unused monitor: #{monitor_name}"
-            # We pass pool_name to delete_monitor because some backends need the
+            # We pass pool.name to delete_monitor because some backends need the
             # name of the pool so that they will block the delete_monitor
             # operation until any corresponding delete_pool operation completes.
-            @lb_controller.delete_monitor monitor_name, pool_name, @monitor_type
+            @lb_controller.delete_monitor monitor_name, pool.name, @monitor_type
           end
         end
       end
     end
 
     def add_endpoint app_name, namespace, gear_host, gear_port, types
-      pool_name = generate_pool_name app_name, namespace
-      create_application app_name, namespace if @lb_controller.pools[pool_name].nil?
-      unless (types & @endpoint_types).empty?
-        @logger.info "Adding new member #{gear_host}:#{gear_port} to pool #{pool_name}"
-        @lb_controller.pools[pool_name].add_member gear_host, gear_port.to_i
-      else
-        @logger.info "Ignoring endpoint with types #{types.join(',')}"
+      with_pool app_name, namespace do |pool|
+        unless (types & @endpoint_types).empty?
+          @logger.info "Adding new member #{gear_host}:#{gear_port} to pool #{pool.name}"
+          pool.add_member gear_host, gear_port.to_i
+        else
+          @logger.info "Ignoring endpoint with types #{types.join(',')}"
+        end
       end
     end
 
     def remove_endpoint app_name, namespace, gear_host, gear_port
-      pool_name = generate_pool_name app_name, namespace
-      member = gear_host + ':' + gear_port.to_s
-      # The remove_endpoint notification does not include a "types" field, so we
-      # cannot simply filter out endpoint types that we don't care about.
-      # Furthermore, the daemon by design does not store state itself, so we
-      # cannot check keep track of endpoints that we did not add to the load
-      # balancer.  All we can do is check whether the endpoint exists and delete
-      # it if it does.
-      if @lb_controller.pools[pool_name].members.include?(member)
-        @logger.info "Deleting member #{member} from pool #{pool_name}"
-        @lb_controller.pools[pool_name].delete_member gear_host, gear_port.to_i
-      else
-        @logger.info "No member #{member} exists in pool #{pool_name}; ignoring"
+      with_pool app_name, namespace, false do |pool|
+        member = gear_host + ':' + gear_port.to_s
+        if not pool.members.include?(member)
+          @logger.info "Pool member #{member} not found in pool #{pool.name}; resynching pool..."
+          pool.synch
+        end
+
+        # The remove_endpoint notification does not include a "types" field, so we
+        # cannot simply filter out endpoint types that we don't care about.
+        # Furthermore, the daemon by design does not store state itself, so we
+        # cannot check keep track of endpoints that we did not add to the load
+        # balancer.  All we can do is check whether the endpoint exists and delete
+        # it if it does.
+        if pool.members.include?(member)
+          @logger.info "Deleting member #{member} from pool #{pool.name}"
+          pool.delete_member gear_host, gear_port.to_i
+        else
+          @logger.info "No member #{member} exists in pool #{pool.name}; ignoring"
+        end
       end
     end
 
     def add_alias app_name, namespace, alias_str
-      pool_name = generate_pool_name app_name, namespace
-      @logger.info "Adding new alias #{alias_str} to pool #{pool_name}"
-      @lb_controller.pools[pool_name].add_alias alias_str
+      with_pool app_name, namespace do |pool|
+        @logger.info "Adding new alias #{alias_str} to pool #{pool.name}"
+        pool.add_alias alias_str
+      end
     end
 
     def remove_alias app_name, namespace, alias_str
-      pool_name = generate_pool_name app_name, namespace
-      @logger.info "Deleting alias #{alias_str} from pool #{pool_name}"
-      @lb_controller.pools[pool_name].delete_alias alias_str
+      with_pool app_name, namespace, false do |pool|
+        @logger.info "Deleting alias #{alias_str} from pool #{pool.name}"
+        pool.delete_alias alias_str
+      end
     end
 
     def add_ssl app_name, namespace, alias_str, ssl_cert, private_key
-      pool_name = generate_pool_name app_name, namespace
-      @logger.info "Adding ssl configuration for #{alias_str} in pool #{pool_name}"
-      @lb_controller.pools[pool_name].add_ssl alias_str, ssl_cert, private_key
+      with_pool app_name, namespace do |pool|
+        @logger.info "Adding ssl configuration for #{alias_str} in pool #{pool.name}"
+        pool.add_ssl alias_str, ssl_cert, private_key
+      end
     end
 
     def remove_ssl app_name, namespace, alias_str
-      pool_name = generate_pool_name app_name, namespace
-      @logger.info "Deleting ssl configuration for #{alias_str} in pool #{pool_name}"
-      @lb_controller.pools[pool_name].remove_ssl alias_str
+      with_pool app_name, namespace, false do |pool|
+        @logger.info "Deleting ssl configuration for #{alias_str} in pool #{pool.name}"
+        pool.remove_ssl alias_str
+      end
     end
   end
 

@@ -22,9 +22,13 @@ module OpenShift
     class Pool < LoadBalancerController::Pool
       def initialize lb_controller, lb_model, pool_name
         @lb_controller, @lb_model, @name = lb_controller, lb_model, pool_name
-        @members = @lb_model.get_pool_members pool_name
-        @aliases = @lb_model.get_pool_aliases pool_name
-        @certs = @lb_model.get_pool_certificates pool_name
+        synch
+      end
+
+      def synch
+        @members = @lb_model.get_pool_members @name
+        @aliases = @lb_model.get_pool_aliases @name
+        @certs = @lb_model.get_pool_certificates @name
       end
 
       def add_member address, port
@@ -131,6 +135,12 @@ module OpenShift
         @logger.info "Requesting list of pools from load balancer..."
         Hash[@lb_model.get_pool_names.map {|pool_name| [pool_name, Pool.new(self, @lb_model, pool_name)]}]
       end
+    end
+
+    def synch_pools
+      # Set @pools to nil so that it will be lazily resynchronized the next time
+      # the pools method is used.
+      @pools = nil
     end
 
     def monitors

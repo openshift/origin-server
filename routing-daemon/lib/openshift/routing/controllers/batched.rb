@@ -23,8 +23,12 @@ module OpenShift
     class Pool < LoadBalancerController::Pool
       def initialize lb_controller, lb_model, pool_name
         @lb_controller, @lb_model, @name = lb_controller, lb_model, pool_name
-        @members = @lb_model.get_pool_members pool_name
-        @aliases = @lb_model.get_pool_aliases pool_name
+        synch
+      end
+
+      def synch
+        @members = @lb_model.get_pool_members @name
+        @aliases = @lb_model.get_pool_aliases @name
       end
 
       # Add a member to the object's internal list of members.  This method does not
@@ -83,6 +87,10 @@ module OpenShift
     end
 
     attr_reader :pending_add_member_ops, :pending_delete_member_ops
+
+    def synch_pools
+      @pools = Hash[@lb_model.get_pool_names.map {|pool_name| [pool_name, Pool.new(self, @lb_model, pool_name)]}]
+    end
 
     def create_pool pool_name, monitor_name=nil
       raise LBControllerException.new "Pool already exists: #{pool_name}" if pools.include? pool_name
@@ -147,7 +155,7 @@ module OpenShift
       @lb_model = lb_model_class.new @logger, cfgfile
       @lb_model.authenticate
 
-      @pools = Hash[@lb_model.get_pool_names.map {|pool_name| [pool_name, Pool.new(self, @lb_model, pool_name)]}]
+      synch_pools
       @monitors = @lb_model.get_monitor_names
 
       @pending_add_member_ops = []
