@@ -437,7 +437,7 @@ OpenShift uses MongoDB to manage user and host application information. MongoDB 
 OpenShift uses ActiveMQ to handle inter-host messaging, and ActiveMQ has native support for failover clustering. This doesn't require any special configuration input from user. If you specify more than one MsgServer host, failover clustering is automatically instantiated.
 
 === Gear Sizes
-The installer will ask about three settings related to gear sizes. If you are not familiar with this concept, refer to the http://openshift.github.io/documentation/oo_administration_guide.html#set-default-gear-quotas-and-sizes[User Resource Management] section of the Administrators Guide.
+The installer will ask about three settings related to gear sizes. If you are not familiar with this concept, refer to the https://github.com/openshift/origin-server/blob/master/documentation/oo_administration_guide.adoc#set-default-gear-quotas-and-sizes[User Resource Management] section of the Administrators Guide.
 
 The installer configures these settings with the indicated defaults:
 
@@ -448,7 +448,7 @@ The installer configures these settings with the indicated defaults:
 The actual specifics about what each "gear size" means can be adjusted after installation is completed.
 
 === Node Districts
-The installer also gathers information about the http://openshift.github.io/documentation/oo_administration_guide.html#capacity-planning-and-districts[Node Districts] that you would like to deploy. As of Origin version 4, it is no longer possible to deploy a Node host without associating it with a Node District. By default, the install will create a single Node District called "Default" that is associated with the "small" gear size.
+The installer also gathers information about the https://github.com/openshift/origin-server/blob/master/documentation/oo_administration_guide.adoc#capacity-planning-and-districts[Node Districts] that you would like to deploy. As of Origin version 4, it is no longer possible to deploy a Node host without associating it with a Node District. By default, the install will create a single Node District called "Default" that is associated with the "small" gear size.
 
 === Subscription
 At this point, all that remains to configure your OpenShift deployment is to tell `oo-install` where you would like to get your OpenShift RPMs from. Refer to the notes on the link:#s-subscription-type-type[-s / --subscription-type] command-line argument for an explanation of your options.

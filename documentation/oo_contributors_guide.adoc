@@ -195,7 +195,7 @@ Once you know you're dealing with an unreported bug, please don't hesitate to su
 **Source Control**: The source code for OpenShift origin lives in public repositories on https://github.com/[GitHub]. If you aren't familiar with http://git-scm.com/[git], there are numerous primers available on the web.
 
 === Broker
-The Broker itself is a Rails application that serves as the nerve center for OpenShift Origin. Everything from user creation to app deployment is handled through the Broker. The Broker exposes a http://openshift.github.io/documentation/rest_api/rest-api-1-6.html[REST API] and communicates with Node hosts via http://www.amqp.org/[AMQP].
+The Broker itself is a Rails application that serves as the nerve center for OpenShift Origin. Everything from user creation to app deployment is handled through the Broker. The Broker exposes a https://access.redhat.com/documentation/en-US/OpenShift_Enterprise/2/html/REST_API_Guide/index.html[REST API] and communicates with Node hosts via http://www.amqp.org/[AMQP].
 
 * https://trello.com/b/nbkIrqKa[Feature Backlog]
 * https://bugzilla.redhat.com/buglist.cgi?bug_status=NEW&bug_status=ASSIGNED&bug_status=MODIFIED&component=Broker&component=REST%20API&product=OpenShift%20Origin&query_format=advanced[Bugzilla Records] (components: Broker, REST API)
@@ -203,7 +203,7 @@ The Broker itself is a Rails application that serves as the nerve center for Ope
 
 === Runtime
 
-"Runtime" refers to the components of OpenShift that are related to the hosted applications. This includes both the Node and the application http://openshift.github.io/documentation/oo_cartridge_developers_guide.html[Cartridges].
+"Runtime" refers to the components of OpenShift that are related to the hosted applications. This includes both the Node and the application https://github.com/openshift/origin-server/blob/master/documentation/oo_cartridge_developers_guide.adoc[Cartridges].
 
 * https://trello.com/b/qjfQ62lZ/openshift-origin-node[Feature Backlog]
 * https://bugzilla.redhat.com/buglist.cgi?bug_status=NEW&bug_status=ASSIGNED&bug_status=MODIFIED&component=Cartridge&component=Node&list_id=2209237&product=OpenShift%20Origin&query_format=advanced[Bugzilla Records] (components: Cartridge, Node)

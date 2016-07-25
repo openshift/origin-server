@@ -1,3 +1,3 @@
 The OpenShift `jenkins` cartridge documentation can be found at:
 
-http://openshift.github.io/documentation/oo_cartridge_guide.html#jenkins
+https://github.com/openshift/origin-server/blob/master/documentation/oo_cartridge_guide.adoc#jenkins

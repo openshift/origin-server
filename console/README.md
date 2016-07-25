@@ -1,5 +1,5 @@
 # OpenShift Origin Management Console
-Installation and use of the Management Console is documented in the [Administration Guide](http://openshift.github.io/documentation/oo_administration_guide.html#management-console)
+Installation and use of the Management Console is documented in the [Administration Guide](https://github.com/openshift/origin-server/blob/master/documentation/oo_administration_guide.adoc#management-console)
 
 ## Developing / Contributing
 We expect code contributions to follow these standards:

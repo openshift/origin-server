@@ -6,7 +6,7 @@ LATEST DOC UPDATES
 :icons:
 :numbered:
 
-If you are interested in deploying OpenShift into your network environment, you've got a few options - you can start with https://install.openshift.com/[oo-install], grab our http://openshift.github.io/documentation/oo_deployment_guide_puppet.html[Puppet module], or you can http://openshift.github.io/documentation/oo_deployment_guide_comprehensive.html[do it yourself]. This document describes a fourth deployment option that is specifically focused on **OpenShift Origin development**. If you want to spin up a bleeding-edge copy of OpenShift Origin and work on making this awesome Platform-as-a-Service even better, then you've come to the right place.
+If you are interested in deploying OpenShift into your network environment, you've got a few options - you can start with https://install.openshift.com/[oo-install], grab our https://github.com/openshift/origin-server/blob/master/documentation/oo_deployment_guide_puppet.adoc[Puppet module], or you can https://github.com/openshift/origin-server/blob/master/documentation/oo_deployment_guide_comprehensive.adoc[do it yourself]. This document describes a fourth deployment option that is specifically focused on **OpenShift Origin development**. If you want to spin up a bleeding-edge copy of OpenShift Origin and work on making this awesome Platform-as-a-Service even better, then you've come to the right place.
 
 == Prerequisites
 
@@ -14,7 +14,7 @@ This developer-focused deployment offers users maximum flexibility in their choi
 
 Here's what you will need:
 
-* **A basic development environment.** A bash shell, git, and GitHub account. If you need help with those, check out the http://openshift.github.io/documentation/oo_contributors_guide.html#creating-a-development-environment[Origin Contributor's Guide].
+* **A basic development environment.** A bash shell, git, and GitHub account. If you need help with those, check out the https://github.com/openshift/origin-server/blob/master/documentation/oo_contributors_guide.adoc#creating-a-development-environment[Origin Contributor's Guide].
 * http://www.vagrantup.com/[**Vagrant.**] The Vagrant framework is available as a ruby gem, but you should install the officially distributed Vagrant package for your OS directly from the Vagrant web site.
 * **A platform for virtual machines.** Vagrant provides out-of-the-box support for https://www.virtualbox.org/[VirtualBox], so this guide will focus on development with VirtualBox. However, other VM platforms are supported via Vagrant _Provider_ plugins; see the Vagrant site for details.
 

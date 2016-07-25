@@ -1,5 +1,5 @@
 # OpenShift Origin Administrative Console
-Deployment and use of the Administrative Console is documented in the [Administration Guide](http://openshift.github.io/documentation/oo_administration_guide.html#admin-console).
+Deployment and use of the Administrative Console is documented in the [Administration Guide](https://github.com/openshift/origin-server/blob/master/documentation/oo_administration_guide.adoc#admin-console).
 
 ## Developing / Contributing
 We expect code contributions to follow these standards:
