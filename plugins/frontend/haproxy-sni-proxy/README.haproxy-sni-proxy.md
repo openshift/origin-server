@@ -87,7 +87,7 @@ The reported URL reports the protocol as "tls" instead of the
 application protocol (ex: "amqps").  It is up to the cartridge
 documentation to clarify client requirements.
 
-For more information, please refer to the [OpenShift Origin Cartridge Developer's Guide](http://openshift.github.io/documentation/oo_cartridge_developers_guide.html).
+For more information, please refer to the [OpenShift Origin Cartridge Developer's Guide](https://github.com/openshift/origin-server/blob/master/documentation/oo_cartridge_developers_guide.adoc).
 
 
 ## SNI Proxy Requirements and Configuration

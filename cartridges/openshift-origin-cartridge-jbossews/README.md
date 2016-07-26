@@ -1,2 +1,2 @@
 # OpenShift Tomcat (JBossEWS) Cartridge
-This cartridge is documented in the [Cartridge Guide](http://openshift.github.io/documentation/oo_cartridge_guide.html#tomcat).
+This cartridge is documented in the [Cartridge Guide](https://github.com/openshift/origin-server/blob/master/documentation/oo_cartridge_guide.adoc#tomcat).

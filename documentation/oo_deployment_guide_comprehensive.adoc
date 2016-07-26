@@ -58,7 +58,7 @@ This document includes chapters on how to install and configure these services a
 
 [float]
 === Electronic version of this document
-This document is available online at http://openshift.github.io/documentation/oo_deployment_guide_comprehensive.html
+This document is available online at https://github.com/openshift/origin-server/blob/master/documentation/oo_deployment_guide_comprehensive.adoc
 
 == Prerequisite: Preparing the Host Systems
 
@@ -2382,7 +2382,7 @@ image:console.png[image]
 Now that you have a correctly configured installation, there are two important final steps to be done. These steps assume that your Broker and Node(s) are running and able to communicate with each other as described in this guide.
 
 === Add Nodes to Districts
-As of OpenShift Origin v4, Nodes _must_ belong to a district in order to work properly. Adding a Node to a district after the Node already has hosted apps running on it is very difficult, so this is a very important pre-deployment task. For a discussion of what districts are, refer to the http://openshift.github.io/documentation-latest/oo_administration_guide.html#the-purpose-of-districts[Administration Guide].
+As of OpenShift Origin v4, Nodes _must_ belong to a district in order to work properly. Adding a Node to a district after the Node already has hosted apps running on it is very difficult, so this is a very important pre-deployment task. For a discussion of what districts are, refer to the https://github.com/openshift/origin-server/blob/master/documentation-latest/oo_administration_guide.adoc#the-purpose-of-districts[Administration Guide].
 
 *Define one or more districts* + 
 From a Broker host, run the following command to define a new district:
