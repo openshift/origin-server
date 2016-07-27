@@ -111,6 +111,7 @@ Broker::Application.configure do
     :limit_app_name_chars => conf.get("LIMIT_APP_NAME_CHARS", -1).to_i,
     :app_advertise_https => conf.get_bool("APP_ADVERTISE_HTTPS", false),
     :auth_user_lookup_only => conf.get_bool("AUTH_USER_LOOKUP_ONLY", false),
+    :auth_user_lookup_fail_msg => conf.get("AUTH_USER_LOOKUP_FAIL_MESSAGE", "This cluster is configured for user lookup only. Please contact your system administrator for provisioning your user account."),
   }
 
   config.auth = {
