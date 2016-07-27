@@ -16,6 +16,11 @@ module OpenShift
     class Pool
       attr_reader :name, :members
 
+      # Synchronize pool members, aliases, and certificates from the load
+      # balancer.
+      def synch
+      end
+
       # Add a member to the object's internal list of members.
       #
       # The arguments should be a String comprising an IP address in
@@ -119,6 +124,12 @@ module OpenShift
     # @pools is a hash that maps String to LoadBalancerPool.
     # @monitors is an array of strings.
     attr_reader :pools, :monitors
+
+    # Resynchronize @pools with the load balancer.  Depending on the
+    # implementation, the resynchronization may be performed immediately
+    # or lazily.
+    def synch_pools
+    end
 
     def create_pool pool_name, monitor_name=nil
     end
