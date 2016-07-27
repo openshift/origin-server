@@ -2411,7 +2411,7 @@ module OpenShift
 
       # check here to make sure addition of gear to destination_container
       # will not result in > 95% full destination_container
-      if (destination_avail_space - source_used_blocks.to_i)/destination_total_space > 0.05
+      if (destination_avail_space - source_used_blocks.to_f)/destination_total_space < 0.05
         raise OpenShift::NodeUnavailableException.new("Gear '#{gear.uuid}' cannot be moved to '#{destination_container.id}'.  Not enough disk space, node would be > 95% full after move.", 140)
       end
 
