@@ -81,7 +81,9 @@ module OpenShift
         end
 
         raise LBModelException.new msg
-      rescue RestClient::Exception => e
+      rescue RestClient::Exception, SocketError, EOFError, IOError,
+             Errno::ECONNABORTED, Errno::ECONNRESET, Errno::EPIPE,
+             Errno::EINVAL, Timeout::Error, Errno::ETIMEDOUT => e
         @logger.warn "Got #{e.class} exception for host #{@hosts.first}:" +
           " #{e.message}" if @hosts.length > 0
 
