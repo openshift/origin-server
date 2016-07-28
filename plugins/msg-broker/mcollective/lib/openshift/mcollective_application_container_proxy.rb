@@ -2408,11 +2408,13 @@ module OpenShift
       log_debug "DEBUG: Gear platform is '#{platform}'"
       destination_avail_space = destination_container.get_node_disk_free
       destination_total_space = destination_container.get_node_total_size
+      min_node_disk_buffer = Rails.application.config.openshift[:min_node_disk_buffer].to_f
 
       # check here to make sure addition of gear to destination_container
       # will not result in > 95% full destination_container
-      if (destination_avail_space - source_used_blocks.to_f)/destination_total_space < 0.05
-        raise OpenShift::NodeUnavailableException.new("Gear '#{gear.uuid}' cannot be moved to '#{destination_container.id}'.  Not enough disk space, node would be > 95% full after move.", 140)
+      if (destination_avail_space - source_used_blocks.to_f)/destination_total_space < (min_node_disk_buffer/100)
+        max_percentage = sprintf('%.0f', 100 - min_node_disk_buffer)
+        raise OpenShift::NodeUnavailableException.new("Gear '#{gear.uuid}' cannot be moved to '#{destination_container.id}'.  Not enough disk space, node would be > #{max_percentage}% full after move.", 140)
       end
 
       log_debug "DEBUG: Creating new account for gear '#{gear.uuid}' on #{destination_container.id}"
