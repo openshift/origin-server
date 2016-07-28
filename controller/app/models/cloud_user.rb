@@ -163,9 +163,9 @@ class CloudUser
     yield user, login if block_given?
     [user, false]
   rescue Mongoid::Errors::DocumentNotFound
-    # if new user creation is blocked, then return an exception
+    # if authentication is configured for lookup only, then return an exception
     if Rails.application.config.openshift[:auth_user_lookup_only]
-      raise OpenShift::UserException.new("New user signups are not allowed on this cluster")
+      raise OpenShift::UserException.new(Rails.application.config.openshift[:auth_user_lookup_fail_msg])
     end
     user = new(create_attributes)
     #user.current_identity = user.identities.build(provider: provider, uid: login)
