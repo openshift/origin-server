@@ -165,7 +165,7 @@ class CloudUser
   rescue Mongoid::Errors::DocumentNotFound
     # if authentication is configured for lookup only, then return an exception
     if Rails.application.config.openshift[:auth_user_lookup_only]
-      raise OpenShift::UserException.new(Rails.application.config.openshift[:auth_user_lookup_fail_msg])
+      raise OpenShift::UserException.new(Rails.application.config.openshift[:auth_user_lookup_fail_msg], nil, :new_users_blocked, nil, :forbidden)
     end
     user = new(create_attributes)
     #user.current_identity = user.identities.build(provider: provider, uid: login)
