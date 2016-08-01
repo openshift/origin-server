@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.38.6
+Version: 1.38.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -86,6 +86,15 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Aug 01 2016 Wesley Hearn <whearn@redhat.com> 1.38.7-1
+- Adding additional information in exception for new users that are blocked
+  (abhgupta@redhat.com)
+- Make the error message on user lookup configurable (abhgupta@redhat.com)
+- Making user provisioning configurable within the broker Currently, a lookup
+  is made in the broker for an authenticated user. If the user does not exist,
+  a user document is created in mongo. With this change, a user will be
+  provisioned only if the configuration is set to false (abhgupta@redhat.com)
+
 * Tue Jun 14 2016 Stefanie Forrester <sedgar@redhat.com> 1.38.6-1
 - controller: default to JSON for REST API (miciah.masters@gmail.com)
 
