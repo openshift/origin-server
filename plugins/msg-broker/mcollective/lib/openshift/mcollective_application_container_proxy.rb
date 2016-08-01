@@ -1976,7 +1976,7 @@ module OpenShift
               reply.append source_container.stop(gear, cinst)
             end
           rescue Exception=>e
-            # a force-stop will be applied if its a framework cartridge, so ignore the failure on stop
+            # a force-stop will be applied if it's a framework cartridge, so ignore the failure on stop
             if not cinst.cartridge.is_web_framework?
               raise e
             end
