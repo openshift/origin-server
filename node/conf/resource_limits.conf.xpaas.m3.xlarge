@@ -7,6 +7,12 @@
 #       oo-pam-enable --with-all-containers
 #       oo-admin-ctl-tc restart
 #
+# NOTE: If you change the memory_limit_in_bytes variable, run this command
+#       to update existing gears. Replace 512 with the new value in megabytes.
+#       Note the change in units from bytes to megabytes - memory_limit_in_bytes
+#       expects the value in bytes, where OPENSHIFT_GEAR_MEMORY_MB expects the
+#       value in megabytes.
+#       for i in /var/lib/openshift/*/.env/OPENSHIFT_GEAR_MEMORY_MB; do echo 512 > "$i"; done
 #
 # xPaaS Profile
 #
@@ -44,7 +50,14 @@ quota_blocks=5242880
 # Names and values may be implementation specific. These values will
 # be the defaults for a gear.
 #
-# memory
+# memory (RAM)
+#
+# NOTE: If you change the memory_limit_in_bytes variable, run this command
+#       to update existing gears. Replace 512 with the new value in megabytes.
+#       Note the change in units from bytes to megabytes - memory_limit_in_bytes
+#       expects the value in bytes, where OPENSHIFT_GEAR_MEMORY_MB expects the
+#       value in megabytes.
+#       for i in /var/lib/openshift/*/.env/OPENSHIFT_GEAR_MEMORY_MB; do echo 512 > "$i"; done
 memory_limit_in_bytes=1073741824       # 1024MB = 1 GB
 memory_memsw_limit_in_bytes=1610612736 # 1024MB + 512MB (512MB swap)
 # memory_soft_limit_in_bytes=-1
