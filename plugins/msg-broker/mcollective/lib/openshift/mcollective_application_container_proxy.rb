@@ -1800,8 +1800,7 @@ module OpenShift
     end
 
     def update_cluster(gear, options)
-      app = gear.application
-      head_gear_quota = get_quota(app)
+      head_gear_quota = get_quota(gear)
       # set head_gear quotas if necessary
       # will be necessary if trying to move a non-primary gear before bumping
       # an over-the-quota-limit head gear
@@ -1826,7 +1825,7 @@ module OpenShift
         if head_blocks_increment > default_blocks * @blocks_multiplier.to_f
           head_blocks_increment = default_blocks * @blocks_multiplier.to_f
         end
-        set_quota(app, head_blocks_increment/1024/1024, head_inodes_current_limit + 10)
+        set_quota(gear, head_blocks_increment/1024/1024, head_inodes_current_limit + 10)
         log_debug "WARNING: Head gear exceeds quota limit, using quota buffer for update-cluster."
         log_debug "DEBUG: New gear blocks limit:#{head_blocks_increment.round}, new inodes limit: #{head_inodes_current_limit + 10}"
       else
@@ -1838,7 +1837,7 @@ module OpenShift
         if head_inodes_used < default_inodes
           head_inodes_current_limit = default_inodes
         end
-        set_quota(app, head_blocks_current_limit/1024/1024, head_inodes_current_limit)
+        set_quota(gear, head_blocks_current_limit/1024/1024, head_inodes_current_limit)
       end
       args = build_base_gear_args(gear)
       args = build_update_cluster_args(options, args)
