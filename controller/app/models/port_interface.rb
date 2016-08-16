@@ -57,8 +57,8 @@ class PortInterface
     gear.port_interfaces.find_by(external_port: public_port) rescue nil
   end
 
-  def publish_endpoint(app)
-    OpenShift::RoutingService.notify_create_public_endpoint(app, self.gear, self.cartridge_name, self.external_address, self.external_port, self.internal_address, self.internal_port, self.protocols, self.type, self.mappings)
+  def publish_endpoint(app, public_ip=external_address)
+    OpenShift::RoutingService.notify_create_public_endpoint(app, self.gear, self.cartridge_name, public_ip, self.external_port, self.internal_address, self.internal_port, self.protocols, self.type, self.mappings)
   end
 
   def unpublish_endpoint(app, public_ip=external_address)

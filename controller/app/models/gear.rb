@@ -132,12 +132,6 @@ class Gear
     result_io
   end
 
-  def unpublish_routing_info
-    self.port_interfaces.each do |pi|
-      pi.unpublish_endpoint(self.application)
-    end
-  end
-
   def publish_routing_info
     self.port_interfaces.each do |pi|
       pi.publish_endpoint(self.application)
@@ -408,6 +402,12 @@ class Gear
     remove_envs.each  {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_remove_job(self, env["key"]))} if remove_envs.present?
 
     RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_update_configuration_job(self, config)) unless config.nil? || config.empty?
+  end
+
+  def move(destination_container, destination_district_uuid, change_district, change_region, node_profile)
+    result_io = get_proxy.move_gear_secure(self, destination_container, destination_district_uuid, change_district, change_region, node_profile)
+    application.process_commands(result_io, nil, self)
+    result_io
   end
 
   def set_addtl_fs_gb(additional_filesystem_gb, remote_job_handle, tag = "addtl-fs-gb")
