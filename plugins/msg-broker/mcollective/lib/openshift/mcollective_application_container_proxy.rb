@@ -1931,8 +1931,6 @@ module OpenShift
       ensure
         dns.close
       end
-      log_debug "DEBUG: Updating routing information for gear '#{gear.uuid}' after move"
-      gear.publish_routing_info
       reply
     end
 
@@ -1958,8 +1956,6 @@ module OpenShift
       gear_comps = gear.component_instances.to_a
       start_order,stop_order = app.calculate_component_orders
 
-      log_debug "DEBUG: Unpublishing routing information for gear '#{gear.uuid}'"
-      gear.unpublish_routing_info
       app.update_proxy_status(action: :disable, gear_uuid: gear.uuid) if app.scalable
 
       do_force_stop = false
@@ -2167,7 +2163,7 @@ module OpenShift
             cart = cinst.cartridge
             idle, leave_stopped = state_map[cart.name]
 
-            if app.scalable and not cart.is_web_proxy?
+            if app.scalable
               begin
                 reply.append destination_container.expose_port(gear, cinst)
               rescue Exception=> e
@@ -2256,7 +2252,7 @@ module OpenShift
         end
       end
 
-      move_gear_destroy_old(gear, source_container, destination_container, district_changed)
+      reply.append move_gear_destroy_old(gear, source_container, destination_container, district_changed)
 
       # if gear is over disk quota limit, issue warning after move
       if Integer(gear_quota[1]) > @dest_quota_blocks_b4_bump  || Integer(gear_quota[4]) > @dest_quota_files_b4_bump

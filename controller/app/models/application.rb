@@ -1735,7 +1735,13 @@ class Application
         if gear
           pi = PortInterface.create_port_interface(gear, component_id, *command_item[:args])
           gear.port_interfaces.push(pi)
-          pi.publish_endpoint(self)
+          # If available, use the public external ip address provided by the cartridge command.
+          # It is possible that if the NOTIFY_ENDPOINT_CREATE command was generated during the
+          # move of a gear (as opposed to the creation of a gear), the address from the gear
+          # object may not yet be updated. We prefer to use the address specified in the command
+          # itself.
+          public_ip = command_item[:args][0]["external_address"] || gear.get_public_ip_address
+          pi.publish_endpoint(self, public_ip)
         end
       when "NOTIFY_ENDPOINT_DELETE"
         if gear

@@ -144,7 +144,7 @@ gear_uuid.split(',').each do |uuid|
     reply = nil
     begin
       gear.get_proxy.disable_log_debug! if json
-      reply = gear.get_proxy.move_gear_secure(gear, destination_container, destination_district_uuid, change_district, change_region, node_profile)
+      reply = gear.move(destination_container, destination_district_uuid, change_district, change_region, node_profile)
       if json
         app, gear = Application.find_by_gear_uuid(uuid)
         move_status[uuid].merge!({ :result => true, :destination => gear.server_identity })
