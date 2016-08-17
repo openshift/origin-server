@@ -615,7 +615,7 @@ def check_users
       user_fail(user.name, "user #{user.name} must have 1 tc class entry: actual=#{tc_results.length}") if tc_results.length != 1
     end
 
-    results = $ALL_QUOTAS.grep(/#{user.name}/)
+    results = $ALL_QUOTAS.grep(/^#{user.name}/)
     if results.length == 0 ||
         results[0].split[4].to_i == 0 ||
         results[0].split[7].to_i == 0
