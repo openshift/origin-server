@@ -14,6 +14,7 @@ module OpenShift
   class F5IControlRestLoadBalancerModel < LoadBalancerModel
 
     POLICY_NAME = 'openshift_application_aliases'
+    ICONTROL_API_VERSION = '11.6.0'
 
     def read_config cfgfile
       cfg = ParseConfig.new(cfgfile)
@@ -62,7 +63,7 @@ module OpenShift
       first = @hosts.first
 
       begin
-        options[:url] = "https://#{@hosts.first}#{options[:resource]}"
+        options[:url] = "https://#{@hosts.first}#{options[:resource]}?ver=#{ICONTROL_API_VERSION}"
 
         RestClient::Request.execute(options).tap do |response|
           unless response.code == expected_code
