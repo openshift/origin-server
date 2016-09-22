@@ -134,7 +134,7 @@ def populate_ignorelist()
 end
 
 # Idle all gears on the node unless the list only option has been passed
-def idle_gears(interval, list_only)
+def idle_gears(interval, list_only, start_priority)
   puts "Only listing idle gears" if list_only
   stale_gear_list = []
   most_recent_last_access = -1
@@ -148,6 +148,12 @@ def idle_gears(interval, list_only)
       $log.debug("Skipping #{gear_uuid}: IGNORELIST")
       next
     end
+    if !start_priority.nil? && File.exists?(PathUtils.join(gear_dir, '.start_priority')) && \
+       (File.open(PathUtils.join(gear_dir, '.start_priority')).read.to_i < start_priority rescue false)
+      $log.debug("Skipping #{gear_uuid} due to start_priority")
+      next
+    end
+
     is_stale, recent_access = gear_stale?(gear_dir, gear_uuid, interval)
     if recent_access != -1
       most_recent_last_access = ( ( most_recent_last_access==-1 || most_recent_last_access>recent_access ) ? recent_access : most_recent_last_access )
@@ -166,6 +172,7 @@ command :idle do |c|
   c.option "--interval HOURS", Integer, "Hours for which gears have been idle"
   c.option "--list", "Only list the stale gears"
   c.option "--skip-last-access", "Skips the running of 'oo-last-access' script, which is run by default prior to the idling checks."
+  c.option "--start-priority N", Integer, "If specified, gears with start priority < N will not be idled"
   c.option "--verbose", "Print debug information"
 
   c.action do |args, options|
@@ -182,7 +189,8 @@ command :idle do |c|
     puts "Gears idle for #{options.interval} hours"
     %x[(echo -n "Before: ";  /usr/sbin/oo-idler-stats) | /usr/bin/logger -p local0.notice -t oo-auto-idler]
     list_only = (options.list || false)
-    stale_gear_list, recent_last_access =  idle_gears(options.interval, list_only)
+    stale_gear_list, recent_last_access =  idle_gears(options.interval, list_only, options.start_priority)
+
     if recent_last_access >= options.interval
       puts "ERROR: None of the head gears on the node were accessed within #{options.interval} hours. Last access was #{recent_last_access} hours ago. No gears will be idled."
       exit 1
