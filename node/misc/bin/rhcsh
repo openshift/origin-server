@@ -1,132 +1,5 @@
 #!/bin/bash
 
-[ -f ~/app-root/data/.bash_profile ] && source ~/app-root/data/.bash_profile
-
-source /etc/init.d/functions 2> /dev/null
-
-source $OPENSHIFT_CARTRIDGE_SDK_BASH
-
-# source OpenShift environment variable into context
-function load_env {
-    [ -z "$1" ] && return 1
-    [ -f "$1" ] || return 0
-    [[ "$1" =~ .*\.rpmnew$ ]] && return 0
-
-    local key=$(basename $1)
-    export $key="$(< $1)"
-}
-
-for f in /etc/openshift/env/* ~/.env/* ~/*/env/*
-do
-  load_env $f
-done
-
-if [ -n "$OPENSHIFT_PRIMARY_CARTRIDGE_DIR" ]
-then
-    for f in $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/*
-    do
-      load_env $f
-    done
-fi
-
-export PATH=$(build_path)
-export LD_LIBRARY_PATH=$(build_ld_library_path)
-
-for f in ~/.env/user_vars/*
-do
-  load_env $f
-done
-
-if [ -n "$OPENSHIFT_UMASK" ]; then
-    umask $OPENSHIFT_UMASK
-fi
-
-OPENSHIFT_RHCSH_IDLE_TIMEOUT=300
-source /etc/openshift/node.conf
-
-function float_test {
-    awk 'END { exit ( !( '"$1"')); }' </dev/null
-}
-
-function welcome {
-    if [ -n "$MOTD_FILE" -a -f "$MOTD_FILE" ]; then
-        cat $MOTD_FILE
-    else
-      # Do not replace with HEREDOC. HEREDOC fails when quota exceeded on gear.
-      echo 1>&2 '
-    *********************************************************************
-
-    You are accessing a service that is for use only by authorized users.
-    If you do not have authorization, discontinue use at once.
-    Any use of the services is subject to the applicable terms of the
-    agreement which can be found at:
-    https://www.openshift.com/legal
-
-    *********************************************************************
-
-    Welcome to OpenShift shell
-
-    This shell will assist you in managing OpenShift applications.
-
-    !!! IMPORTANT !!! IMPORTANT !!! IMPORTANT !!!
-    Shell access is quite powerful and it is possible for you to
-    accidentally damage your application.  Proceed with care!
-    If worse comes to worst, destroy your application with "rhc app delete"
-    and recreate it
-    !!! IMPORTANT !!! IMPORTANT !!! IMPORTANT !!!
-
-    Type "help" for more info.
-
-'
-  fi
-
-  if which quota  > /dev/null  2>&1
-  then
-    # Quota returns nonzero if you are over limit
-    if quota >/dev/null 2>&1
-    then
-      local usage=$(quota -w 2>/dev/null| grep '^.*/dev/' | awk '{printf "%3.1f", ($2 / $4 * 100)}')
-      if float_test "${usage:-0} > 90.0"
-      then
-        echo 1>&2 "Warning: Gear ${OPENSHIFT_GEAR_UUID} is using ${usage}% of disk quota"
-      fi
-
-      local usage=$(quota -w 2>/dev/null| grep '^.*/dev/' | awk '{printf "%3.1f",  ($5 / $7 * 100)}')
-      if float_test "${usage:-0} > 90.0"
-      then
-        echo 1>&2 "Warning: Gear ${OPENSHIFT_GEAR_UUID} is using ${usage}% of inodes allowed"
-      fi
-    else
-      echo 1>&2 "Your application is out of disk space; please run \"rhc app-tidy $OPENSHIFT_APP_NAME\""
-    fi
-  else
-    echo 1>&2 "Command \"quota\" not found for app $OPENSHIFT_APP_NAME, please check the node hosting this app"
-  fi
-}
-
-alias ctl_app=gear
-alias lsof='oo-lists-ports'
-alias quota='quota 2>/dev/null'
-
-function ctl_all() {
-  case "$1" in
-    start)
-      echo "Starting services"
-      gear start
-    ;;
-    stop)
-      echo "Stopping services"
-      gear stop
-    ;;
-    restart)
-      echo "Restarting services"
-      gear restart --all-cartridges;
-    ;;
-    *) gear --help
-    ;;
-  esac
-}
-
 function mysql() {
    #  Setup default options.
    [ -n "$OPENSHIFT_MYSQL_DB_HOST" ]  &&  hostopt="-h $OPENSHIFT_MYSQL_DB_HOST"
@@ -232,6 +105,135 @@ function mongo () {
         command "${cmdline[@]}"
     fi
 }
+
+[ -f ~/app-root/data/.bash_profile ] && source ~/app-root/data/.bash_profile
+
+source /etc/init.d/functions 2> /dev/null
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+# source OpenShift environment variable into context
+function load_env {
+    [ -z "$1" ] && return 1
+    [ -f "$1" ] || return 0
+    [[ "$1" =~ .*\.rpmnew$ ]] && return 0
+
+    local key=$(basename $1)
+    export $key="$(< $1)"
+}
+
+for f in /etc/openshift/env/* ~/.env/* ~/*/env/*
+do
+  load_env $f
+done
+
+if [ -n "$OPENSHIFT_PRIMARY_CARTRIDGE_DIR" ]
+then
+    for f in $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/*
+    do
+      load_env $f
+    done
+fi
+
+export PATH=$(build_path)
+export LD_LIBRARY_PATH=$(build_ld_library_path)
+
+for f in ~/.env/user_vars/*
+do
+  load_env $f
+done
+
+
+if [ -n "$OPENSHIFT_UMASK" ]; then
+    umask $OPENSHIFT_UMASK
+fi
+
+OPENSHIFT_RHCSH_IDLE_TIMEOUT=300
+source /etc/openshift/node.conf
+
+function float_test {
+    awk 'END { exit ( !( '"$1"')); }' </dev/null
+}
+
+function welcome {
+    if [ -n "$MOTD_FILE" -a -f "$MOTD_FILE" ]; then
+        cat $MOTD_FILE
+    else
+      # Do not replace with HEREDOC. HEREDOC fails when quota exceeded on gear.
+      echo 1>&2 '
+    *********************************************************************
+
+    You are accessing a service that is for use only by authorized users.
+    If you do not have authorization, discontinue use at once.
+    Any use of the services is subject to the applicable terms of the
+    agreement which can be found at:
+    https://www.openshift.com/legal
+
+    *********************************************************************
+
+    Welcome to OpenShift shell
+
+    This shell will assist you in managing OpenShift applications.
+
+    !!! IMPORTANT !!! IMPORTANT !!! IMPORTANT !!!
+    Shell access is quite powerful and it is possible for you to
+    accidentally damage your application.  Proceed with care!
+    If worse comes to worst, destroy your application with "rhc app delete"
+    and recreate it
+    !!! IMPORTANT !!! IMPORTANT !!! IMPORTANT !!!
+
+    Type "help" for more info.
+
+'
+  fi
+
+  if which quota  > /dev/null  2>&1
+  then
+    # Quota returns nonzero if you are over limit
+    if quota >/dev/null 2>&1
+    then
+      local usage=$(quota -w 2>/dev/null| grep '^.*/dev/' | awk '{printf "%3.1f", ($2 / $4 * 100)}')
+      if float_test "${usage:-0} > 90.0"
+      then
+        echo 1>&2 "Warning: Gear ${OPENSHIFT_GEAR_UUID} is using ${usage}% of disk quota"
+      fi
+
+      local usage=$(quota -w 2>/dev/null| grep '^.*/dev/' | awk '{printf "%3.1f",  ($5 / $7 * 100)}')
+      if float_test "${usage:-0} > 90.0"
+      then
+        echo 1>&2 "Warning: Gear ${OPENSHIFT_GEAR_UUID} is using ${usage}% of inodes allowed"
+      fi
+    else
+      echo 1>&2 "Your application is out of disk space; please run \"rhc app-tidy $OPENSHIFT_APP_NAME\""
+    fi
+  else
+    echo 1>&2 "Command \"quota\" not found for app $OPENSHIFT_APP_NAME, please check the node hosting this app"
+  fi
+}
+
+alias ctl_app=gear
+alias lsof='oo-lists-ports'
+alias quota='quota 2>/dev/null'
+
+function ctl_all() {
+  case "$1" in
+    start)
+      echo "Starting services"
+      gear start
+    ;;
+    stop)
+      echo "Stopping services"
+      gear stop
+    ;;
+    restart)
+      echo "Restarting services"
+      gear restart --all-cartridges;
+    ;;
+    *) gear --help
+    ;;
+  esac
+}
+
 
 # The mco command shouldn't be run by gears
 # but its really protected at the config files.
