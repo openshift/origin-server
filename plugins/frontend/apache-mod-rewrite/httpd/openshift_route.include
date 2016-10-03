@@ -9,11 +9,11 @@ RewriteEngine              On
 ProxyPassInterpolateEnv On
 
 # Set RewriteLogLevel to 6 for debugging
-RewriteLog logs/rewrite_log
-RewriteLogLevel 0
+#RewriteLog logs/rewrite_log
+#RewriteLogLevel 0
 
 # Apache 2.4
-#LogLevel alert rewrite:trace3
+LogLevel alert rewrite:trace3
 
 # Maps
 RewriteMap    lowercase int:tolower
@@ -204,9 +204,9 @@ RewriteRule ^(.*)$ - [E=V_ROUTE:127.0.0.1/,E=V_MATCH_PATH:/]
 #
 # Configure reverse proxy based on set variable
 #
-ProxyPassReverse ${V_MATCH_PATH} http://${V_ROUTE} interpolate
+ProxyPassReverse ${ENV:V_MATCH_PATH} http://${ENV:V_ROUTE} interpolate
 # Needed for jenkins (and probably other apps)
-ProxyPassReverse / http://${REV_PROXY_HOST}/ interpolate
+ProxyPassReverse / http://${ENV:REV_PROXY_HOST}/ interpolate
 
 # Import log directives
 Include conf.d/openshift_route_logconf.include
