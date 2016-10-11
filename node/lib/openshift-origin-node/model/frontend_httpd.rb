@@ -279,9 +279,7 @@ module OpenShift
         end
 
         if data.has_key?("aliases")
-          data["aliases"].each do |a|
-            new_obj.add_alias(a)
-          end
+          new_obj.add_aliases(data["aliases"])
         end
 
         if data.has_key?("ssl_certs")
@@ -514,6 +512,18 @@ module OpenShift
         call_plugins(:add_alias, clean_server_name(name))
       end
 
+      # Public: Add aliases to this namespace
+      #
+      # Examples
+      #
+      #     add_aliases([ "foo.example.com", "bar.example.com" ])
+      #     # => nil
+      #
+      # Returns nil on Success or raises on Failure
+      def add_aliases(names)
+        call_plugins(:add_aliases, names.collect { |name| clean_server_name(name) })
+      end
+
       # Public: Removes an alias from this namespace
       #
       # Examples
@@ -524,6 +534,18 @@ module OpenShift
       # Returns nil on Success or raises on Failure
       def remove_alias(name)
         call_plugins(:remove_alias, clean_server_name(name))
+      end
+
+      # Public: Removes aliases from this namespace
+      #
+      # Examples
+      #
+      #     remove_aliases([ "foo.example.com", "bar.example.com" ])
+      #     # => nil
+      #
+      # Returns nil on Success or raises on Failure
+      def remove_aliases(names)
+        call_plugins(:remove_aliases, names.collect { |name| clean_server_name(name) })
       end
 
       # Public: List aliases with SSL certs and unencrypted private keys

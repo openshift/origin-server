@@ -126,14 +126,24 @@ module OpenShift
             end
 
             def add_alias(name)
+              add_aliases([name])
+            end
+
+            def add_aliases(names)
               with_create do |d|
-                d[@fqdn]["aliases"] << name
+                d[@fqdn]["aliases"].push(*names)
               end
             end
 
             def remove_alias(name)
+              remove_aliases([name])
+            end
+
+            def remove_aliases(names)
               writer_if_exists do |d|
-                d[@fqdn]["aliases"].delete(name)
+                names.each do |name|
+                  d[@fqdn]["aliases"].delete(name)
+                end
               end
             end
 

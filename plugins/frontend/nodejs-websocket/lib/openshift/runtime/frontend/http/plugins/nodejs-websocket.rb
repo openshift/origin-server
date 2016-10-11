@@ -148,13 +148,19 @@ module OpenShift
             end
 
             def add_alias(name)
+              add_aliases([name])
+            end
+
+            def add_aliases(names)
               NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
                 begin
                   routes_ent = d.fetch(@fqdn)
                   if not routes_ent.nil?
                     alias_ent = routes_ent.clone
                     alias_ent["alias"] = @fqdn
-                    d.store(name, alias_ent)
+                    names.each do |name|
+                      d.store(name, alias_ent)
+                    end
                   end
                 rescue KeyError
                 end
@@ -162,8 +168,14 @@ module OpenShift
             end
 
             def remove_alias(name)
+              remove_aliases([name])
+            end
+
+            def remove_aliases(names)
               NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
-                d.delete(name)
+                names.each do |name|
+                  d.delete(name)
+                end
               end
             end
 

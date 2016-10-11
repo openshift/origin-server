@@ -213,17 +213,31 @@ module OpenShift
             end
 
             def add_alias(name)
+              add_aliases([name])
+            end
+
+            def add_aliases(names)
               # Broker checks for global uniqueness
               ApacheDBAliases.open(ApacheDBAliases::WRCREAT) do |d|
-                d.store(name, @fqdn)
+                names.each do |name|
+                  d.store(name, @fqdn)
+                end
               end
             end
 
             def remove_alias(name)
+              remove_aliases([name])
+            end
+
+            def remove_aliases(names)
               ApacheDBAliases.open(ApacheDBAliases::WRCREAT) do |d|
-                d.delete(name)
+                names.each do |name|
+                  d.delete(name)
+                end
               end
-              remove_ssl_cert(name)
+              names.each do |name|
+                remove_ssl_cert(name)
+              end
             end
 
 
