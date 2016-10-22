@@ -811,18 +811,14 @@ module MCollective
       def oo_add_aliases(args)
         alias_names = args['--with-aliases']
         with_frontend_from_args(args) do |f, o|
-          alias_names.each do |alias_name|
-            f.add_alias(alias_name)
-          end
+          f.add_aliases(alias_names)
         end
       end
 
       def oo_remove_aliases(args)
         alias_names = args['--with-aliases']
         with_frontend_from_args(args) do |f, o|
-          alias_names.each do |alias_name|
-            f.remove_alias(alias_name)
-          end
+          f.remove_aliases(alias_names)
         end
       end
 
