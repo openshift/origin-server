@@ -37,7 +37,9 @@ Broker::Application.configure do
         :min_zones_per_gear_group => conf.get("ZONES_MIN_PER_GEAR_GROUP", 1).to_i
       },
       :node_profile_enabled => conf.get_bool("NODE_PROFILE_ENABLED", "false"),
-      :node_rsync_address => conf.get("NODE_RSYNC_ADDRESS", "ip_address")
+      :node_rsync_address => conf.get("NODE_RSYNC_ADDRESS", "ip_address"),
+      :quota_blocks_buffer => conf.get("QUOTA_BLOCKS_BUFFER", 1.2),
+      :quota_inodes_buffer => conf.get("QUOTA_INODES_BUFFER", 1.2)
     }
   end
 end
