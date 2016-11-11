@@ -327,17 +327,29 @@ module OpenShift
             end
 
             def add_alias(server_alias)
+              add_aliases([server_alias])
+            end
+
+            def add_aliases(server_aliases)
               with_lock_and_reload do
-                unless File.size?(ssl_conf_path(server_alias))
-                  add_alias_impl(server_alias)
+                server_aliases.each do |server_alias|
+                  unless File.size?(ssl_conf_path(server_alias))
+                    add_alias_impl(server_alias)
+                  end
                 end
               end
             end
 
             def remove_alias(server_alias)
+              remove_aliases([server_alias])
+            end
+
+            def remove_aliases(server_aliases)
               with_lock_and_reload do
-                truncate(alias_path(server_alias))
-                remove_ssl_cert_impl(server_alias)
+                server_aliases.each do |server_alias|
+                  truncate(alias_path(server_alias))
+                  remove_ssl_cert_impl(server_alias)
+                end
               end
             end
 
