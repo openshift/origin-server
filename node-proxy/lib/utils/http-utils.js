@@ -29,12 +29,15 @@ exports.createProtocolServer = function(protocol, opts) {
       break;
     case 'https':
       var ssl_opts  = {
-        secureProtocol: 'SSLv23_method',
         secureOptions: constants.SSL_OP_NO_SSLv3
       };
       ssl_opts.ca   = fs.readFileSync(opts.ca);
       ssl_opts.cert = fs.readFileSync(opts.certificate);
       ssl_opts.key  = fs.readFileSync(opts.private_key);
+      ssl_opts.honorCipherOrder = true;
+      ssl_opts.ciphers = opts.ciphers || "kEECDH:+kEECDH+SHA:kEDH:+kEDH+SHA:+\
+          kEDH+CAMELLIA:kECDH:+kECDH+SHA:kRSA:+kRSA+SHA:+kRSA+\
+          CAMELLIA:!aNULL:!eNULL:!SSLv2:!RC4:!DES:!EXP:!SEED:!IDEA:+3DES";
 
       proto_handler = https.createServer(ssl_opts);
       break;
