@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.36.1
+Version: 1.36.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,16 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Mon Dec 12 2016 Wesley Hearn <whearn@redhat.com> 1.36.2-1
+- Perform quota operations on gear, not application (tiwillia@redhat.com)
+- configureable node disk space buffer considered during gear moves
+  (somalley@redhat.com)
+- rsync_destination_container: Fix free space check (miciah.masters@gmail.com)
+- ensure that gears are moved to nodes with adequate free disk space
+  (somalley@redhat.com)
+- WIP: Gears exceeding quota should be allowed to stop, start, move
+  (somalley@redhat.com)
+
 * Thu Sep 17 2015 Unknown name 1.36.1-1
 - bump_minor_versions for sprint 103 (sedgar@jhancock.ose.phx2.redhat.com)
 
