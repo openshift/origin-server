@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.13.1
+Version: 0.13.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -111,6 +111,10 @@ mv httpd/openshift-vhost-logconf.include %{buildroot}/etc/httpd/conf.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Mon Dec 12 2016 Wesley Hearn <whearn@redhat.com> 0.13.2-1
+- Bug 1194029 - add multiple app aliases in a single httpd reload
+  (agrimm@redhat.com)
+
 * Thu Sep 17 2015 Unknown name 0.13.1-1
 - bump_minor_versions for sprint 103 (sedgar@jhancock.ose.phx2.redhat.com)
 
