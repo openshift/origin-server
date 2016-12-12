@@ -10,7 +10,7 @@
 
 Summary:       OpenShift NodeJS Websocket frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.4.1
+Version: 0.4.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ echo '{}' > "%{buildroot}%{appdir}/.httpd.d/routes.json"
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Mon Dec 12 2016 Wesley Hearn <whearn@redhat.com> 0.4.2-1
+- Bug 1194029 - add multiple app aliases in a single httpd reload
+  (agrimm@redhat.com)
+
 * Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 0.4.1-1
 - bump_minor_versions for sprint 41 (admiller@redhat.com)
 
