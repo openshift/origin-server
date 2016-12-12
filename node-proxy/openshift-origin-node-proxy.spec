@@ -12,7 +12,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version: 1.26.1
+Version: 1.26.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -143,6 +143,10 @@ fi
 %doc README
 
 %changelog
+* Mon Dec 12 2016 Wesley Hearn <whearn@redhat.com> 1.26.2-1
+- node-proxy: Adds honor cipher order (rthrashe@redhat.com)
+- Specify cihper suite in node-web-proxy configuration (tiwillia@redhat.com)
+
 * Mon Oct 20 2014 Adam Miller <admiller@redhat.com> 1.26.1-1
 - bump spec to fix tag collision (admiller@redhat.com)
 - Bug 1153307 - Remove SSLv3 support (jhonce@redhat.com)
