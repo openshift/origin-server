@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.38.7
+Version: 1.38.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -291,6 +291,14 @@ fi
 %{_mandir}/man8/oo-admin-ctl-iptables-port-proxy.8.gz
 
 %changelog
+* Mon Dec 12 2016 Wesley Hearn <whearn@redhat.com> 1.38.8-1
+- ensure that gears are moved to nodes with adequate free disk space
+  (somalley@redhat.com)
+- WIP: Gears exceeding quota should be allowed to stop, start, move
+  (somalley@redhat.com)
+- Bug 1194029 - add multiple app aliases in a single httpd reload
+  (agrimm@redhat.com)
+
 * Tue Jun 14 2016 Stefanie Forrester <sedgar@redhat.com> 1.38.7-1
 - Fix Jenkins failures on pull/merge requests (jolamb@redhat.com)
 
