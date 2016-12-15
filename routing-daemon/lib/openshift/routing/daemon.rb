@@ -239,6 +239,9 @@ module OpenShift
           # The connection to activemq has gone away, attempt a reconnect
           @logger.debug 'Connection to ActiveMQ is gone, attempting a reconnect'
           connect
+        rescue => e
+          @logger.warn "Got an exception: #{e.message}"
+          @logger.debug "Backtrace:\n#{e.backtrace.join "\n"}"
         ensure
           update if Time.now - @last_update >= @update_interval
         end
@@ -246,27 +249,21 @@ module OpenShift
     end
 
     def handle event
-      begin
-        case event[:action]
-        when :delete_application
-          delete_application event[:app_name], event[:namespace]
-        when :add_public_endpoint
-          add_endpoint event[:app_name], event[:namespace], event[:public_address], event[:public_port], event[:types]
-        when :remove_public_endpoint
-          remove_endpoint event[:app_name], event[:namespace], event[:public_address], event[:public_port]
-        when :add_alias
-          add_alias event[:app_name], event[:namespace], event[:alias]
-        when :remove_alias
-          remove_alias event[:app_name], event[:namespace], event[:alias]
-        when :add_ssl
-          add_ssl event[:app_name], event[:namespace], event[:alias], event[:ssl], event[:private_key]
-        when :remove_ssl
-          remove_ssl event[:app_name], event[:namespace], event[:alias]
-        end
-
-      rescue => e
-        @logger.warn "Got an exception: #{e.message}"
-        @logger.debug "Backtrace:\n#{e.backtrace.join "\n"}"
+      case event[:action]
+      when :delete_application
+        delete_application event[:app_name], event[:namespace]
+      when :add_public_endpoint
+        add_endpoint event[:app_name], event[:namespace], event[:public_address], event[:public_port], event[:types]
+      when :remove_public_endpoint
+        remove_endpoint event[:app_name], event[:namespace], event[:public_address], event[:public_port]
+      when :add_alias
+        add_alias event[:app_name], event[:namespace], event[:alias]
+      when :remove_alias
+        remove_alias event[:app_name], event[:namespace], event[:alias]
+      when :add_ssl
+        add_ssl event[:app_name], event[:namespace], event[:alias], event[:ssl], event[:private_key]
+      when :remove_ssl
+        remove_ssl event[:app_name], event[:namespace], event[:alias]
       end
     end
 
