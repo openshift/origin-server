@@ -225,13 +225,14 @@ module OpenShift
           begin
             handle YAML.load(msg.body)
           rescue Psych::SyntaxError => e
-            @logger.warn "Got exception while parsing message from ActiveMQ: #{e.message}"
+            @logger.warn "Got #{e.class} exception while parsing message from ActiveMQ: #{e.message}"
             # Acknowledge it to get it out of the queue.
             @aq.ack msgid, {'subscription' => @uuid}
-          rescue LBControllerException, LBModelException
-            @logger.info 'Got exception while handling message; sending NACK to ActiveMQ.'
+          rescue LBControllerException, LBModelException => e
+            @logger.info "Got #{e.class} exception while handling message; sending NACK to ActiveMQ: #{e.message}"
             @aq.nack msgid, {'subscription' => @uuid}
           else
+            @logger.debug 'Message handled; sending ACK to ActiveMQ.'
             @aq.ack msgid, {'subscription' => @uuid}
           end
         rescue Timeout::Error
@@ -240,7 +241,7 @@ module OpenShift
           @logger.debug 'Connection to ActiveMQ is gone, attempting a reconnect'
           connect
         rescue => e
-          @logger.warn "Got an exception: #{e.message}"
+          @logger.warn "Got #{e.class} exception while handling message: #{e.message}"
           @logger.debug "Backtrace:\n#{e.backtrace.join "\n"}"
         ensure
           update if Time.now - @last_update >= @update_interval
