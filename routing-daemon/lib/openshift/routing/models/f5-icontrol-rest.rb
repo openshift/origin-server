@@ -70,6 +70,17 @@ module OpenShift
             raise LBModelException.new "Expected HTTP #{expected_code} but got #{response.code} instead"
           end
         end
+      rescue RestClient::Conflict => e
+        msg = "Got #{e.class} exception: #{e.message}"
+        begin
+          resp = JSON.parse e.response
+          m = resp['message']
+          msg += " (#{m})" unless m.empty?
+        rescue
+        end
+        msg += '; assuming the intended resource already exists and ignoring.'
+
+        @logger.warn msg
       rescue RestClient::ExceptionWithResponse => e
         raise unless options[:wrap_exceptions]
 
