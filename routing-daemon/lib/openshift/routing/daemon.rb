@@ -197,6 +197,7 @@ module OpenShift
       subscription_hash = {
         'id' => @uuid,
         'ack' => 'client-individual',
+        'activemq.prefetchSize' => 1,
       }
 
       @logger.info "Subscribing to #{@destination}..."
