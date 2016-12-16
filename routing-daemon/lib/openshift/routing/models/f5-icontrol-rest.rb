@@ -230,6 +230,7 @@ module OpenShift
             payload: {
                 "kind" => "ltm:pool:members",
                 "name" => member,
+                "partition" => "Common",
             }.to_json)
     end
 
