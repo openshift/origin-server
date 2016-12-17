@@ -425,7 +425,21 @@ module OpenShift
           patch(resource: policy_url, payload: { 'requires' => ['http'] }.to_json)
         end
       rescue RestClient::ResourceNotFound
-        @logger.info "No #{POLICY_NAME} policy exists.  Creating..."
+        begin
+          vserver_url = "/mgmt/tm/ltm/virtual/#{@vserver}"
+          get(resource: vserver_url, wrap_exceptions: false)
+        rescue RestClient::ResourceNotFound
+          raise LBModelException.new "#{@vserver} virtual server does not exist"
+        end
+
+        begin
+          https_vserver_url = "/mgmt/tm/ltm/virtual/#{@https_vserver}"
+          get(resource: https_vserver_url, wrap_exceptions: false)
+        rescue RestClient::ResourceNotFound
+          raise LBModelException.new "#{@https_vserver} virtual server does not exist"
+        end
+
+        @logger.info "No #{POLICY_NAME} policy exists.  Creating policy..."
         post(resource: "/mgmt/tm/ltm/policy",
              payload: {
                "kind" => "tm:ltm:policy:policystate",
@@ -436,22 +450,26 @@ module OpenShift
              }.to_json)
 
         # Create a noop rule for the policy so we can add the policy to the vservers
+        @logger.info 'Adding noop rule to policy...'
         post(resource: "/mgmt/tm/ltm/policy/#{POLICY_NAME}/rules",
          payload: {
            "kind" => "tm:ltm:policy:rules:rulesstate",
            "name" => "default_noop",
          }.to_json)
 
-        # Now add the policy to the virtual servers
+        @logger.info "Adding policy to #{@vserver} virtual server..."
         post(resource: "/mgmt/tm/ltm/virtual/#{@vserver}/policies",
              payload: {
                "name" => POLICY_NAME
              }.to_json)
 
+        @logger.info "Adding policy to #{@https_vserver} virtual server..."
         post(resource: "/mgmt/tm/ltm/virtual/#{@https_vserver}/policies",
              payload: {
                "name" => POLICY_NAME
              }.to_json)
+
+        @logger.info 'Done configuring policy.'
       end
     end
 
