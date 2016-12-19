@@ -2,6 +2,27 @@ module OpenShift
 
   class LBModelException < StandardError; end
 
+  class LBModelExceptionCollector
+    def initialize
+      @exceptions = []
+    end
+
+    def try
+      yield
+    rescue LBModelException => e
+      @exceptions << e
+    end
+
+    def to_s
+      "got #{@exceptions.length} LBModelException exceptions: " +
+        @exceptions.map {|e| e.message}.join('; ')
+    end
+
+    def done
+      raise LBModelException.new self.to_s unless @exceptions.empty?
+    end
+  end
+
   # == Abstract routing model class
   #
   # Presents direct access to a load balancer.  This is an abstract class.
