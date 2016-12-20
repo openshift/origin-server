@@ -370,17 +370,29 @@ module OpenShift
     end
 
     def remove_ssl pool_name, alias_str
-      @logger.debug("LTM removing #{URI.escape(alias_str)}-ssl-profile client-ssl from #{@https_vserver}")
-      delete(resource: "/mgmt/tm/ltm/virtual/#{@https_vserver}/profiles/#{URI.escape(alias_str)}-ssl-profile")
+      @exceptions = LBModelExceptionCollector.new
 
-      @logger.debug("LTM deleting removing #{URI.escape(alias_str)}-ssl-profile")
-      delete(resource: "/mgmt/tm/ltm/profile/client-ssl/#{URI.escape(alias_str)}-ssl-profile")
+      @exceptions.try do
+        @logger.debug("LTM removing #{URI.escape(alias_str)}-ssl-profile client-ssl from #{@https_vserver}")
+        delete(resource: "/mgmt/tm/ltm/virtual/#{@https_vserver}/profiles/#{URI.escape(alias_str)}-ssl-profile")
+      end
 
-      @logger.debug("LTM removing #{alias_str}-https-key")
-      delete(resource: "/mgmt/tm/sys/file/ssl-key/#{URI.escape(alias_str)}-https-key.key")
+      @exceptions.try do
+        @logger.debug("LTM deleting removing #{URI.escape(alias_str)}-ssl-profile")
+        delete(resource: "/mgmt/tm/ltm/profile/client-ssl/#{URI.escape(alias_str)}-ssl-profile")
+      end
 
-      @logger.debug("LTM removing #{alias_str}-https-cert")
-      delete(resource: "/mgmt/tm/sys/file/ssl-cert/#{URI.escape(alias_str)}-https-cert.crt")
+      @exceptions.try do
+        @logger.debug("LTM removing #{alias_str}-https-key")
+        delete(resource: "/mgmt/tm/sys/file/ssl-key/#{URI.escape(alias_str)}-https-key.key")
+      end
+
+      @exceptions.try do
+        @logger.debug("LTM removing #{alias_str}-https-cert")
+        delete(resource: "/mgmt/tm/sys/file/ssl-cert/#{URI.escape(alias_str)}-https-cert.crt")
+      end
+
+      @exceptions.done
     end
 
     def get_pool_certificates pool_name
