@@ -7,7 +7,7 @@ class AssetsTest < ActionDispatch::IntegrationTest
     get '/assets/console.js'
     assert_response :success
     assert_equal 'application/javascript', @response.content_type
-    assert @response.body.length > 10*1024
+    assert @response.body.length > 10*1024, "response body was shorter than expected: #{@response.body}"
     assert @response.body.include?("jQuery")
   end
 
