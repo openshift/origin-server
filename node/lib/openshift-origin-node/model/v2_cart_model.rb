@@ -1385,10 +1385,20 @@ module OpenShift
 
             buffer << out if out.is_a?(String)
             buffer << err if err.is_a?(String)
-
-            raise ::OpenShift::Runtime::Utils::ShellExecutionException.new(
+            # We ignore 'Disk quota exceeded' msg to allow apps at quota to start/stop/restart.
+            # During moves, quota limits are bumped if necessary.  Here, no bump, just ignore.
+            # Since we aren't bumping quota here, no worries about user exploiting limits 
+            # indefinitely, users can only use up to current limit.  This is a convenience so
+            # nothing gets 'stuck'.
+            if %w[start stop restart].include?(action)
+              raise ::OpenShift::Runtime::Utils::ShellExecutionException.new(
+                        "CLIENT_ERROR: Failed to execute: 'control #{action}' for #{path}", rc, out, err
+                    ) if (rc != 0 && !out.include?("Disk quota exceeded") && !err.include?("Disk quota exceeded"))
+            else
+              raise ::OpenShift::Runtime::Utils::ShellExecutionException.new(
                       "CLIENT_ERROR: Failed to execute: 'control #{action}' for #{path}", rc, out, err
                   ) if rc != 0
+            end
           end
         }
 
