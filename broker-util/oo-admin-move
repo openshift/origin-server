@@ -29,6 +29,8 @@ Options:
     Print the move report at finish in JSON
 --change_district
     Move to a different district other than the source district
+--change_region
+    Move to a different region other than the source region
 -h|--help
     Show Usage info
 USAGE
