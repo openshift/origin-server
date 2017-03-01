@@ -23,7 +23,7 @@ module Console::HelpHelper
   end
 
   def ssh_keys_help_path
-    community_base_url 'developers/remote-access#keys'
+    community_developer_portal_url 'managing-your-applications/remote-connection.html#setting-up-ssh-keys'
   end
 
   def deploy_hook_user_guide_topic_url
@@ -99,7 +99,7 @@ module Console::HelpHelper
   end
 
   def ssh_help_url
-    community_base_url 'developers/remote-access'
+    community_developer_portal_url 'managing-your-applications/remote-connection.html'
   end
 
   def client_tools_install_help_url
