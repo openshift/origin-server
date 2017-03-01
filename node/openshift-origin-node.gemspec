@@ -22,6 +22,7 @@ Gem::Specification.new do |s|
   s.files       += %w(README.md Rakefile Gemfile rubygem-openshift-origin-node.spec openshift-origin-node.gemspec COPYRIGHT LICENSE)
   s.require_paths = ["lib"]
   s.add_dependency("json")
+  s.add_dependency('fakefs', ">=0.5.4")
   s.add_dependency("parseconfig", ">= 0.5.2")
   s.add_dependency("openshift-origin-common")
   s.add_dependency("safe_yaml")
