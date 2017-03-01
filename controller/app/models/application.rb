@@ -1376,7 +1376,7 @@ class Application
     fqdn.downcase!
     return false if fqdn =~ /^\d+\.\d+\.\d+\.\d+$/
     return false if fqdn =~ /\A[\S]+(\.(json|xml|yml|yaml|html|xhtml))\z/
-    return false if not fqdn =~ /\A[a-z0-9]+([\.]?[\-a-z0-9]+)+\z/
+    return false if not fqdn =~ /\A[a-z0-9]+([\.]?[\-a-z0-9_]+)+\z/
     conf = Rails.configuration.openshift
     if fqdn.end_with?(cloud_domain = conf[:domain_suffix])
       # Normally, do not allow creating an alias in the cloud domain. Unless configured.
