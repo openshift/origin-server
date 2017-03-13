@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
   id_with_format = OpenShift::Controller::Routing::ID_WITH_FORMAT
 
-  scope "/broker/rest" do
+  scope "/broker/rest", defaults: { format: 'json' } do
     #
     # Singular member routes
     #
