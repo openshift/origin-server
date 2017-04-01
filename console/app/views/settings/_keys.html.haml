@@ -7,17 +7,12 @@
   = link_to "Learn more about SSH keys.", ssh_keys_help_path
 
 %table.table.table-condensed.table-fixed
-  %thead
-    %tr
-      %th.nowrap{:scope => 'col'} Key name
-      %th.nowrap{:scope => 'col'} Type
-      %th.nowrap{:scope => 'col'} Contents
-      %th
   - keys.each do |key|
     %tr{:id => "#{key.name}_sshkey"}
-      %td.sshkey-name{:scope => 'row'}= key.name
-      %td.sshkey-type= key.type
-      %td.code.sshkey= key.display_content
+      %td.nowrap{:scope => 'row'}
+        %div
+          %strong= key.name
+        %div= key.display_content + " (#{key.type})"
       %td= link_to 'Delete', key_path(key), :class => 'btn btn-mini btn-delete nowrap', :method => :delete, :confirm => "Are you sure you want to delete your key '#{key.name}'?"
 .btn-toolbar
   = link_to "Add a new key...", new_key_path, :class => 'btn btn-small'

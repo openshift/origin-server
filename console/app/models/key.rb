@@ -64,13 +64,24 @@ class Key < RestApi::Base
   end
 
   def display_content
-    if content.length > 20
-      "#{content[1..8]}..#{content[-8..-1]}"
+    if (is_ssh?)
+      Digest::MD5.hexdigest(Base64.decode64(content)).gsub(/(.{2})(?=.)/, '\1:\2')
     else
-      content
+      if content.length > 32
+        "#{content[1..16]}..#{content[-16..-1]}"
+      else
+        content
+      end
     end
+    
   end
-
+  
+  #
+  # Determine if the key is an ssh key or kerberos principal
+  #
+  def is_ssh?
+    self.type != 'krb5-principal'
+  end
   #
   # Until the empty default key is attached from domain, ignore in lists
   #
