@@ -91,7 +91,7 @@ func TestDropOnBlockedOutput(t *testing.T) {
 	// and the writer is unblocked.
 	ag.AssertStatsEqual(t, map[string]float64{
 		"input.read":   1000,
-		"input.drop":   998,
+		"input.evict":  998,
 		"output.write": 2,
 	})
 

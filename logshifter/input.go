@@ -14,7 +14,9 @@ import (
 // be placed on the channel:
 //
 //   input.read => number of messages processed during a Read call
-//   input.drop => number of messages dropped from queue during a Read call
+//   input.queue => number of messages queued during a Read call
+//   input.drop => number of new messages dropped during a Read call
+//   input.evict => number of old messages evicted from the queue during a Read call
 //   input.read.duration => time taken to process a line from reader (micros)
 type Input struct {
 	bufferSize   int
@@ -40,6 +42,12 @@ func (input *Input) Read() *sync.WaitGroup {
 	return wg
 }
 
+func (input *Input) record(name string, val float64) {
+	if input.statsChannel != nil {
+		input.statsChannel <- Stat{name: name, value: val}
+	}
+}
+
 // Private synchronous portion of Read.
 func (input *Input) read() {
 	reader := bufio.NewReaderSize(input.reader, input.bufferSize)
@@ -47,10 +55,7 @@ func (input *Input) read() {
 	for {
 		line, _, err := reader.ReadLine()
 
-		var start time.Time
-		if input.statsChannel != nil {
-			start = time.Now()
-		}
+		start := time.Now()
 
 		if err != nil {
 			break
@@ -64,24 +69,39 @@ func (input *Input) read() {
 
 		copy(cp, line)
 
-		if input.statsChannel != nil {
-			input.statsChannel <- Stat{name: "input.read", value: 1.0}
-		}
+		input.record("input.read", 1.0)
 
 		select {
 		case input.queue <- cp:
 			// queued
+			input.record("input.queue", 1.0)
 		default:
-			// evict the oldest entry to make room
-			<-input.queue
-			if input.statsChannel != nil {
-				input.statsChannel <- Stat{name: "input.drop", value: 1.0}
+			// try to evict the oldest entry to make room
+			select {
+			case <-input.queue:
+				input.record("input.evict", 1.0)
+				// try again to queue
+				select {
+				case input.queue <- cp:
+					// queued
+					input.record("input.queue", 1.0)
+				default:
+					// no room, drop it
+					input.record("input.drop", 1.0)
+				}
+			default:
+				// queue is already empty, try to queue
+				select {
+				case input.queue <- cp:
+					// queued
+					input.record("input.queue", 1.0)
+				default:
+					// no room, drop it
+					input.record("input.drop", 1.0)
+				}
 			}
-			input.queue <- cp
 		}
 
-		if input.statsChannel != nil {
-			input.statsChannel <- Stat{name: "input.read.duration", value: float64(time.Now().Sub(start).Nanoseconds()) / float64(1000)}
-		}
+		input.record("input.read.duration", float64(time.Now().Sub(start).Nanoseconds())/float64(1000))
 	}
 }
