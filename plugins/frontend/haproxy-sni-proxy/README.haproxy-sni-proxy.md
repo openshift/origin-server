@@ -39,8 +39,8 @@ later and will have access to all client TLS parameters, including the
 SNI extension.
 
 Cartridges must allow applications to provide their own X509 server
-certificates, and should accommodate clients that expect an X509
-certificate for the FQDN it contacted whether its an alias or the
+certificates and should accommodate clients that expect an X509
+certificate for the FQDN it contacted whether it's an alias or the
 primary name of the application.
 
 
@@ -52,15 +52,15 @@ mapping.
 
 The mapping frontend path requests which SNI proxy port to be used.  It may be one of the following:
 
- 1. A blank ("") which causes the first SNI proxy port to be selected.
- 1. "TLS_PORT_1", "TLS_PORT_2", etc... which causes the first, second, etc... SNI proxy port to be selected.
+ 1. An empty string ("") which causes the first SNI proxy port to be selected.
+ 1. "TLS_PORT_1", "TLS_PORT_2", and so on, which causes the first, second, etc. SNI proxy port to be selected.
  1. A port number, which will be used only if it is in the set of configured SNI proxy ports.
 
 Specific port numbers should be avoided as they can differ between
-OpenShift installations, or even be changed by the administrator after
+OpenShift installations or even be changed by the administrator after
 deployment.
 
-The SNI proxy port numbers are constrained, and are unlikely to be the
+The SNI proxy port numbers are constrained and are unlikely to be the
 port a service is normally expected to be on.
 
 The mapping backend path is not used.
@@ -93,28 +93,29 @@ For more information, please refer to the [OpenShift Origin Cartridge Developer'
 ## SNI Proxy Requirements and Configuration
 
 The SNI proxy reads its configuration from the OpenShift node
-configuration files.
+configuration files:
 ```
 /etc/openshift/node.conf
 /etc/openshift/node-plugins.d/openshift-origin-frontend-haproxy-sni-proxy.conf
 ```
 
 The SNI proxy is configured for ports 2303 through 2308 by default.
-
 This list is configurable through the "PROXY_PORTS" parameter in
 `openshift-origin-frontend-haproxy-sni-proxy.conf`.  Caution should be
-used changing the list to ensure that there are no conflicts,
+used when changing the list to ensure that there are no conflicts,
 including with the gear port proxy.
 
 The proxy ports should have a firewall policy similar to ports 80 and
-443 (HTTP and HTTPS).  Typically, allowing contact.
+443 (HTTP and HTTPS) to allow connections.
 
-Depending on the configuration, the port proxy will bind to loopback
-(127.0.0.1) and the IP address of the public facing network interface
-(eg: eth0).  If an IP address cannot be determined, then the port
-proxy will bind to INADDR_ANY.
+By default, the port proxy will bind to loopback (127.0.0.1) and the IP
+address of the public-facing network interface specified by the
+"EXTERNAL_ETH_DEV" setting in `node.conf` (e.g., eth0) or inferred from
+the "PUBLIC_IP" setting in `node.conf`.  The public-facing address can
+be overridden using the "BIND_IP" setting in
+`openshift-origin-frontend-haproxy-sni-proxy.conf`.  If an IP address
+cannot be determined, then the port proxy will bind to INADDR_ANY.
 
 The SNI proxy requires haproxy-1.5 for SNI support.  As haproxy-1.5 is
 beta, it is expected to be installed alongside the default system
 version of haproxy and located at `/usr/sbin/haproxy15`.
-
