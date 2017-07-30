@@ -12,7 +12,12 @@ Cartridge-Vendor: redhat
 Website: http://www.phpmyadmin.net/
 Categories:
 - embedded
+- plugin
 - administration
+Group-Overrides:
+- components:
+  - web_proxy
+  - phpmyadmin
 Cart-Data:
 - Key: connection_url
   Type: cart_data
@@ -32,7 +37,7 @@ Subscribes:
     Required: true
 Scaling:
   Min: 1
-  Max: 1
+  Max: -1
 Configure-Order:
 - - mysql
   - mariadb
@@ -40,7 +45,7 @@ Configure-Order:
 Endpoints:
 - Private-IP-Name: IP
   Private-Port-Name: PORT
-  Private-Port: 8080
+  Private-Port: 8081
   Public-Port-Name: PROXY_PORT
   Protocols:
   - http
