@@ -78,7 +78,7 @@ Gears combine the partitioning capabilities of control groups with the security 
 <6> The post-receive hook invokes the build and deployment
 
 === Proxy Ports
-image:port_proxy.png[Proxy Ports]
+image:images/port_proxy.png[Proxy Ports]
 
 Proxy ports allow Gears to expose internal services for the purposes of load balancing or providing its services to related application Gears.
 
@@ -96,7 +96,7 @@ OpenShift Origin supports several "built-in" cartridges based on the most popula
 Additional cartridges can be developed and distributed independently of the rest of the Origin system. The Origin web console and the rhc utility enable users to add cartridges from a git repository. See the https://www.openshift.com/developers/cartridge-authors-guide[Cartridge Author's Guide] for more information on this.
 
 == Applications
-image:application_overview.png[Applications]
+image:images/application_overview.png[Applications]
 
 * Domain: The domain is not directly related to DNS; instead it provides a unique namespace for all the applications of a specific user. The domain name is appended to the application name to form the final application URL.
 * Application Name: Identifies the name of the application. The final URL to access the application is of the form: `https://[APPNAME]-[DOMAIN].rhcloud.com`
@@ -108,16 +108,16 @@ image:application_overview.png[Applications]
 
 This flow describes the case of creating and deploying a simple PHP application.
 
-image:simple_application_creation.png[Simple app creation]
+image:images/simple_application_creation.png[Simple app creation]
 
 === Application deployment using Jenkins
 
 OpenShift Origin also provides a Jenkins-based build workflow for all applications. The Jenkins server runs as a separate application that uses one of the user gears. The Jenkins builder agent also runs as a separate application that uses SSH/REST APIs to interact with the broker and the application being built.
 
-image:jenkins_build.png[Jenkins Build]
+image:images/jenkins_build.png[Jenkins Build]
 
 === Horizontal scaling
 
 Horizontal scaling for applications is accomplished using HAProxy as a load-balancer and git deployment end point for the application. When a web request comes to HAProxy, it is forwarded on to the gear running the web tier of the application. Deployments are also handled through the HAProxy cartridge. When the customer performs a git push to deploy code to the HAProxy gear, it in turn does a git push to each of the other web gears.
 
-image:scaled_application.png[Scaled Application]
+image:images/scaled_application.png[Scaled Application]
