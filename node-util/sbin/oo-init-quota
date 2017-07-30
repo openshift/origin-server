@@ -66,7 +66,7 @@ function get_fstab_mount_options() {
 # get the current mount options for a given mount point
 function get_current_mount_options() {
     # options are the comma delimited string between parens
-    mount | egrep " $1 " | sed -e 's/^.*(// ; s/).*$// ' | sort -u
+    mount | egrep "\s+$1\s+" | sed -e 's/^.*(// ; s/).*$// ' | sort -u
 }
 
 ORIGIN_MOUNTPOINT=$(get_mountpoint $origin_dir)
@@ -79,11 +79,11 @@ QUOTA_OPTIONS=usrjquota=aquota.user,jqfmt=vfsv0
 function update_fstab() {
     # ORIGIN_MOUNTPOINT=$1
 
-    if ! tr -s ' ' < /etc/fstab | egrep "^[^#].+ $1 ext4 [^ ]+$QUOTA_OPTIONS "; then
+    if ! tr -s '[:blank:]' < /etc/fstab | egrep "^[^#].+\s+$1\s+ext4\s+.*$QUOTA_OPTIONS\s+"; then
       FSTAB_OPTIONS=$(get_fstab_mount_options $1)
       NEW_OPTIONS=${FSTAB_OPTIONS},${QUOTA_OPTIONS}
       # NOTE: double quotes - Variables are shell-substituted before perl runs
-      perl -p -i -e "m: $1 : && s/${FSTAB_OPTIONS}/${NEW_OPTIONS}/" /etc/fstab
+      perl -p -i -e "m:\s+$1\s+: && s/${FSTAB_OPTIONS}/${NEW_OPTIONS}/" /etc/fstab
     fi
 }
 
