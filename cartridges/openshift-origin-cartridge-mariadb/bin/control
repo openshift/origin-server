@@ -65,9 +65,7 @@ function stop {
     if [ -f $pidfile ]; then
       echo "Stopping MariaDB cartridge"
       pid=$( /bin/cat $pidfile )
-      /bin/kill $pid
-      ret=$?
-      if [ $ret -eq 0 ]; then
+      if ! /bin/kill $pid; then
         TIMEOUT="$STOPTIMEOUT"
         while [ $TIMEOUT -gt 0 ] && [ -f "$pidfile" ]
         do

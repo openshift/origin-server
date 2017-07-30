@@ -41,10 +41,11 @@ function start() {
     update_passenger_performance
     # Force httpd into its own pgroup, as httpd is hard-coded to TERM everything in
     # its pgroup during shutdown (even while foregrounded)
+    local rc=0
     set -m
-    ruby_context "umask 002 &>/dev/null ; RAILS_ENV=${RAILS_ENV:-production} nohup /usr/sbin/httpd $HTTPD_CMD_CONF -D FOREGROUND |& /usr/bin/logshifter -tag ruby &"
+    ruby_context "umask 002 &>/dev/null ; RAILS_ENV=${RAILS_ENV:-production} nohup /usr/sbin/httpd $HTTPD_CMD_CONF -D FOREGROUND |& /usr/bin/logshifter -tag ruby &" || rc=$?
     set +m
-    [ "$?" == "0" ] && wait_for_pid_file $HTTPD_PID_FILE
+    [[ "$rc" = 0 ]] && wait_for_pid_file $HTTPD_PID_FILE
 }
 
 function stop() {

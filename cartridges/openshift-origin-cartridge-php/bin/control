@@ -25,37 +25,45 @@ function pre_start_httpd_config {
 }
 
 function start() {
+    local ret=0
+
     echo "Starting PHP ${OPENSHIFT_PHP_VERSION} cartridge (Apache+mod_php)"
     pre_start_httpd_config
     # Force httpd into its own pgroup, as httpd is hard-coded to TERM everything in
     # its pgroup during shutdown (even while foregrounded)
     set -m
     php_context "nohup /usr/sbin/httpd $HTTPD_CMD_CONF -D FOREGROUND |& /usr/bin/logshifter -tag php &" \
-      && wait_for_pid_file $HTTPD_PID_FILE
+      && wait_for_pid_file $HTTPD_PID_FILE || ret=$?
     set +m
-    return $?
+
+    return $ret
 }
 
 function reload() {
+    local ret=0
+
     echo "Reloading PHP ${OPENSHIFT_PHP_VERSION} cartridge (Apache+mod_php)"
     pre_start_httpd_config
     httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
-    kill -USR1 $httpd_pid && wait_for_pid_file $HTTPD_PID_FILE
-    return $?
+    kill -USR1 $httpd_pid && wait_for_pid_file $HTTPD_PID_FILE || ret=$?
+
+    return $ret
 }
 
 function restart() {
+    local ret=0
+
     echo "Restarting PHP ${OPENSHIFT_PHP_VERSION} cartridge (Apache+mod_php)"
     ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     if [ -f "$HTTPD_PID_FILE" ]; then
         pre_start_httpd_config
         httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
-        kill -HUP $httpd_pid
+        kill -HUP $httpd_pid || ret=$?
     else
-        start
+        start || ret=$?
     fi
 
-    return $?
+    return $ret
 }
 
 function stop() {
@@ -69,9 +77,12 @@ function stop() {
 }
 
 function configtest() {
+    local ret=0
+
     echo "Testing Apache *.conf files"
-    php_context "/usr/sbin/httpd $HTTPD_CMD_CONF -t"
-    return $?
+    php_context "/usr/sbin/httpd $HTTPD_CMD_CONF -t" || ret=$?
+
+    return $ret
 }
 
 function status() {
@@ -185,5 +196,3 @@ case "$1" in
   build)           build ;;
   *)               exit 0
 esac
-
-exit $?
