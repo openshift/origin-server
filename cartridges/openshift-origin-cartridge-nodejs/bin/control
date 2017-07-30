@@ -235,7 +235,7 @@ function build() {
     unset GIT_WORK_TREE
 
     if [ -f "${OPENSHIFT_REPO_DIR}"/package.json ]; then
-        (cd "${OPENSHIFT_REPO_DIR}"; nodejs_context "npm install -d")
+        (cd "${OPENSHIFT_REPO_DIR}"; nodejs_context "npm install --production --loglevel info")
     fi
 }
 
