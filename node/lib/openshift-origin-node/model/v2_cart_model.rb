@@ -1521,7 +1521,9 @@ module OpenShift
             next if options[:secondary_only] and cartridge.name == primary_cartridge.name
             next if options[:exclude_web_proxy] and cartridge.web_proxy?
 
-            buffer << start_cartridge('start', cartridge, options)
+            ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).boost do
+              buffer << start_cartridge('start', cartridge, options)
+            end
           end
         else
           buffer << start_gear(options.merge({secondary_only: true}))
@@ -1566,8 +1568,10 @@ module OpenShift
             next if options[:primary_only] and cartridge.name != primary_cartridge.name
             next if options[:secondary_only] and cartridge.name == primary_cartridge.name
             next if options[:exclude_web_proxy] and cartridge.web_proxy?
-
-            buffer << start_cartridge('restart', cartridge, options)
+ 
+            ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).boost do
+              buffer << start_cartridge('restart', cartridge, options)
+            end
           end
         else
           buffer << restart_gear(options.merge({secondary_only: true}))
@@ -1603,35 +1607,37 @@ module OpenShift
         options[:user_initiated] = true if not options.has_key?(:user_initiated)
         options[:hot_deploy] = false if not options.has_key?(:hot_deploy)
 
-        cartridge = get_cartridge(cartridge) if cartridge.is_a?(String)
+        ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).boost do
+          cartridge = get_cartridge(cartridge) if cartridge.is_a?(String)
 
-        if not options[:user_initiated] and stop_lock?
-          return "Not starting cartridge #{cartridge.name} because the application was explicitly stopped by the user"
-        end
-
-        if cartridge.name == primary_cartridge.name
-          if options[:user_initiated]
-            FileUtils.rm_f(stop_lock)
-
-            # Unidle the application, preferring to use the privileged operation if possible
-            frontend = FrontendHttpServer.new(@container)
-            if Process.uid == @container.uid
-              frontend.unprivileged_unidle
-            else
-              frontend.unidle
-            end
-
+          if not options[:user_initiated] and stop_lock?
+            return "Not starting cartridge #{cartridge.name} because the application was explicitly stopped by the user"
           end
-          @state.value = State::STARTED
-        end
 
-        if options[:hot_deploy]
-          output = "Not starting cartridge #{cartridge.name} because hot deploy is enabled"
-          options[:out].puts(output) if options[:out]
-          return output
-        end
+          if cartridge.name == primary_cartridge.name
+            if options[:user_initiated]
+              FileUtils.rm_f(stop_lock)
 
-        do_control(type, cartridge, options)
+              # Unidle the application, preferring to use the privileged operation if possible
+              frontend = FrontendHttpServer.new(@container)
+              if Process.uid == @container.uid
+                frontend.unprivileged_unidle
+              else
+                frontend.unidle
+              end
+
+            end
+            @state.value = State::STARTED
+          end
+
+          if options[:hot_deploy]
+            output = "Not starting cartridge #{cartridge.name} because hot deploy is enabled"
+            options[:out].puts(output) if options[:out]
+            return output
+          end
+
+          do_control(type, cartridge, options)
+        end
       end
 
       ##
