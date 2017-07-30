@@ -404,38 +404,35 @@ EOFZ
     ::OpenShift::Config.new.get('CLOUD_DOMAIN')
   end
 
-  def assert_gear_status_in_proxy(proxy, target_gear, status)
+  def assert_gear_status_in_proxy(proxy, target_gears, status)
     passed = false
+    names = target_gears.inject({ "local-gear" => false}) do |h, gear|
+      h["gear-" + gear.dns.split('.')[0]] = false
+      h
+    end
+
     num_tries = 3
     (1..num_tries).each do |i|
-      proxy_status_csv = `curl "http://#{proxy.dns}/haproxy-status/;csv" 2>/dev/null`
-
-      if proxy.uuid == target_gear.uuid
-        names = [ 'local-gear' ]
-      else
-        gear_name = target_gear.dns.split('-')[0]
-        names = [ "gear-#{gear_name}-#{target_gear.namespace}" ]
-        gear_name = proxy.dns.split('-')[0]
-        names << "gear-#{gear_name}-#{target_gear.namespace}"
-      end
-
+      proxy_status_csv = `curl 'http://#{proxy.dns}/haproxy-status/;csv' 2>/dev/null`
       proxy_status_csv.split("\n").each do |line|
-        names.each do |name|
+        names.keys.each do |name|
           if line =~ /#{name}/
-            if line =~ /#{status}/
-              passed = true
-            elsif i == num_tries
-              assert_match /#{status}/, line
-            end
-            break
+            names[name] = line =~ /#{status}/
           end
         end
+      end
+      passed = target_gears.length == names.inject(0) do |len, (k, v)|
+        v ? len+1 : len
       end
       break if passed
       sleep 2
     end
 
-    flunk("Target gear #{target_gear.name} did not have expected status #{status}") unless passed
+    if !passed
+      failed = names.inject([]) {|list, (k, v)| list << k if !v; list }
+      flunk("Target gears " + failed.join(', ') +
+            " did not have expected status #{status}")
+    end
   end
 
   def restart_cartridge(app_name, cartridge)

@@ -81,27 +81,24 @@ class MultiHaFuncTest < OpenShift::NodeBareTestCase
     @api.assert_scales_to(app_name, @framework_cartridge, 6)
     assert_proxies_not_disabled(proxy_entries)
     @api.assert_scales_to(app_name, @framework_cartridge, 7)
-    assert_proxies_disabled(proxy_entries)    
-    
+    assert_proxies_disabled(proxy_entries)
+  end
 
+  def assert_proxies_status(proxy_entries, status)
+    proxy_entries.values.each do |proxy|
+      logger.info "Checking target gears " +
+        proxy_entries.values.map {|p| p.dns}.join(', ') +
+        " status from proxy #{proxy.dns}"
+      @api.assert_gear_status_in_proxy(proxy, proxy_entries.values, status)
+    end
   end
 
   def assert_proxies_disabled(proxy_entries)
-    proxy_entries.values.each do |target_gear|
-      proxy_entries.values.each do |proxy|
-        logger.info "Checking target gear #{target_gear.dns} status from proxy #{proxy.dns}"
-        @api.assert_gear_status_in_proxy(proxy, target_gear, 'MAINT')
-      end
-    end
+    assert_proxies_status(proxy_entries, 'MAINT')
   end
 
   def assert_proxies_not_disabled(proxy_entries)
-    proxy_entries.values.each do |target_gear|
-      proxy_entries.values.each do |proxy|
-        logger.info "Checking target gear #{target_gear.dns} status from proxy #{proxy.dns}"
-        @api.assert_gear_status_in_proxy(proxy, target_gear, 'UP')
-      end
-    end
+    assert_proxies_status(proxy_entries, 'UP')
   end
 
 end
