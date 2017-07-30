@@ -16,6 +16,7 @@ class Avahi
   TYPE_CNAME = 0x05
   TYPE_A = 0x01
   TTL = 60
+  CNAME_REGEX = /^[a-zA-Z0-9]+(?:\-[a-zA-Z0-9]+)?\.local$/
   
   ##
   # Class initializer. Creates a DBUS connection to Avahi service.
@@ -38,9 +39,8 @@ class Avahi
   # @return status Integer HTTP codes 200, 400, 404
   # @return message String Detailed message of success or error
   def remove_alias(cname)
-    if  cname.nil? || cname.empty? || 
-        (not cname.match(/[a-z]+(.[a-z]+)?.local/))
-      return 400, "Invlaid CNAME '#{cname}'"
+    if cname.nil? || cname.empty? || (not cname.match(CNAME_REGEX))
+      return 400, "Invalid CNAME '#{cname}'"
       return 400, "Invalid CNAME"
     end
     
@@ -81,15 +81,13 @@ class Avahi
   # @return status Integer HTTP codes 200, 400, 404
   # @return message String Detailed message of success or error
   def add_alias(cname, fqdn)
-    if  cname.nil? || cname.empty? ||
-        (not cname.match(/[a-z]+(.[a-z]+)?.local/))
-      return 400, "Invlaid CNAME '#{cname}'"
+    if cname.nil? || cname.empty? || (not cname.match(CNAME_REGEX))
+      return 400, "Invalid CNAME '#{cname}'"
       return 400, "Invalid CNAME"
     end
 
-    if fqdn.nil? || fqdn.empty? ||
-        (not fqdn.match(/[a-z]+(.[a-z]+)?.local/))
-        return 400, "Invlaid FQDN '#{fqdn}'"
+    if fqdn.nil? || fqdn.empty? || (not fqdn.match(CNAME_REGEX))
+        return 400, "Invalid FQDN '#{fqdn}'"
         return 400, "Invalid FQDN"
     end
 
