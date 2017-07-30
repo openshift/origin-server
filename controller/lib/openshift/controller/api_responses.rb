@@ -47,6 +47,7 @@ module OpenShift
             end
             @analytics_tracker.track_event(event_name, @domain, @application, {'request_path' => request.fullpath, 'request_method' => request.method, 'status_code' => status, 'error_code' => err_code, 'error_field' => field})
           end
+          log_broker_stats(request.uuid)
           respond_with reply, :status => reply.status
         end
 
@@ -225,6 +226,7 @@ module OpenShift
           else
             log_action(action_log_tag, status, true, message, log_args)
           end
+          log_broker_stats(request.uuid)
           respond_with reply
         end
 
@@ -276,6 +278,17 @@ module OpenShift
               messages.push(Message.new(:result, ex.resultIO.resultIO.string, code, field)) unless ex.resultIO.resultIO.string.empty?
             end
             [code, message, messages]
+          end
+
+          def log_broker_stats(request_uuid)
+            if Rails.configuration.openshift[:broker_stats_enabled]
+              stats                            = Hash.new
+              stats[:request_id]               = request_uuid
+              stats[:gc_stat]                  = GC::stat
+              stats[:count_objects]            = ObjectSpace.count_objects
+              stats[:count_objects][:T_SYMBOL] = Symbol.all_symbols.size
+              Rails.logger.info("BROKER_STATS => #{stats.to_json}")
+            end
           end
     end
   end
