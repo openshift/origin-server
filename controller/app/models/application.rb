@@ -3010,7 +3010,7 @@ class Application
         raise OpenShift::UserException.new("Name must be 128 characters or less.", 188, "environment_variables") if name.length > 128
         match = /\A([a-zA-Z_][\w]*)\z/.match(name)
         raise OpenShift::UserException.new("Name can only contain letters, digits and underscore and can't begin with a digit.", 188, "environment_variables") if match.nil?
-        raise OpenShift::UserException.new("Value must be 512 characters or less.", 190, "environment_variables") if value and value.length > 512
+        raise OpenShift::UserException.new("Value must be 4096 characters or less.", 190, "environment_variables") if value and value.length > 4096
         raise OpenShift::UserException.new("Value cannot contain null characters.", 190, "environment_variables") if value and value.include? "\\000"
       end
       if no_delete
